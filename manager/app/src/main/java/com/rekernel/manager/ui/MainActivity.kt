@@ -59,7 +59,6 @@ class MainActivity : ComponentActivity() {
             val viewModel = viewModel<MainViewModel>()
             val uiState by viewModel.uiState.collectAsStateWithLifecycle()
             val selectedPage by viewModel.selectedPage.collectAsStateWithLifecycle()
-            val kernelStatus by viewModel.kernelStatus.collectAsStateWithLifecycle()
             val appSettings = uiState
             val uiMode = UiMode.fromValue(appSettings.uiMode)
             val darkMode = appSettings.colorMode.isDark ||
@@ -91,8 +90,6 @@ class MainActivity : ComponentActivity() {
                     MainScreen(
                         initialPage = selectedPage,
                         onPageChanged = viewModel::setSelectedPage,
-                        kernelStatus = kernelStatus,
-                        onRefreshKernel = viewModel::checkKernel,
                     )
                 }
             }
@@ -104,8 +101,6 @@ class MainActivity : ComponentActivity() {
 fun MainScreen(
     initialPage: Int = 0,
     onPageChanged: (Int) -> Unit = {},
-    kernelStatus: com.rekernel.manager.kernel.KernelStatus = com.rekernel.manager.kernel.KernelStatus(),
-    onRefreshKernel: () -> Unit = {},
 ) {
     val pagerState = rememberPagerState(initialPage = initialPage, pageCount = { 4 })
     val uiMode = LocalUiMode.current
@@ -128,7 +123,7 @@ fun MainScreen(
                 beyondViewportPageCount = 1,
             ) { page ->
                 when (page) {
-                    0 -> HomeScreen(bottomInnerPadding, kernelStatus, onRefreshKernel)
+                    0 -> HomeScreen(bottomInnerPadding)
                     1 -> SuperUserScreen(bottomInnerPadding)
                     2 -> ModuleScreen(bottomInnerPadding)
                     3 -> SettingsScreen(bottomInnerPadding)
