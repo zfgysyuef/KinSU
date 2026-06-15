@@ -48,3 +48,5 @@ desktop.ini
 __pycache__/
 *.pyc
 *.pyo
+_tmp_builder/
+wget-log
