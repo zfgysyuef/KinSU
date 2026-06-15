@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="home_susfs_version">SuSFS Version</string>
     <string name="hide_susfs_status">Hide SuSFS status</string>

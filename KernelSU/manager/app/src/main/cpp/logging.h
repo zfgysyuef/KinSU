@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <android/log.h>
 #include <cerrno>

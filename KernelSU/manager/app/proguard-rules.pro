@@ -1,2 +1,2 @@
-﻿-keep class me.weishu.follkernel.Natives$Profile { *; }
--keepclassmembers class me.weishu.follkernel.Natives { native <methods>; }
+﻿-keep class com.mikokernel.Natives$Profile { *; }
+-keepclassmembers class com.mikokernel.Natives { native <methods>; }

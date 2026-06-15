@@ -1,4 +1,4 @@
-@file:Suppress("UnstableApiUsage")
+﻿@file:Suppress("UnstableApiUsage")
 
 plugins {
     alias(libs.plugins.agp.app)
@@ -34,7 +34,7 @@ val baseCFlags = listOf(
 val baseCppFlags = baseCFlags + "-fno-rtti"
 
 android {
-    namespace = "me.weishu.follkernel"
+    namespace = "com.mikokernel"
     val isPrBuild = project.findProperty("IS_PR_BUILD")?.toString()?.toBoolean() ?: false
 
     // FollKernel: kernel module only supports v2 APK signature

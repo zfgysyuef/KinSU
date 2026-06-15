@@ -21,7 +21,7 @@
         android:networkSecurityConfig="@xml/network_security_config"
         android:supportsRtl="true"
         android:theme="@style/Theme.FollKernel"
-        android:zygotePreloadName="me.weishu.follkernel.magica.AppZygotePreload">
+        android:zygotePreloadName="com.mikokernel.magica.AppZygotePreload">
         <activity
             android:name=".ui.MainActivity"
             android:exported="true"
@@ -84,7 +84,7 @@
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
             <intent-filter>
-                <action android:name="me.weishu.follkernel.magica.LAUNCH" />
+                <action android:name="com.mikokernel.magica.LAUNCH" />
             </intent-filter>
         </receiver>
     </application>

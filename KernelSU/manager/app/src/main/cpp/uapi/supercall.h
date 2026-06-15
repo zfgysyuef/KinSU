@@ -1,4 +1,4 @@
-#ifndef __KSU_UAPI_SUPERCALL_H
+﻿#ifndef __KSU_UAPI_SUPERCALL_H
 #define __KSU_UAPI_SUPERCALL_H
 
 #include <linux/ioctl.h>
