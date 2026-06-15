@@ -530,3 +530,39 @@ fun getSuSFSFeatures(): String {
     val cmd = "${getKsuDaemonPath()} debug susfs features"
     return ShellUtils.fastCmd(shell, cmd).trim()
 }
+
+suspend fun loadBundledLKM(): String = withContext(Dispatchers.IO) {
+    var kmi = getCurrentKmi().trim()
+    if (kmi.isBlank()) {
+        val rel = Os.uname().release
+        kmi = when {
+            rel.contains("android16") -> "android16-6.12"
+            rel.contains("android15") -> "android15-6.6"
+            rel.contains("android14") -> when {
+                rel.contains("6.1") -> "android14-6.1"
+                rel.contains("5.15") -> "android14-5.15"
+                else -> "android14-6.1"
+            }
+            rel.contains("android13") -> when {
+                rel.contains("5.15") -> "android13-5.15"
+                else -> "android13-5.10"
+            }
+            rel.contains("android12") -> "android12-5.10"
+            else -> ""
+        }
+    }
+    if (kmi.isBlank()) return@withContext "Cannot detect KMI"
+    val assetName = "lkm/${kmi}_rekernel.ko"
+    val koFile = File(ksuApp.cacheDir, "rekernel-${kmi}.ko")
+    try {
+        ksuApp.assets.open(assetName).use { input ->
+            koFile.outputStream().use { output -> input.copyTo(output) }
+        }
+    } catch (e: Exception) {
+        return@withContext "No built-in LKM for $kmi"
+    }
+    val shell = getRootShell()
+    val result = ShellUtils.fastCmd(shell, "insmod ${koFile.absolutePath} 2>&1")
+    koFile.delete()
+    if (result.isBlank()) "LKM loaded" else result
+}

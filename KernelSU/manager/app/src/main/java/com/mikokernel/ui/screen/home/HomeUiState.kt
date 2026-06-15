@@ -50,6 +50,9 @@ data class HomeUiState(
     val showKernelPrBuildWarning: Boolean
         get() = isManager && !isManagerPrBuild && isKernelPrBuild
 
+    val showLkmPrompt: Boolean
+        get() = !isManager && isRootAvailable
+
     val showVersionMismatchWarning: Boolean
         get() = ksuVersion != null && ksuVersion.toLong() != currentManagerVersionCode
 
@@ -64,4 +67,5 @@ data class HomeActions(
     val onModuleClick: () -> Unit,
     val onOpenUrl: (String) -> Unit,
     val onJailbreakClick: () -> Unit = {},
+    val onLoadLkmClick: () -> Unit = {},
 )

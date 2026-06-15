@@ -24,6 +24,7 @@ import com.mikokernel.ui.LocalMainPagerState
 import com.mikokernel.ui.component.dialog.rememberLoadingDialog
 import com.mikokernel.ui.navigation3.Navigator
 import com.mikokernel.ui.navigation3.Route
+import com.mikokernel.ui.util.loadBundledLKM
 import com.mikokernel.ui.viewmodel.HomeViewModel
 
 @Composable
@@ -64,6 +65,19 @@ fun HomePager(
                 withContext(Dispatchers.Main) {
                     loadingDialog.hide()
                     Toast.makeText(context, R.string.jailbreak_timeout, Toast.LENGTH_LONG).show()
+                }
+            }
+        },
+        onLoadLkmClick = {
+            loadingDialog.showLoading()
+            scope.launch(Dispatchers.IO) {
+                val result = loadBundledLKM().trim()
+                withContext(Dispatchers.Main) {
+                    loadingDialog.hide()
+                    val msg = if (result.isNotBlank()) result else "LKM loaded, refreshing..."
+                    Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+                    delay(2000)
+                    viewModel.refresh()
                 }
             }
         },

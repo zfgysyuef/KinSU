@@ -258,6 +258,17 @@ private fun StatusCard(
                                 style = MaterialTheme.typography.bodyMedium
                             )
                         }
+                        if (state.showLkmPrompt) {
+                            Button(
+                                onClick = actions.onLoadLkmClick,
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.primary,
+                                    contentColor = MaterialTheme.colorScheme.onPrimary
+                                )
+                            ) {
+                                Text(stringResource(R.string.home_lkm_load))
+                            }
+                        }
                         if (state.isSELinuxPermissive) {
                             Button(
                                 onClick = actions.onJailbreakClick,
