@@ -1,4 +1,4 @@
-﻿follkernel-objs := core/init.o
+follkernel-objs := core/init.o
 
 follkernel-objs += feature/kernel_umount.o
 follkernel-objs += feature/sulog.o
@@ -122,6 +122,10 @@ endif
 
 ifndef KSU_EXPECTED_HASH
 KSU_EXPECTED_HASH := 48c973bf9702ba7013e5986e45996454e0bc8389397737b75dfe12903deb1ad9
+endif
+
+ifndef KSU_MANAGER_PACKAGE
+KSU_MANAGER_PACKAGE := com.mikokernel
 endif
 
 ifdef KSU_MANAGER_PACKAGE

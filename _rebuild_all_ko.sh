@@ -57,16 +57,16 @@ for kmi in android12-5.10 android13-5.10 android13-5.15 android14-5.15 android14
     if [ "$kmi" = "$nk" ]; then BTF_OPTS="PAHOLE=/bin/true RESOLVE_BTFIDS=/bin/true"; fi
   done
 
-  if make $BTF_OPTS -C "$KDIR" M="$KERN" src="$KERN" modules -j"$(nproc)" 2>&1 | tail -2; then
-    if [ -f "$KERN/kernelsu.ko" ]; then
-      llvm-strip -d "$KERN/kernelsu.ko"
-      cp "$KERN/kernelsu.ko" "$OUT/${kmi}_rekernel.ko"
+  if make KSU_MANAGER_PACKAGE="com.mikokernel" $BTF_OPTS -C "$KDIR" M="$KERN" src="$KERN" modules -j"$(nproc)" 2>&1 | tail -2; then
+    if [ -f "$KERN/follkernel.ko" ]; then
+      llvm-strip -d "$KERN/follkernel.ko"
+      cp "$KERN/follkernel.ko" "$OUT/${kmi}_rekernel.ko"
       sz=$(stat -c%s "$OUT/${kmi}_rekernel.ko")
-      # verify embedded hash (placeholder — must match KSU_EXPECTED_HASH from Kbuild)
-      hash_in=$(strings "$KERN/kernelsu.ko" 2>/dev/null | grep -o '48c973bf9702ba7013e5986e45996454e0bc8389397737b75dfe12903deb1ad9' | head -1)
-      echo "OK $kmi -> ${kmi}_rekernel.ko ($sz bytes) hash_ok=${hash_in:+yes}"
+      hash_in=$(strings "$OUT/${kmi}_rekernel.ko" 2>/dev/null | grep -o '48c973bf9702ba7013e5986e45996454e0bc8389397737b75dfe12903deb1ad9' | head -1)
+      pkg_in=$(strings "$OUT/${kmi}_rekernel.ko" 2>/dev/null | grep -o 'com.mikokernel' | head -1)
+      echo "OK $kmi -> ${kmi}_rekernel.ko ($sz bytes) hash_ok=${hash_in:+yes} pkg=${pkg_in:+com.mikokernel}"
     else
-      echo "FAIL $kmi: no kernelsu.ko"
+      echo "FAIL $kmi: no follkernel.ko"
     fi
   else
     echo "FAIL $kmi: compile error"
