@@ -263,6 +263,25 @@ sealed class LkmSelection : Parcelable {
     data object KmiNone : LkmSelection()
 }
 
+fun resolveKmiFromKernel(): String? {
+    val rel = Os.uname().release
+    return when {
+        rel.contains("android16") -> "android16-6.12"
+        rel.contains("android15") -> "android15-6.6"
+        rel.contains("android14") -> when {
+            rel.contains("6.1") -> "android14-6.1"
+            rel.contains("5.15") -> "android14-5.15"
+            else -> "android14-6.1"
+        }
+        rel.contains("android13") -> when {
+            rel.contains("5.15") -> "android13-5.15"
+            else -> "android13-5.10"
+        }
+        rel.contains("android12") -> "android12-5.10"
+        else -> null
+    }
+}
+
 fun installBoot(
     bootUri: Uri?,
     lkm: LkmSelection,
@@ -338,7 +357,22 @@ fun installBoot(
         }
 
         LkmSelection.KmiNone -> {
-            // do nothing
+            val kmi = resolveKmiFromKernel()
+            if (kmi != null) {
+                val assetName = "lkm/${kmi}_rekernel.ko"
+                lkmFile = try {
+                    val file = File(ksuApp.cacheDir, "kernelsu-auto-${kmi}.ko")
+                    ksuApp.assets.open(assetName).use { input ->
+                        file.outputStream().use { output -> input.copyTo(output) }
+                    }
+                    file
+                } catch (e: Exception) {
+                    null
+                }
+                if (lkmFile != null) {
+                    cmd += " -m ${lkmFile.absolutePath}"
+                }
+            }
         }
     }
 
@@ -533,24 +567,7 @@ fun getSuSFSFeatures(): String {
 
 suspend fun loadBundledLKM(): String = withContext(Dispatchers.IO) {
     var kmi = getCurrentKmi().trim()
-    if (kmi.isBlank()) {
-        val rel = Os.uname().release
-        kmi = when {
-            rel.contains("android16") -> "android16-6.12"
-            rel.contains("android15") -> "android15-6.6"
-            rel.contains("android14") -> when {
-                rel.contains("6.1") -> "android14-6.1"
-                rel.contains("5.15") -> "android14-5.15"
-                else -> "android14-6.1"
-            }
-            rel.contains("android13") -> when {
-                rel.contains("5.15") -> "android13-5.15"
-                else -> "android13-5.10"
-            }
-            rel.contains("android12") -> "android12-5.10"
-            else -> ""
-        }
-    }
+    if (kmi.isBlank()) kmi = resolveKmiFromKernel() ?: ""
     if (kmi.isBlank()) return@withContext "Cannot detect KMI"
     val assetName = "lkm/${kmi}_rekernel.ko"
     val koFile = File(ksuApp.cacheDir, "rekernel-${kmi}.ko")
