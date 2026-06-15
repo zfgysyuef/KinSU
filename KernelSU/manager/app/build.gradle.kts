@@ -1,4 +1,4 @@
-﻿@file:Suppress("UnstableApiUsage")
+@file:Suppress("UnstableApiUsage")
 
 plugins {
     alias(libs.plugins.agp.app)
@@ -40,7 +40,7 @@ android {
     // FollKernel: kernel module only supports v2 APK signature
     signingConfigs {
         getByName("debug") {
-            enableV1Signing = true
+            enableV1Signing = false
             enableV2Signing = true
         }
     }
