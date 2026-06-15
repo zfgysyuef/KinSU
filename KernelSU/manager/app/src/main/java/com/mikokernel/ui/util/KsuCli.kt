@@ -322,7 +322,19 @@ fun installBoot(
         }
 
         is LkmSelection.KmiString -> {
-            cmd += " --kmi ${lkm.value}"
+            val assetName = "lkm/${lkm.value}_rekernel.ko"
+            lkmFile = try {
+                val file = File(ksuApp.cacheDir, "kernelsu-lkm-${lkm.value}.ko")
+                ksuApp.assets.open(assetName).use { input ->
+                    file.outputStream().use { output -> input.copyTo(output) }
+                }
+                file
+            } catch (e: Exception) {
+                null
+            }
+            if (lkmFile != null) {
+                cmd += " -m ${lkmFile.absolutePath}"
+            }
         }
 
         LkmSelection.KmiNone -> {
