@@ -91,6 +91,7 @@ internal fun InstallScreenMaterial(
                 state = uiState,
                 onSelected = actions.onSelectMethod,
                 onSelectBootImage = actions.onSelectBootImage,
+                onSelectHorizonKernel = actions.onSelectHorizonKernel,
             )
 
             SegmentedColumn(
@@ -210,6 +211,7 @@ private fun SelectInstallMethod(
     state: InstallUiState,
     onSelected: (InstallMethod) -> Unit,
     onSelectBootImage: () -> Unit,
+    onSelectHorizonKernel: () -> Unit,
 ) {
     val confirmDialog = rememberConfirmDialog(
         onConfirm = {
@@ -225,6 +227,7 @@ private fun SelectInstallMethod(
             is InstallMethod.SelectFile -> onSelectBootImage()
             is InstallMethod.DirectInstall -> onSelected(option)
             is InstallMethod.DirectInstallToInactiveSlot -> confirmDialog.showConfirm(dialogTitle, dialogContent)
+            is InstallMethod.HorizonKernel -> onSelectHorizonKernel()
         }
     }
 

@@ -33,6 +33,7 @@ import com.mikokernel.ui.util.getDefaultPartition
 import com.mikokernel.ui.util.getSlotSuffix
 import com.mikokernel.ui.util.isAbDevice
 import com.mikokernel.ui.util.rootAvailable
+import com.mikokernel.ui.util.ZipFileDetector
 
 @Composable
 fun InstallScreen() {
@@ -66,6 +67,7 @@ fun InstallScreen() {
             if (rootAvailable && isGkiDevice) {
                 add(InstallMethod.DirectInstall)
                 if (isAbDevice) add(InstallMethod.DirectInstallToInactiveSlot)
+                add(InstallMethod.HorizonKernel())
             }
         }
     }
@@ -97,18 +99,25 @@ fun InstallScreen() {
 
     val onInstall = {
         installMethod?.let { method ->
-            navigator.push(
-                Route.Flash(
-                    FlashIt.FlashBoot(
-                        boot = if (method is InstallMethod.SelectFile) method.uri else null,
-                        lkm = lkmSelection,
-                        ota = method is InstallMethod.DirectInstallToInactiveSlot,
-                        partition = partitions.getOrNull(partitionSelectionIndex),
-                        allowShell = allowShell,
-                        enableAdb = enableAdb,
+            if (method is InstallMethod.HorizonKernel) {
+                val zipp = (method as InstallMethod.HorizonKernel)
+                if (zipp.uri != null) {
+                    navigator.push(Route.AnyKernel3Flash(zipp.uri.toString(), zipp.slot))
+                }
+            } else {
+                navigator.push(
+                    Route.Flash(
+                        FlashIt.FlashBoot(
+                            boot = if (method is InstallMethod.SelectFile) method.uri else null,
+                            lkm = lkmSelection,
+                            ota = method is InstallMethod.DirectInstallToInactiveSlot,
+                            partition = partitions.getOrNull(partitionSelectionIndex),
+                            allowShell = allowShell,
+                            enableAdb = enableAdb,
+                        )
                     )
                 )
-            )
+            }
         }
     }
 
@@ -146,6 +155,21 @@ fun InstallScreen() {
             }
         }
     }
+    val selectAnyKernel3Launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) {
+        if (it.resultCode == Activity.RESULT_OK) {
+            it.data?.data?.let { uri ->
+                val type = ZipFileDetector.detectZipType(context, uri)
+                if (type == com.mikokernel.ui.util.ZipType.KERNEL) {
+                    installMethod = InstallMethod.HorizonKernel(uri = uri)
+                    onInstall()
+                } else {
+                    showMessage(if (type == com.mikokernel.ui.util.ZipType.MODULE) "This is a module, not a kernel ZIP" else "Not a valid AnyKernel3 kernel ZIP")
+                }
+            }
+        }
+    }
 
     val state = InstallUiState(
         installMethod = installMethod,
@@ -165,6 +189,9 @@ fun InstallScreen() {
         onSelectMethod = { method -> installMethod = method },
         onSelectBootImage = {
             selectImageLauncher.launch(Intent(Intent.ACTION_GET_CONTENT).apply { type = "application/octet-stream" })
+        },
+        onSelectHorizonKernel = {
+            selectAnyKernel3Launcher.launch(Intent(Intent.ACTION_GET_CONTENT).apply { type = "application/zip" })
         },
         onUploadLkm = {
             selectLkmLauncher.launch(Intent(Intent.ACTION_GET_CONTENT).apply { type = "application/octet-stream" })

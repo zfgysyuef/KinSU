@@ -27,6 +27,14 @@ internal sealed class InstallMethod : Parcelable {
             get() = R.string.install_inactive_slot
     }
 
+    data class HorizonKernel(
+        val uri: Uri? = null,
+        val slot: String? = null
+    ) : InstallMethod() {
+        override val label: Int
+            get() = R.string.horizon_kernel
+    }
+
     abstract val label: Int
 
     @IgnoredOnParcel
