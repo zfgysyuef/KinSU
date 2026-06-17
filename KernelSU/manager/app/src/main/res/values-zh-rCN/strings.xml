@@ -210,11 +210,11 @@
     <string name="settings_ui_mode_summary">选择应用的界面风格</string>
     <string name="settings_page_scale">界面缩放</string>
     <string name="settings_page_scale_summary">调整全局显示比例</string>
-    <string name="settings_home_layout_style">首页布局</string>
+    <string name="settings_home_layout_style">Home Layout</string>
     <string name="settings_home_layout_rekernelsu">ReKernelSU</string>
-    <string name="settings_home_layout_circle">圆形</string>
-    <string name="settings_home_layout_stats">统计</string>
-    <string name="settings_home_layout_dashboard_ui">仪表板</string>
+    <string name="settings_home_layout_circle">Circle</string>
+    <string name="settings_home_layout_stats">Stats</string>
+    <string name="settings_home_layout_dashboard_ui">Dashboard Pro</string>
     <string name="settings_color_spec">色彩标准</string>
     <string name="settings_color_style">色彩风格</string>
     <string name="color_blue">蓝色</string>
