@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="home">主页</string>
     <string name="home_not_installed">未安装</string>
@@ -44,9 +44,11 @@
     <string name="reboot_soft">软重启</string>
     <string name="reboot_userspace">用户空间重启</string>
     <string name="reboot_recovery">重启到 Recovery</string>
-    <string name="reboot_bootloader">重启到 BootLoader</string>
+    <string name="reboot_bootloader">重启到引导加载程序</string>
     <string name="reboot_download">重启到 Download</string>
     <string name="reboot_edl">重启到 EDL</string>
+    <string name="horizon_kernel">AnyKernel3 刷写</string>
+    <string name="kernel_flashing">内核刷写</string>
     <string name="about">关于</string>
     <string name="module_uninstall_confirm">确定要卸载模块 %s 吗？</string>
     <string name="metamodule_uninstall_confirm">您确定要卸载模块 %s 吗？此操作将影响所有模块，并且元模块提供的某些功能（如挂载）将不再工作</string>
@@ -83,12 +85,12 @@
     <string name="profile_capabilities">权能</string>
     <string name="profile_selinux_context">SELinux</string>
     <string name="profile_umount_modules">卸载模块</string>
-    <string name="failed_to_update_app_profile">为 %s 更新 App Profile 失败</string>
+    <string name="failed_to_update_app_profile">为 %s 更新应用配置失败</string>
     <string name="uapi_mismatch">管理器 uapi 版本 (%1$d) 与 FollKernel 驱动 uapi 版本 (%2$d) 不匹配。</string>
     <string name="require_manager_version">当前 FollKernel 管理器版本 %1$d 过低，FollKernel 无法正常工作. 请将 FollKernel 管理器版本升级至 %2$d 或以上!</string>
     <string name="require_kernel_version">当前 FollKernel 版本 %1$d 过低，管理器无法正常工作，请将内核 FollKernel 版本升级至 %2$d 或以上！</string>
     <string name="settings_umount_modules_default">默认卸载模块</string>
-    <string name="settings_umount_modules_default_summary">App Profile 中「卸载模块」的全局默认值，如果启用，会将未自定义 Profile 的应用移除所有模块针对系统的修改</string>
+    <string name="settings_umount_modules_default_summary">应用配置中「卸载模块」的全局默认值，如果启用，会移除没有单独设置应用配置的应用所受的所有模块系统修改</string>
     <string name="profile_umount_modules_summary">启用该选项后将允许 FollKernel 为本应用还原被模块修改过的文件</string>
     <string name="profile_selinux_domain">域</string>
     <string name="profile_selinux_rules">规则</string>
@@ -103,8 +105,8 @@
     <string name="failed_to_update_sepolicy">为 %s 更新 SELinux 策略失败</string>
     <string name="su_not_allowed">无法授予 %s 超级用户权限</string>
     <string name="module_changelog">更新日志</string>
-    <string name="settings_profile_template">App Profile 模版</string>
-    <string name="settings_profile_template_summary">管理本地和在线的 App Profile 模版</string>
+    <string name="settings_profile_template">应用配置模板</string>
+    <string name="settings_profile_template_summary">管理本地和在线的应用配置模板</string>
     <string name="app_profile_template_create">创建模版</string>
     <string name="app_profile_template_edit">编辑模版</string>
     <string name="app_profile_template_id">模版 ID</string>
@@ -135,12 +137,12 @@
     <string name="open">打开</string>
     <string name="close">关闭</string>
     <string name="enable_web_debugging">WebView 调试</string>
-    <string name="enable_web_debugging_summary">可用于调试 WebUI，请仅在需要时启用</string>
+    <string name="enable_web_debugging_summary">可用于调试 Web 界面，请仅在需要时启用</string>
     <string name="direct_install">直接安装（推荐）</string>
     <string name="select_file">选择一个文件</string>
     <string name="install_inactive_slot">安装到未使用的槽位（OTA 后）</string>
     <string name="install_inactive_slot_warning">将在重启后强制切换到另一个槽位！注意只能在 OTA 更新完成后的重启之前使用</string>
-    <string name="jailbreak_flash_warning">当前处于**越狱模式**。在**未解锁 Bootloader** 的设备上刷写分区会破坏 AVB（Android 验证启动），可能导致设备**无法开机**。\n\n请确保 Bootloader 已解锁后再继续操作！</string>
+    <string name="jailbreak_flash_warning">当前处于**越狱模式**。在**未解锁引导加载程序**的设备上刷写分区会破坏 AVB（Android 验证启动），可能导致设备**无法开机**。\n\n请确保引导加载程序已解锁后再继续操作！</string>
     <string name="jailbreak_flash_warning_countdown">继续 (%1$d)</string>
     <string name="install_next">下一步</string>
     <string name="install_select_partition">选择分区</string>
@@ -158,6 +160,22 @@
     <string name="flashing">刷写中</string>
     <string name="flash_success">刷写完成</string>
     <string name="flash_failed">刷写失败</string>
+    <string name="anykernel3_preparing">准备中…</string>
+    <string name="anykernel3_cleaning_workspace">清理工作区</string>
+    <string name="anykernel3_copying_zip">复制内核包…</string>
+    <string name="anykernel3_copying">复制中</string>
+    <string name="anykernel3_extracting_update_binary">提取更新脚本…</string>
+    <string name="anykernel3_extracting">提取中</string>
+    <string name="anykernel3_invalid_zip">不是有效的 AnyKernel3 压缩包（缺少 update-binary）</string>
+    <string name="anykernel3_patching_script">修补脚本…</string>
+    <string name="anykernel3_patching">修补中</string>
+    <string name="anykernel3_setting_target_slot">设置目标槽位：%s</string>
+    <string name="anykernel3_flashing_kernel">刷写内核中…</string>
+    <string name="anykernel3_flashing">刷写中</string>
+    <string name="anykernel3_restoring_original_slot">恢复原始槽位…</string>
+    <string name="anykernel3_flash_complete">刷写完成！</string>
+    <string name="anykernel3_flash_failed_done_marker">刷写失败（未找到完成标记）</string>
+    <string name="anykernel3_unknown_error">未知错误</string>
     <string name="selected_lkm">已选择的 LKM：%s</string>
     <string name="save_log">保存日志</string>
     <string name="log_saved">日志已保存</string>
@@ -230,7 +248,7 @@
     <string name="select_file_tip_nogki">请选择要修补的 GKI 设备镜像文件</string>
     <string name="current_kmi">本设备 KMI 版本: %s</string>
     <string name="current_device_kmi">当前设备的 KMI</string>
-    <string name="module_action_success">模块 action 执行成功。</string>
+    <string name="module_action_success">模块操作执行成功。</string>
     <string name="settings_enable_blur">模糊</string>
     <string name="settings_enable_blur_summary">启用顶栏和底栏的模糊效果</string>
     <string name="settings_floating_bottom_bar">悬浮底栏</string>
@@ -266,5 +284,5 @@
     <string name="sort_by_install_time">安装时间</string>
     <string name="sort_by_update_time">更新时间</string>
     <string name="sort_reverse">倒序</string>
-    <string name="profile_flags_desc_no_new_privs">禁止从此 Root Profile 的上下文中通过 FollKernel 进一步提升权限</string>
+    <string name="profile_flags_desc_no_new_privs">禁止从此 Root 配置上下文中通过 FollKernel 进一步提升权限</string>
 </resources>

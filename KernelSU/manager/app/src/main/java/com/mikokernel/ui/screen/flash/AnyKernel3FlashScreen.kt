@@ -80,7 +80,8 @@ fun AnyKernel3FlashScreen(kernelUri: String, slot: String? = null) {
 
     val logs = remember { mutableStateListOf<String>() }
     var progress by remember { mutableStateOf(0f) }
-    var currentStep by remember { mutableStateOf("Preparing...") }
+    val preparingStep = stringResource(R.string.anykernel3_preparing)
+    var currentStep by remember { mutableStateOf(preparingStep) }
     var isComplete by remember { mutableStateOf(false) }
     var errorMsg by remember { mutableStateOf("") }
     var showFab by remember { mutableStateOf(false) }
@@ -129,8 +130,8 @@ fun AnyKernel3FlashScreen(kernelUri: String, slot: String? = null) {
                     Text(
                         text = when {
                             errorMsg.isNotEmpty() -> stringResource(R.string.flash_failed)
-                            isComplete -> stringResource(R.string.kernel_flashing)
-                            else -> stringResource(R.string.kernel_flashing)
+                            isComplete -> stringResource(R.string.flash_success)
+                            else -> stringResource(R.string.horizon_kernel)
                         },
                         color = when {
                             errorMsg.isNotEmpty() -> MaterialTheme.colorScheme.error
