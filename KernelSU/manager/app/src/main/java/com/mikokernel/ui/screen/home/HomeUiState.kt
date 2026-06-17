@@ -25,6 +25,7 @@ data class HomeUiState(
     val superuserCount: Int,
     val moduleCount: Int,
     val systemInfo: SystemInfo,
+    val homeLayoutStyle: String = "rekernelsu",
 ) {
     val isSELinuxPermissive: Boolean
         get() = systemInfo.selinuxStatus == "Permissive"

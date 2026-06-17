@@ -57,6 +57,10 @@ class SettingsRepositoryImpl : SettingsRepository {
         get() = prefs.getBoolean("enable_web_debugging", false)
         set(value) = prefs.edit { putBoolean("enable_web_debugging", value) }
 
+    override var homeLayoutStyle: String
+        get() = prefs.getString("home_layout_style", "rekernelsu") ?: "rekernelsu"
+        set(value) = prefs.edit { putString("home_layout_style", value) }
+
     override var autoJailbreak: Boolean
         get() = prefs.getBoolean("auto_jailbreak", false)
         set(value) {

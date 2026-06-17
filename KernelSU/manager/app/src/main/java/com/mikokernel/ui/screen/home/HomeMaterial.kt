@@ -106,7 +106,7 @@ fun HomePagerMaterial(
 }
 
 @Composable
-private fun UpdateCard(
+internal fun UpdateCard(
     state: HomeUiState,
     actions: HomeActions,
 ) {
@@ -139,7 +139,7 @@ private fun UpdateCard(
 }
 
 @Composable
-private fun TopBar(
+internal fun TopBar(
     scrollBehavior: TopAppBarScrollBehavior? = null,
     onInstallClick: () -> Unit = {},
 ) {
@@ -165,7 +165,7 @@ private fun TopBar(
 }
 
 @Composable
-private fun StatusCard(
+internal fun StatusCard(
     state: HomeUiState,
     actions: HomeActions,
 ) {
@@ -325,7 +325,7 @@ private fun WarningCard(
 }
 
 @Composable
-private fun LearnMoreCard(onOpenUrl: (String) -> Unit) {
+internal fun LearnMoreCard(onOpenUrl: (String) -> Unit) {
     val url = stringResource(R.string.home_learn_kernelsu_url)
     TonalCard(onClick = { onOpenUrl(url) }) {
         Row(
@@ -348,7 +348,7 @@ private fun LearnMoreCard(onOpenUrl: (String) -> Unit) {
 }
 
 @Composable
-private fun DonateCard(onOpenUrl: (String) -> Unit) {
+internal fun DonateCard(onOpenUrl: (String) -> Unit) {
     TonalCard(onClick = { onOpenUrl("https://patreon.com/weishu") }) {
         Row(
             modifier = Modifier
@@ -370,7 +370,7 @@ private fun DonateCard(onOpenUrl: (String) -> Unit) {
 }
 
 @Composable
-private fun InfoCard(systemInfo: SystemInfo) {
+internal fun InfoCard(systemInfo: SystemInfo) {
     TonalCard {
         Column(
             modifier = Modifier

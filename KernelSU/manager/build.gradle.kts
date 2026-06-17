@@ -1,4 +1,4 @@
-﻿plugins {
+plugins {
     alias(libs.plugins.agp.app) apply false
     alias(libs.plugins.kotlin) apply false
     alias(libs.plugins.compose.compiler) apply false
@@ -16,13 +16,25 @@ val managerVersionCode by extra(getVersionCode())
 val managerVersionName by extra(getVersionName())
 
 fun getGitCommitCount(): Int {
-    val process = Runtime.getRuntime().exec(arrayOf("git", "rev-list", "--count", "HEAD"))
-    return process.inputStream.bufferedReader().use { it.readText().trim().toInt() }
+    val process = Runtime.getRuntime().exec(
+        arrayOf("git", "rev-list", "--count", "HEAD"),
+        null,
+        rootDir.parentFile
+    )
+    return process.inputStream.bufferedReader().use {
+        it.readText().trim().toIntOrNull() ?: 0
+    }
 }
 
 fun getGitDescribe(): String {
-    val process = Runtime.getRuntime().exec(arrayOf("git", "describe", "--tags", "--always"))
-    return process.inputStream.bufferedReader().use { it.readText().trim() }
+    val process = Runtime.getRuntime().exec(
+        arrayOf("git", "describe", "--tags", "--always"),
+        null,
+        rootDir.parentFile
+    )
+    return process.inputStream.bufferedReader().use {
+        it.readText().trim().ifBlank { "unknown" }
+    }
 }
 
 fun getVersionCode(): Int {

@@ -36,6 +36,7 @@ fun ColorPaletteScreen() {
         currentColorMode = ColorMode.fromValue(uiState.themeMode),
         currentPaletteStyle = currentPaletteStyle,
         currentColorSpec = currentColorSpec,
+        homeLayoutStyle = uiState.homeLayoutStyle,
     )
     val actions = ColorPaletteScreenActions(
         onBack = dropUnlessResumed { navigator.pop() },
@@ -50,6 +51,7 @@ fun ColorPaletteScreen() {
             activity?.recreate()
         },
         onSetPageScale = viewModel::setPageScale,
+        onSetHomeLayoutStyle = viewModel::setHomeLayoutStyle,
     )
 
     ColorPaletteScreenMaterial(state, actions)

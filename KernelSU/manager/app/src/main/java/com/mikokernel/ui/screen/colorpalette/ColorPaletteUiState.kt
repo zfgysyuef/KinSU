@@ -12,6 +12,7 @@ data class ColorPaletteUiState(
     val currentColorMode: ColorMode,
     val currentPaletteStyle: PaletteStyle,
     val currentColorSpec: ColorSpec.SpecVersion,
+    val homeLayoutStyle: String = uiState.homeLayoutStyle,
 )
 
 @Immutable
@@ -24,4 +25,5 @@ data class ColorPaletteScreenActions(
     val onSetColorSpec: (String) -> Unit,
     val onSetEnablePredictiveBack: (Boolean) -> Unit,
     val onSetPageScale: (Float) -> Unit,
+    val onSetHomeLayoutStyle: (String) -> Unit,
 )

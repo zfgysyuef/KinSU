@@ -5,6 +5,7 @@
     <string name="home_click_to_install">点击安装</string>
     <string name="home_working">工作中</string>
     <string name="home_working_version">版本：%s</string>
+    <string name="home_kp_need_update">内核补丁需要更新</string>
     <string name="home_unsupported">不支持</string>
     <string name="home_unsupported_reason">FollKernel 现在只支持 GKI 内核，但是你可以为 GKI 设备补丁镜像。</string>
     <string name="home_version_mismatch">管理器版本 (%1$d) 与 FollKernel 驱动版本 (%2$d) 不匹配。</string>
@@ -209,6 +210,11 @@
     <string name="settings_ui_mode_summary">选择应用的界面风格</string>
     <string name="settings_page_scale">界面缩放</string>
     <string name="settings_page_scale_summary">调整全局显示比例</string>
+    <string name="settings_home_layout_style">首页布局</string>
+    <string name="settings_home_layout_rekernelsu">ReKernelSU</string>
+    <string name="settings_home_layout_circle">圆形</string>
+    <string name="settings_home_layout_stats">统计</string>
+    <string name="settings_home_layout_dashboard_ui">仪表板</string>
     <string name="settings_color_spec">色彩标准</string>
     <string name="settings_color_style">色彩风格</string>
     <string name="color_blue">蓝色</string>

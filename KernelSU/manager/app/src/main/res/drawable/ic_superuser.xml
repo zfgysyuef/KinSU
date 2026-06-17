@@ -3,18 +3,16 @@
     android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
-    <!-- 盾牌轮廓 -->
+    <!-- 现代盾牌轮廓，表达安全防护 -->
     <path
-        android:pathData="M12,2 L4,5 L4,11 C4,16 7.5,20 12,22 C16.5,20 20,16 20,11 L20,5 Z"
+        android:pathData="M12,22 C16.5,21 20,17.5 20,13 L20,7.5 C20,4.5 16.5,3 12,3 C7.5,3 4,4.5 4,7.5 L4,13 C4,17.5 7.5,21 12,22 Z"
         android:strokeColor="#FFFFFFFF"
         android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
         android:fillColor="#00000000" />
-    <!-- 右上四分之一填充 -->
+    <!-- 钥匙孔填充，表达超级用户/Root 访问权限 -->
     <path
-        android:pathData="M12,4 L12,12 L18,12 L18,6.5 Z"
-        android:fillColor="#FFFFFFFF" />
-    <!-- 左下四分之一填充 -->
-    <path
-        android:pathData="M6,12 L12,12 L12,20.2 C9.8,19 7.5,16.5 6.5,13 Z"
+        android:pathData="M12,10 C13.1046,10 14,10.8954 14,12 C14,12.7403 13.5978,13.3866 13,13.7324 L13.5,16.5 H10.5 L11,13.7324 C10.4022,13.3866 10,12.7403 10,12 C10,10.8954 10.8954,10 12,10 Z"
         android:fillColor="#FFFFFFFF" />
 </vector>

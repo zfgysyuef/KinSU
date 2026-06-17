@@ -41,6 +41,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.rounded.MenuOpen
 import androidx.compose.material.icons.filled.Brightness1
 import androidx.compose.material.icons.filled.Brightness3
@@ -49,17 +50,22 @@ import androidx.compose.material.icons.filled.Brightness7
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.rounded.AspectRatio
 import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.Dashboard
 import androidx.compose.material.icons.rounded.DesignServices
 import androidx.compose.material.icons.rounded.Style
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonGroupDefaults
+import androidx.compose.ui.window.DialogProperties
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.dynamicDarkColorScheme
@@ -69,6 +75,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -92,6 +99,7 @@ import com.materialkolor.rememberDynamicColorScheme
 import com.mikokernel.R
 import com.mikokernel.ui.component.material.SegmentedColumn
 import com.mikokernel.ui.component.material.SegmentedDropdownItem
+import com.mikokernel.ui.component.material.SegmentedListItem
 import com.mikokernel.ui.component.material.SegmentedSwitchItem
 import com.mikokernel.ui.component.material.TonalCard
 import com.mikokernel.ui.theme.ColorMode
@@ -329,6 +337,43 @@ fun ColorPaletteScreenMaterial(
                             modifier = Modifier.fillMaxWidth()
                         )
                     }
+                }
+
+                var showLayoutDialog by remember { mutableStateOf(false) }
+                SegmentedColumn(
+                    modifier = Modifier.padding(top = 4.dp),
+                    content = listOf(
+                        {
+                            SegmentedListItem(
+                                onClick = { showLayoutDialog = true },
+                                headlineContent = { Text(stringResource(id = R.string.settings_home_layout_style)) },
+                                supportingContent = { Text(homeLayoutStyleToLabel(state.homeLayoutStyle)) },
+                                leadingContent = {
+                                    Icon(
+                                        Icons.Rounded.Dashboard,
+                                        contentDescription = stringResource(id = R.string.settings_home_layout_style)
+                                    )
+                                },
+                                trailingContent = {
+                                    Icon(
+                                        Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                                        contentDescription = null
+                                    )
+                                }
+                            )
+                        }
+                    )
+                )
+
+                if (showLayoutDialog) {
+                    HomeLayoutChooseDialog(
+                        currentStyle = state.homeLayoutStyle,
+                        onLayoutSelected = {
+                            actions.onSetHomeLayoutStyle(it)
+                            showLayoutDialog = false
+                        },
+                        onDismiss = { showLayoutDialog = false }
+                    )
                 }
             }
 
@@ -585,4 +630,58 @@ private fun ColorButtonMaterial(
             }
         }
     }
+}
+
+@Composable
+private fun homeLayoutStyleToLabel(style: String): String {
+    val resId = when (style) {
+        "rekernelsu" -> R.string.settings_home_layout_rekernelsu
+        "circle" -> R.string.settings_home_layout_circle
+        "stats" -> R.string.settings_home_layout_stats
+        "dashboard_ui" -> R.string.settings_home_layout_dashboard_ui
+        else -> R.string.settings_home_layout_rekernelsu
+    }
+    return stringResource(resId)
+}
+
+@Composable
+private fun HomeLayoutChooseDialog(
+    currentStyle: String,
+    onLayoutSelected: (String) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val options = listOf(
+        "rekernelsu" to R.string.settings_home_layout_rekernelsu,
+        "circle" to R.string.settings_home_layout_circle,
+        "stats" to R.string.settings_home_layout_stats,
+        "dashboard_ui" to R.string.settings_home_layout_dashboard_ui,
+    )
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.settings_home_layout_style)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                options.forEach { (value, labelRes) ->
+                    SegmentedListItem(
+                        selected = currentStyle == value,
+                        onClick = { onLayoutSelected(value) },
+                        headlineContent = { Text(stringResource(labelRes)) },
+                        leadingContent = {
+                            RadioButton(
+                                selected = currentStyle == value,
+                                onClick = null
+                            )
+                        }
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(android.R.string.cancel))
+            }
+        },
+        properties = DialogProperties(dismissOnClickOutside = true)
+    )
 }

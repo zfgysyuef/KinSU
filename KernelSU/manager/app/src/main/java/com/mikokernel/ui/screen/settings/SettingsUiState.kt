@@ -15,6 +15,7 @@ data class SettingsUiState(
     val enablePredictiveBack: Boolean = false,
     val pageScale: Float = 1.0f,
     val enableWebDebugging: Boolean = false,
+    val homeLayoutStyle: String = "rekernelsu",
 
     // Su Compat
     val suCompatStatus: String = "",

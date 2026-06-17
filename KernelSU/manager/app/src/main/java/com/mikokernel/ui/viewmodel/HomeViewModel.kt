@@ -44,6 +44,7 @@ class HomeViewModel : ViewModel() {
     }
 
     private fun buildState(): HomeUiState {
+        val prefs = ksuApp.getSharedPreferences("settings", Context.MODE_PRIVATE)
         val kernelVersion = getKernelVersion()
         val isManager = Natives.isManager
         val ksuVersion = if (isManager) Natives.version else null
@@ -67,8 +68,8 @@ class HomeViewModel : ViewModel() {
             isRootAvailable = isRootAvailable,
             isSafeMode = Natives.isSafeMode,
             isLateLoadMode = Natives.isLateLoadMode,
-            checkUpdateEnabled = ksuApp.getSharedPreferences("settings", Context.MODE_PRIVATE)
-                .getBoolean("check_update", true),
+            checkUpdateEnabled = prefs.getBoolean("check_update", true),
+            homeLayoutStyle = prefs.getString("home_layout_style", "rekernelsu") ?: "rekernelsu",
             latestVersionInfo = LatestVersionInfo(),
             currentManagerVersionCode = managerVersion.versionCode,
             superuserCount = getSuperuserCount(),

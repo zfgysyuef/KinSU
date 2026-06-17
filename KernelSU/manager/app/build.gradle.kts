@@ -100,11 +100,12 @@ android {
         }
     }
 
-    externalNativeBuild {
-        cmake {
-            path = file("src/main/cpp/CMakeLists.txt")
-        }
-    }
+    // Build native libs manually on Windows to work around Ninja GetOverlappedResult bug.
+    // externalNativeBuild {
+    //     cmake {
+    //         path = file("src/main/cpp/CMakeLists.txt")
+    //     }
+    // }
 
     dependenciesInfo {
         includeInApk = false
@@ -131,13 +132,13 @@ android {
 
         buildConfigField("boolean", "IS_PR_BUILD", isPrBuild.toString())
 
-        externalNativeBuild {
-            cmake {
-                arguments += "-DANDROID_STL=none"
-                cFlags += baseCFlags + "-std=c2x"
-                cppFlags += baseCppFlags + "-std=c++2b"
-            }
-        }
+        // externalNativeBuild {
+        //     cmake {
+        //         arguments += "-DANDROID_STL=none"
+        //         cFlags += baseCFlags + "-std=c2x"
+        //         cppFlags += baseCppFlags + "-std=c++2b"
+        //     }
+        // }
 
         ndk {
             abiFilters += listOf("arm64-v8a", "x86_64")

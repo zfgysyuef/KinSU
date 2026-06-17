@@ -6,6 +6,7 @@
     <string name="home_click_to_install">Tap to install</string>
     <string name="home_working">Working</string>
     <string name="home_working_version">Version: %s</string>
+    <string name="home_kp_need_update">Kernel patch needs update</string>
     <string name="home_unsupported">Unsupported</string>
     <string name="home_unsupported_reason">FollKernel only supports GKI kernels now, but you can patch the image for GKI devices.</string>
     <string name="home_version_mismatch">Manager version (%1$d) and FollKernel driver version (%2$d) mismatch.</string>
@@ -238,6 +239,11 @@
     <string name="settings_ui_mode_summary">Choose the interface style.</string>
     <string name="settings_page_scale">Page Scale</string>
     <string name="settings_page_scale_summary">Adjust the global display scale.</string>
+    <string name="settings_home_layout_style">Home Layout</string>
+    <string name="settings_home_layout_rekernelsu">ReKernelSU</string>
+    <string name="settings_home_layout_circle">Circle</string>
+    <string name="settings_home_layout_stats">Stats</string>
+    <string name="settings_home_layout_dashboard_ui">Dashboard Pro</string>
     <string name="settings_color_spec">Color Spec</string>
     <string name="settings_color_style">Color Style</string>
     <string name="color_blue">Blue</string>
