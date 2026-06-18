@@ -18,6 +18,7 @@
 #endif
 
 #include "manager/apk_sign.h"
+#include "manager/manager_signature.h"
 #include "uapi/app_profile.h"
 #include "klog.h" // IWYU pragma: keep
 
