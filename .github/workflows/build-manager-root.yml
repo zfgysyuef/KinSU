@@ -219,9 +219,6 @@ jobs:
     needs: [generate-key, build-manager, build-ksud]
     if: always() && needs.build-manager.result == 'success' && needs.build-ksud.result == 'success'
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./KernelSU
 
     steps:
       - name: Checkout
@@ -247,19 +244,19 @@ jobs:
 
       - name: Place artifacts
         run: |
-          mkdir -p manager/app/build/outputs/apk/release
+          mkdir -p KernelSU/manager/app/build/outputs/apk/release
           APK=$(find artifacts/manager-gradle -type f -name "*.apk" | head -n 1)
           test -n "$APK"
-          cp -f "$APK" manager/app/build/outputs/apk/release/
+          cp -f "$APK" KernelSU/manager/app/build/outputs/apk/release/
 
-          mkdir -p target/aarch64-linux-android/release
-          mkdir -p target/x86_64-linux-android/release
+          mkdir -p KernelSU/target/aarch64-linux-android/release
+          mkdir -p KernelSU/target/x86_64-linux-android/release
           ARM64_KSUD=$(find artifacts/ksud-aarch64-linux-android -type f -name ksud | head -n 1)
           X86_64_KSUD=$(find artifacts/ksud-x86_64-linux-android -type f -name ksud | head -n 1)
           test -n "$ARM64_KSUD"
           test -n "$X86_64_KSUD"
-          cp -f "$ARM64_KSUD" target/aarch64-linux-android/release/ksud
-          cp -f "$X86_64_KSUD" target/x86_64-linux-android/release/ksud
+          cp -f "$ARM64_KSUD" KernelSU/target/aarch64-linux-android/release/ksud
+          cp -f "$X86_64_KSUD" KernelSU/target/x86_64-linux-android/release/ksud
 
       - name: Prepare signing key
         env:
@@ -267,6 +264,7 @@ jobs:
           PR_KEYSTORE_PASSWORD: ${{ needs.generate-key.outputs.keystore_password }}
           PR_KEY_PASSWORD: ${{ needs.generate-key.outputs.key_password }}
         run: |
+          cd KernelSU
           echo "$PR_KEYSTORE" | base64 -d > follkernel.jks
           echo "SIGN_KEYSTORE_FILE=follkernel.jks" >> $GITHUB_ENV
           echo "SIGN_KEY_ALIAS=follkernel-key" >> $GITHUB_ENV
@@ -278,6 +276,7 @@ jobs:
 
       - name: Repack and resign
         run: |
+          cd KernelSU
           python3 repack_apk.py repack \
             -b release \
             -t release \
