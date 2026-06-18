@@ -121,7 +121,7 @@ FollKernel 的成长离不开前辈们的肩膀。
 | [KernelPatch](https://github.com/bmax121/KernelPatch) | KPM 内核补丁参考 |
 | [APatch](https://github.com/bmax121/APatch) | KPM 架构灵感 |
 
-还要感谢 **松板有希**、**心动了么** 等伙伴一路相伴。
+还要感谢 **松板有希**、**心动了嘛** 等伙伴一路相伴。
 
 ---
 
