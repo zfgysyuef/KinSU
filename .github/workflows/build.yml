@@ -94,14 +94,14 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           pattern: '*-lkm'
-          path: lkm-artifacts
+          path: ${{ github.workspace }}/lkm-artifacts
 
       - name: Place LKMs
         run: |
           mkdir -p app/src/main/assets/lkm
-          for d in lkm-artifacts/*-lkm/; do
-            kmi=$(basename "$d" -lkm)
-            cp "$d"/*_follkernel.ko "app/src/main/assets/lkm/${kmi}_rekernel.ko"
+          find "${{ github.workspace }}/lkm-artifacts" -name "*_follkernel.ko" | while read ko; do
+            kmi=$(basename "$(dirname "$ko")" -lkm)
+            cp "$ko" "app/src/main/assets/lkm/${kmi}_rekernel.ko"
             echo "Placed ${kmi}_rekernel.ko"
           done
 
