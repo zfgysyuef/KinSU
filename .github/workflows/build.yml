@@ -1,4 +1,4 @@
-name: "Build All"
+name: "Full Build"
 
 "on":
   workflow_dispatch:
@@ -37,7 +37,6 @@ jobs:
           echo "expected_size=0x$(printf '%04x' $SZ)" >> $GITHUB_OUTPUT
           H=$(sha256sum cert.der | awk '{print $1}')
           echo "expected_hash=$H" >> $GITHUB_OUTPUT
-          echo "size=$SZ hash=$H"
 
   build-lkm:
     needs: gen-key
@@ -79,8 +78,61 @@ jobs:
           name: "${{ matrix.kmi }}-lkm"
           path: KernelSU/out/${{ matrix.kmi }}_follkernel.ko
 
-  build-apk:
+  build-ksud:
     needs: [gen-key, build-lkm]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target:
+          - aarch64-linux-android
+          - x86_64-linux-android
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download LKMs
+        uses: actions/download-artifact@v4
+        with:
+          pattern: '*-lkm'
+          path: ${{ github.workspace }}/lkm-artifacts
+
+      - name: Place LKMs for ksud
+        run: |
+          case "${{ matrix.target }}" in
+            aarch64*) dir="KernelSU/userspace/ksud/bin/aarch64" ;;
+            x86_64*) dir="KernelSU/userspace/ksud/bin/x86_64" ;;
+          esac
+          mkdir -p "$dir"
+          find "${{ github.workspace }}/lkm-artifacts" -name "*_follkernel.ko" | while read ko; do
+            kmi=$(basename "$(dirname "$ko")" -lkm)
+            cp "$ko" "$dir/${kmi}_follkernel.ko"
+            echo "Placed ${kmi}_follkernel.ko in $dir"
+          done
+
+      - name: Setup Rust
+        run: |
+          rustup update stable
+          rustup target add ${{ matrix.target }}
+
+      - name: Setup NDK
+        uses: nttld/setup-ndk@v1
+        id: setup-ndk
+        with:
+          ndk-version: r29
+
+      - name: Build ksud
+        env:
+          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+        run: |
+          source KernelSU/.github/scripts/setup-rust-build.sh ${{ matrix.target }} 26
+          cargo build --target ${{ matrix.target }} --release --manifest-path KernelSU/userspace/ksud/Cargo.toml
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: "ksud-${{ matrix.target }}"
+          path: KernelSU/target/${{ matrix.target }}/release/ksud
+
+  build-apk:
+    needs: [gen-key, build-lkm, build-ksud]
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -96,7 +148,12 @@ jobs:
           pattern: '*-lkm'
           path: ${{ github.workspace }}/lkm-artifacts
 
-      - name: Place LKMs
+      - name: Download ksud
+        uses: actions/download-artifact@v4
+        with:
+          pattern: 'ksud-*'
+
+      - name: Place LKMs (assets)
         run: |
           mkdir -p app/src/main/assets/lkm
           find "${{ github.workspace }}/lkm-artifacts" -name "*_follkernel.ko" | while read ko; do
@@ -105,12 +162,21 @@ jobs:
             echo "Placed ${kmi}_rekernel.ko"
           done
 
+      - name: Place ksud (jniLibs)
+        run: |
+          mkdir -p app/src/main/jniLibs/arm64-v8a app/src/main/jniLibs/x86_64
+          AARCH64=$(find "${{ github.workspace }}/ksud-aarch64-linux-android" -name ksud -type f | head -1)
+          X86_64=$(find "${{ github.workspace }}/ksud-x86_64-linux-android" -name ksud -type f | head -1)
+          test -n "$AARCH64" && cp "$AARCH64" app/src/main/jniLibs/arm64-v8a/libfollkerneld.so && echo "Placed arm64 ksud"
+          test -n "$X86_64" && cp "$X86_64" app/src/main/jniLibs/x86_64/libfollkerneld.so && echo "Placed x86_64 ksud"
+
       - name: Setup keystore
         env:
           KS: ${{ needs.gen-key.outputs.keystore }}
           KP: ${{ needs.gen-key.outputs.keystore_password }}
           AP: ${{ needs.gen-key.outputs.key_password }}
         run: |
+          cd KernelSU/manager
           echo "$KS" | base64 -d > follkernel.jks
           echo "KEYSTORE_PASSWORD=$KP" >> gradle.properties
           echo "KEY_ALIAS=follkernel" >> gradle.properties
@@ -121,9 +187,7 @@ jobs:
         with:
           distribution: temurin
           java-version: 21
-
       - uses: gradle/actions/setup-gradle@v4
-
       - uses: android-actions/setup-android@v3
 
       - name: Build
@@ -131,27 +195,5 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: apk-unsigned
-          path: KernelSU/manager/app/build/outputs/apk/release/*.apk
-
-  upload:
-    needs: [gen-key, build-apk]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Download APK
-        uses: actions/download-artifact@v4
-        with:
-          name: apk-unsigned
-          path: apk-out
-
-      - name: List APK
-        run: |
-          find apk-out -name "*.apk" -ls
-          echo "APK built and signed by Gradle - ready to use"
-
-      - uses: actions/upload-artifact@v4
-        with:
           name: apk-final
-          path: apk-out/*.apk
+          path: KernelSU/manager/app/build/outputs/apk/release/*.apk
