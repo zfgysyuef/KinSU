@@ -89,6 +89,11 @@ jobs:
           EXPECTED_HASH2: ${{ needs.generate-key.outputs.expected_hash }}
         run: |
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          # Fix uapi symlink (Windows git stores symlinks as plain files)
+          if [ ! -d KernelSU/kernel/include/uapi ]; then
+            rm -f KernelSU/kernel/include/uapi
+            ln -s ../../uapi KernelSU/kernel/include/uapi
+          fi
           cd KernelSU/kernel
           EXTRA_ARGS=""
           if [ -n "$EXPECTED_SIZE2" ] && [ -n "$EXPECTED_HASH2" ]; then
