@@ -1,0 +1,88 @@
+name: Build Manager (KernelSU subdir)
+
+on:
+  push:
+    branches: [master, main, ci]
+    paths:
+      - '.github/workflows/build-manager-root.yml'
+      - 'KernelSU/manager/**'
+      - 'KernelSU/userspace/**'
+      - 'KernelSU/kernel/**'
+      - 'KernelSU/repack_apk.py'
+  workflow_dispatch:
+  workflow_call:
+
+jobs:
+  build-manager:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./KernelSU
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v4
+
+      - name: Install Android SDK packages
+        run: |
+          sdkmanager "build-tools;35.0.0" "platforms;android-35" "platform-tools"
+
+      - name: Setup Rust
+        run: |
+          rustup update stable
+          rustup target add aarch64-linux-android
+          rustup target add x86_64-linux-android
+
+      - name: Setup NDK
+        uses: nttld/setup-ndk@v1
+        id: setup-ndk
+        with:
+          ndk-version: r29
+
+      - name: Build ksud arm64
+        env:
+          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+        run: |
+          source .github/scripts/setup-rust-build.sh aarch64-linux-android 26
+          cargo build --target aarch64-linux-android --release --manifest-path ./userspace/ksud/Cargo.toml
+
+      - name: Build ksud x86_64
+        env:
+          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+        run: |
+          source .github/scripts/setup-rust-build.sh x86_64-linux-android 26
+          cargo build --target x86_64-linux-android --release --manifest-path ./userspace/ksud/Cargo.toml
+
+      - name: Build Manager APK
+        run: |
+          cd manager
+          ./gradlew clean assembleRelease
+
+      - name: Repack APK with new ksud
+        run: |
+          python3 repack_apk.py repack \
+            -b release \
+            -t release \
+            -a arm64-v8a \
+            -a x86_64 \
+            --strip
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: manager-apk
+          path: KernelSU/dist/*.apk
