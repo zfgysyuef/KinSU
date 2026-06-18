@@ -1,0 +1,173 @@
+name: "Build All"
+
+"on":
+  workflow_dispatch:
+  push:
+    branches: [master]
+    paths:
+      - 'KernelSU/**'
+      - '.github/workflows/build.yml'
+
+jobs:
+  gen-key:
+    runs-on: ubuntu-latest
+    outputs:
+      expected_size: ${{ steps.extract.outputs.expected_size }}
+      expected_hash: ${{ steps.extract.outputs.expected_hash }}
+      keystore: ${{ steps.gen.outputs.keystore }}
+      keystore_password: ${{ steps.gen.outputs.keystore_password }}
+      key_password: ${{ steps.gen.outputs.key_password }}
+    steps:
+      - name: Generate keystore
+        id: gen
+        run: |
+          KP=$(openssl rand -hex 32)
+          AP=$(openssl rand -hex 32)
+          echo "keystore_password=$KP" >> $GITHUB_OUTPUT
+          echo "key_password=$AP" >> $GITHUB_OUTPUT
+          keytool -genkeypair -alias follkernel -keyalg RSA -keysize 2048 -validity 10000 -storepass "$KP" -keypass "$AP" -dname "CN=FollKernel" -storetype JKS -keystore follkernel.jks
+          echo "keystore=$(base64 -w0 follkernel.jks)" >> $GITHUB_OUTPUT
+      - name: Extract cert
+        id: extract
+        env:
+          SP: ${{ steps.gen.outputs.keystore_password }}
+        run: |
+          keytool -exportcert -alias follkernel -keystore follkernel.jks -storepass "$SP" -file cert.der
+          SZ=$(stat -c%s cert.der)
+          echo "expected_size=0x$(printf '%04x' $SZ)" >> $GITHUB_OUTPUT
+          H=$(sha256sum cert.der | awk '{print $1}')
+          echo "expected_hash=$H" >> $GITHUB_OUTPUT
+          echo "size=$SZ hash=$H"
+
+  build-lkm:
+    needs: gen-key
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        kmi:
+          - android12-5.10
+          - android13-5.10
+          - android13-5.15
+          - android14-5.15
+          - android14-6.1
+          - android15-6.6
+          - android16-6.12
+    container:
+      image: "ghcr.io/ylarod/ddk-min:${{ matrix.kmi }}-20260313"
+      options: --privileged
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fix uapi
+        run: |
+          if [ ! -d KernelSU/kernel/include/uapi ]; then
+            rm -f KernelSU/kernel/include/uapi
+            ln -s ../../uapi KernelSU/kernel/include/uapi
+          fi
+      - name: Build
+        env:
+          ES2: ${{ needs.gen-key.outputs.expected_size }}
+          EH2: ${{ needs.gen-key.outputs.expected_hash }}
+        run: |
+          cd KernelSU/kernel
+          KSU_EXPECTED_SIZE2="$ES2" KSU_EXPECTED_HASH2="$EH2" CONFIG_KSU=m CC=clang make -j$(nproc)
+          llvm-strip -d follkernel.ko
+          mkdir -p ../out
+          cp follkernel.ko "../out/${{ matrix.kmi }}_follkernel.ko"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: "${{ matrix.kmi }}-lkm"
+          path: KernelSU/out/${{ matrix.kmi }}_follkernel.ko
+
+  build-apk:
+    needs: [gen-key, build-lkm]
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: KernelSU/manager
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download LKMs
+        uses: actions/download-artifact@v4
+        with:
+          pattern: '*-lkm'
+          path: lkm-artifacts
+
+      - name: Place LKMs
+        run: |
+          mkdir -p app/src/main/assets/lkm
+          for d in lkm-artifacts/*-lkm/; do
+            kmi=$(basename "$d" -lkm)
+            cp "$d"/*_follkernel.ko "app/src/main/assets/lkm/${kmi}_rekernel.ko"
+            echo "Placed ${kmi}_rekernel.ko"
+          done
+
+      - name: Setup keystore
+        env:
+          KS: ${{ needs.gen-key.outputs.keystore }}
+          KP: ${{ needs.gen-key.outputs.keystore_password }}
+          AP: ${{ needs.gen-key.outputs.key_password }}
+        run: |
+          echo "$KS" | base64 -d > follkernel.jks
+          echo "KEYSTORE_PASSWORD=$KP" >> gradle.properties
+          echo "KEY_ALIAS=follkernel" >> gradle.properties
+          echo "KEY_PASSWORD=$AP" >> gradle.properties
+          echo "KEYSTORE_FILE=$(realpath follkernel.jks)" >> gradle.properties
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Build
+        run: ./gradlew assembleRelease
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: apk-unsigned
+          path: KernelSU/manager/app/build/outputs/apk/release/*.apk
+
+  repack:
+    needs: [gen-key, build-apk]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download APK
+        uses: actions/download-artifact@v4
+        with:
+          name: apk-unsigned
+          path: apk-in
+
+      - name: Setup keystore
+        env:
+          KS: ${{ needs.gen-key.outputs.keystore }}
+          KP: ${{ needs.gen-key.outputs.keystore_password }}
+          AP: ${{ needs.gen-key.outputs.key_password }}
+        run: |
+          echo "$KS" | base64 -d > follkernel.jks
+          echo "SIGN_KEYSTORE_FILE=$(realpath follkernel.jks)" >> $GITHUB_ENV
+          echo "SIGN_KEY_ALIAS=follkernel" >> $GITHUB_ENV
+          echo "SIGN_KEYSTORE_PASSWORD=$KP" >> $GITHUB_ENV
+          echo "SIGN_KEY_PASSWORD=$AP" >> $GITHUB_ENV
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Repack
+        run: |
+          APK=$(find apk-in -name "*.apk" | head -1)
+          cp "$APK" KernelSU/manager/app/build/outputs/apk/release/
+          cd KernelSU
+          python3 repack_apk.py repack -b release -t release -a arm64-v8a -a x86_64 -K "$SIGN_KEYSTORE_FILE" -A "$SIGN_KEY_ALIAS" -P "$SIGN_KEYSTORE_PASSWORD" -S "$SIGN_KEY_PASSWORD" --strip
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: apk-final
+          path: KernelSU/dist/*.apk
