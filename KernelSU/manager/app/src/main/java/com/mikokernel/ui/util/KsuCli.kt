@@ -289,6 +289,8 @@ fun installBoot(
     partition: String?,
     allowShell: Boolean,
     enableAdb: Boolean,
+    enableKpm: Boolean,
+    enableSusfs: Boolean,
     onStdout: (String) -> Unit,
     onStderr: (String) -> Unit,
 ): FlashResult {
@@ -320,6 +322,14 @@ fun installBoot(
 
     if (enableAdb) {
         cmd += " --enable-adbd"
+    }
+
+    if (enableKpm) {
+        cmd += " --enable-kpm"
+    }
+
+    if (enableSusfs) {
+        cmd += " --enable-susfs"
     }
 
     if (ota) {
@@ -376,6 +386,26 @@ fun installBoot(
         }
     }
 
+    var susfsFile: File? = null
+    if (enableSusfs) {
+        val susfsAsset = listOf("ksu_susfs_2.1.0", "ksu_susfs_2.0.0").firstOrNull { asset ->
+            try {
+                ksuApp.assets.open(asset).close()
+                true
+            } catch (_: Exception) {
+                false
+            }
+        }
+        if (susfsAsset != null) {
+            susfsFile = File(ksuApp.cacheDir, "ksu_susfs").also { file ->
+                ksuApp.assets.open(susfsAsset).use { input ->
+                    file.outputStream().use { output -> input.copyTo(output) }
+                }
+            }
+            cmd += " --susfs-binary ${susfsFile.absolutePath}"
+        }
+    }
+
     // output dir
     if (bootFile != null) {
         val downloadsDir =
@@ -392,6 +422,7 @@ fun installBoot(
 
     bootFile?.delete()
     lkmFile?.delete()
+    susfsFile?.delete()
 
     // if boot uri is empty, it is direct install, when success, we should show reboot button
     val showReboot = bootUri == null && result.isSuccess // we create a temporary val here, to avoid calc showReboot double

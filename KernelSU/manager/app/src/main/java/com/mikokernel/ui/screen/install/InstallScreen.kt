@@ -51,10 +51,8 @@ fun InstallScreen() {
     var advancedOptionsShown by rememberSaveable { mutableStateOf(false) }
     var allowShell by rememberSaveable { mutableStateOf(false) }
     var enableAdb by rememberSaveable { mutableStateOf(false) }
-    var patchEnableMksu by rememberSaveable { mutableStateOf(true) }
-    var patchEnableRksu by rememberSaveable { mutableStateOf(false) }
+    var patchEnableKpm by rememberSaveable { mutableStateOf(false) }
     var patchEnableSusfs by rememberSaveable { mutableStateOf(false) }
-    var patchEnableKernelpatch by rememberSaveable { mutableStateOf(false) }
 
     val currentKmi by produceState(initialValue = "") { value = getCurrentKmi() }
     val partitions by produceState(initialValue = emptyList()) { value = getAvailablePartitions() }
@@ -68,7 +66,7 @@ fun InstallScreen() {
     val installMethodOptions = remember(rootAvailable, isAbDevice, isGkiDevice, selectFileTip, selectFileTipNoGki) {
         buildList {
             add(InstallMethod.SelectFile(summary = if (isGkiDevice) selectFileTip else selectFileTipNoGki))
-            if (rootAvailable && isGkiDevice) {
+            if (rootAvailable) {
                 add(InstallMethod.DirectInstall)
                 if (isAbDevice) add(InstallMethod.DirectInstallToInactiveSlot)
                 add(InstallMethod.HorizonKernel())
@@ -120,6 +118,8 @@ fun InstallScreen() {
                             partition = partitions.getOrNull(partitionSelectionIndex),
                             allowShell = allowShell,
                             enableAdb = enableAdb,
+                            enableKpm = patchEnableKpm,
+                            enableSusfs = patchEnableSusfs,
                         )
                     )
                 )
@@ -202,10 +202,8 @@ fun InstallScreen() {
         advancedOptionsShown = advancedOptionsShown,
         allowShell = allowShell,
         enableAdb = enableAdb,
-        patchEnableMksu = patchEnableMksu,
-        patchEnableRksu = patchEnableRksu,
+        patchEnableKpm = patchEnableKpm,
         patchEnableSusfs = patchEnableSusfs,
-        patchEnableKernelpatch = patchEnableKernelpatch,
     )
     val actions = InstallScreenActions(
         onBack = dropUnlessResumed { navigator.pop() },
@@ -243,17 +241,11 @@ fun InstallScreen() {
         onSelectEnableAdb = {
             enableAdb = it
         },
-        onTogglePatchMksu = {
-            patchEnableMksu = it
-        },
-        onTogglePatchRksu = {
-            patchEnableRksu = it
+        onTogglePatchKpm = {
+            patchEnableKpm = it
         },
         onTogglePatchSusfs = {
             patchEnableSusfs = it
-        },
-        onTogglePatchKernelpatch = {
-            patchEnableKernelpatch = it
         },
     )
 

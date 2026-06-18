@@ -36,13 +36,11 @@ internal sealed class InstallMethod : Parcelable {
     }
 
     data class PatchKernel(
-        val enableMksu: Boolean = true,
-        val enableRksu: Boolean = false,
+        val enableKpm: Boolean = false,
         val enableSusfs: Boolean = false,
-        val enableKernelpatch: Boolean = false,
     ) : InstallMethod() {
         override val label: Int
-            get() = R.string.patch_kernel
+            get() = R.string.patch_kernel_and_flash
     }
 
     abstract val label: Int

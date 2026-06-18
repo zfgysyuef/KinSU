@@ -155,16 +155,9 @@ internal fun InstallScreenMaterial(
                         }
                         add {
                             SegmentedCheckboxItem(
-                                title = stringResource(id = R.string.patch_kernel_feature_mksu),
-                                checked = uiState.patchEnableMksu,
-                                onCheckedChange = actions.onTogglePatchMksu,
-                            )
-                        }
-                        add {
-                            SegmentedCheckboxItem(
-                                title = stringResource(id = R.string.patch_kernel_feature_rksu),
-                                checked = uiState.patchEnableRksu,
-                                onCheckedChange = actions.onTogglePatchRksu,
+                                title = stringResource(id = R.string.patch_kernel_feature_kpm),
+                                checked = uiState.patchEnableKpm,
+                                onCheckedChange = actions.onTogglePatchKpm,
                             )
                         }
                         add {
@@ -172,13 +165,6 @@ internal fun InstallScreenMaterial(
                                 title = stringResource(id = R.string.patch_kernel_feature_susfs),
                                 checked = uiState.patchEnableSusfs,
                                 onCheckedChange = actions.onTogglePatchSusfs,
-                            )
-                        }
-                        add {
-                            SegmentedCheckboxItem(
-                                title = stringResource(id = R.string.patch_kernel_feature_kernelpatch),
-                                checked = uiState.patchEnableKernelpatch,
-                                onCheckedChange = actions.onTogglePatchKernelpatch,
                             )
                         }
                     }

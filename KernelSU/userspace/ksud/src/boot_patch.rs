@@ -1,4 +1,4 @@
-﻿#![allow(clippy::ref_option, clippy::needless_pass_by_value)]
+#![allow(clippy::ref_option, clippy::needless_pass_by_value)]
 
 use std::fs::File;
 use std::io::{Cursor, Seek, SeekFrom};
@@ -471,6 +471,19 @@ pub struct BootPatchArgs {
     /// Do not load custom rc
     #[arg(long, default_value = "false")]
     no_custom_rc: bool,
+
+    /// Enable KPM (KernelPatch module) support
+    #[arg(long, default_value = "false")]
+    pub enable_kpm: bool,
+
+    /// Enable SUSFS support
+    #[arg(long, default_value = "false")]
+    pub enable_susfs: bool,
+
+    /// Path to the SUSFS userspace binary to embed into the patched image
+    #[cfg(target_os = "android")]
+    #[arg(long, default_value = None)]
+    pub susfs_binary: Option<PathBuf>,
 }
 
 pub fn patch(args: BootPatchArgs) -> Result<()> {
@@ -495,6 +508,10 @@ pub fn patch(args: BootPatchArgs) -> Result<()> {
             #[cfg(target_os = "android")]
             partition,
             no_custom_rc,
+            enable_kpm,
+            enable_susfs,
+            #[cfg(target_os = "android")]
+            susfs_binary,
         } = args;
 
         println!(include_str!("banner"));
@@ -663,6 +680,17 @@ pub fn patch(args: BootPatchArgs) -> Result<()> {
 
         apply_config("no custom rc", "norc=1", no_custom_rc);
         apply_config("allow shell", "allow_shell=1", allow_shell);
+        apply_config("KPM", "kpm=1", enable_kpm);
+        apply_config("SUSFS", "susfs=1", enable_susfs);
+
+        #[cfg(target_os = "android")]
+        if enable_susfs {
+            if let Some(binary) = susfs_binary {
+                println!("- Adding SUSFS userspace binary");
+                let susfs_data = map_file(&binary)?;
+                cpio.add("ksu_susfs", CpioEntry::regular(0o755, Box::new(susfs_data)))?;
+            }
+        }
 
         if ksu_config.is_empty() {
             cpio.rm("ksu_config", false);
