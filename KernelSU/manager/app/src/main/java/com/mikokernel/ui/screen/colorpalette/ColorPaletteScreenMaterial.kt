@@ -338,43 +338,6 @@ fun ColorPaletteScreenMaterial(
                         )
                     }
                 }
-
-                var showLayoutDialog by remember { mutableStateOf(false) }
-                SegmentedColumn(
-                    modifier = Modifier.padding(top = 4.dp),
-                    content = listOf(
-                        {
-                            SegmentedListItem(
-                                onClick = { showLayoutDialog = true },
-                                headlineContent = { Text(stringResource(id = R.string.settings_home_layout_style)) },
-                                supportingContent = { Text(homeLayoutStyleToLabel(state.homeLayoutStyle)) },
-                                leadingContent = {
-                                    Icon(
-                                        Icons.Rounded.Dashboard,
-                                        contentDescription = stringResource(id = R.string.settings_home_layout_style)
-                                    )
-                                },
-                                trailingContent = {
-                                    Icon(
-                                        Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                                        contentDescription = null
-                                    )
-                                }
-                            )
-                        }
-                    )
-                )
-
-                if (showLayoutDialog) {
-                    HomeLayoutChooseDialog(
-                        currentStyle = state.homeLayoutStyle,
-                        onLayoutSelected = {
-                            actions.onSetHomeLayoutStyle(it)
-                            showLayoutDialog = false
-                        },
-                        onDismiss = { showLayoutDialog = false }
-                    )
-                }
             }
 
             Spacer(modifier = Modifier.height(16.dp + navBars.calculateBottomPadding() + captionBar.calculateBottomPadding()))
@@ -630,58 +593,4 @@ private fun ColorButtonMaterial(
             }
         }
     }
-}
-
-@Composable
-private fun homeLayoutStyleToLabel(style: String): String {
-    val resId = when (style) {
-        "rekernelsu" -> R.string.settings_home_layout_rekernelsu
-        "circle" -> R.string.settings_home_layout_circle
-        "stats" -> R.string.settings_home_layout_stats
-        "dashboard_ui" -> R.string.settings_home_layout_dashboard_ui
-        else -> R.string.settings_home_layout_rekernelsu
-    }
-    return stringResource(resId)
-}
-
-@Composable
-private fun HomeLayoutChooseDialog(
-    currentStyle: String,
-    onLayoutSelected: (String) -> Unit,
-    onDismiss: () -> Unit,
-) {
-    val options = listOf(
-        "rekernelsu" to R.string.settings_home_layout_rekernelsu,
-        "circle" to R.string.settings_home_layout_circle,
-        "stats" to R.string.settings_home_layout_stats,
-        "dashboard_ui" to R.string.settings_home_layout_dashboard_ui,
-    )
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.settings_home_layout_style)) },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                options.forEach { (value, labelRes) ->
-                    SegmentedListItem(
-                        selected = currentStyle == value,
-                        onClick = { onLayoutSelected(value) },
-                        headlineContent = { Text(stringResource(labelRes)) },
-                        leadingContent = {
-                            RadioButton(
-                                selected = currentStyle == value,
-                                onClick = null
-                            )
-                        }
-                    )
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(android.R.string.cancel))
-            }
-        },
-        properties = DialogProperties(dismissOnClickOutside = true)
-    )
 }

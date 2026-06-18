@@ -69,7 +69,6 @@ class HomeViewModel : ViewModel() {
             isSafeMode = Natives.isSafeMode,
             isLateLoadMode = Natives.isLateLoadMode,
             checkUpdateEnabled = prefs.getBoolean("check_update", true),
-            homeLayoutStyle = prefs.getString("home_layout_style", "rekernelsu") ?: "rekernelsu",
             latestVersionInfo = LatestVersionInfo(),
             currentManagerVersionCode = managerVersion.versionCode,
             superuserCount = getSuperuserCount(),

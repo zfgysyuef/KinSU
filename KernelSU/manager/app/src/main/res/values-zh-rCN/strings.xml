@@ -100,6 +100,7 @@
     <string name="module_downloading">正在下载模块：%s</string>
     <string name="module_start_downloading">开始下载：%s</string>
     <string name="new_version_available">发现新版本：%s，点击升级！</string>
+    <string name="check_update_failed">检查更新失败，请稍后再试。</string>
     <string name="launch_app">启动</string>
     <string name="force_stop_app">强制停止</string>
     <string name="restart_app">重新启动</string>
@@ -148,7 +149,7 @@
     <string name="install_next">下一步</string>
     <string name="install_select_partition">选择分区</string>
     <string name="install_upload_lkm_file">使用本地 LKM 文件</string>
-    <string name="install_only_support_ko_file">仅支持选择 .ko 文件</string>
+    <string name="install_only_support_ko_file">仅支持选择 .kpm 文件</string>
     <string name="select_file_tip">建议选择 %1$s 分区镜像</string>
     <string name="select_kmi">选择 KMI</string>
     <string name="settings_uninstall">卸载</string>
@@ -210,11 +211,6 @@
     <string name="settings_ui_mode_summary">选择应用的界面风格</string>
     <string name="settings_page_scale">界面缩放</string>
     <string name="settings_page_scale_summary">调整全局显示比例</string>
-    <string name="settings_home_layout_style">Home Layout</string>
-    <string name="settings_home_layout_rekernelsu">ReKernelSU</string>
-    <string name="settings_home_layout_circle">Circle</string>
-    <string name="settings_home_layout_stats">Stats</string>
-    <string name="settings_home_layout_dashboard_ui">Dashboard Pro</string>
     <string name="settings_color_spec">色彩标准</string>
     <string name="settings_color_style">色彩风格</string>
     <string name="color_blue">蓝色</string>

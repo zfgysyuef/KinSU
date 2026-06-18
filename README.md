@@ -6,12 +6,13 @@
 
 > *“把 Root 权限交给最懂你的人 —— 也就是你自己。”*
 
-**Advanced kernel-based root solution for Android GKI devices**  
 **基于 KernelSU 架构的 Android GKI 内核 Root 解决方案**
 
 [![Release](https://img.shields.io/github/v/release/Spring-bulid/FollKernel?label=%E6%9C%80%E6%96%B0%E7%89%88%E6%9C%AC&color=ec407a&style=for-the-badge)](https://github.com/Spring-bulid/FollKernel/releases/latest)
 [![License](https://img.shields.io/badge/License-GPL--3.0-ff80ab?style=for-the-badge)](LICENSE)
 [![API](https://img.shields.io/badge/API-31%2B-e040fb?style=for-the-badge)](https://android-arsenal.com/api?level=31)
+
+**[English](README_EN.md) | 简体中文**
 
 </div>
 
@@ -23,7 +24,7 @@
 
 这里不是冷冰冰的工具箱，而是属于你的玩机空间。模块、KPM、主题色、刷写、日志，全部被她整理得井井有条。只要你的设备搭载了 KernelSU 或 KernelPatch，FollKernel 就会带你一起探索 Android 的深层世界。
 
-> **EN** — FollKernel is a modern root manager built on top of KernelSU. It hands the root authorization back to you, with a polished UI, module support, KPM kernel patch loading, and one-click AnyKernel3 flashing.
+FollKernel 诞生于对 Root 管理器的新想象：它应该在底层保持 KernelSU 的内核级安全模型，在上层提供现代、直观、可自定义的交互体验。她既是你的授权中枢，也是你的模块仓库、刷写助手和主题工坊。
 
 ---
 
@@ -31,16 +32,29 @@
 
 <div align="center">
 
-| 能力 | 中文介绍 | EN Description |
-|:----:|---------|----------------|
-| 超级用户授权 | 决定哪些应用可以、哪些应用不可以触碰 Root | Per-app superuser grant/deny with lifetime control |
-| 模块管理 | 安装 / 启用 / 禁用 / 卸载 ZIP 模块 | Install, enable, disable and uninstall ZIP modules |
-| KPM 内核补丁 | 加载 .kpm 补丁，GKI 模式下也能嵌入 | Load .kpm kernel patches, embeddable in GKI mode |
-| AnyKernel3 刷写 | 在应用内修补 boot / init_boot | Patch boot / init_boot via AnyKernel3 ZIP |
-| 主题与外观 | 动态取色 + 多套主题色 + 深色模式 | Material You theming with accent presets & dark mode |
-| 应用内更新 | 自动从 GitHub Releases 检查新版本 | Auto-check for updates from GitHub Releases |
+| 能力 | 介绍 |
+|:----:|---------|
+| 超级用户授权 | 决定哪些应用可以、哪些应用不可以触碰 Root，支持永久授权、单次授权与定时回收 |
+| 模块管理 | 安装 / 启用 / 禁用 / 卸载 ZIP 模块，支持 KernelSU 与 Magisk 风格模块 |
+| KPM 内核补丁 | 加载 `.kpm` 补丁，GKI 模式下也能嵌入，开机自动加载与手动调试兼顾 |
+| AnyKernel3 刷写 | 在应用内修补 `boot` / `init_boot`，刷写前自动备份原镜像 |
+| 主题与外观 | 动态取色、多套主题色、深色 / 浅色模式，打造专属管理器 |
+| 应用内更新 | 自动从 GitHub Releases 检查新版本，一键跳转下载 |
+| 日志与审计 | 查看 Root 授权记录、模块加载日志与内核补丁运行状态 |
 
 </div>
+
+---
+
+## 为什么选择 FollKernel
+
+Android 上的 Root 方案有很多，但 FollKernel 尝试在几个关键点上做得更好：
+
+- **授权归你**：Root 不是应用天生应得的权利。每一次授权、拒绝或回收，都由你决定。
+- **内核级安全**：依托 KernelSU 的内核钩子与安全上下文，FollKernel 在系统最底层执行授权策略。
+- **现代体验**：Material Design 3 Expressive 视觉、大圆角、动态取色与流畅动画，让管理器不再像工具箱。
+- **扩展友好**：模块、KPM、AnyKernel3 三种扩展方式覆盖从应用到内核的不同需求。
+- **透明开源**：源码、构建流程与发布资产全部公开，遵循 GPL-3.0 协议。
 
 ---
 
@@ -52,10 +66,7 @@
 ③ 授权、装模块、刷写、换主题，开始你的冒险
 ```
 
-> **EN Quick Start**
-> 1. Install the latest FollKernel APK.
-> 2. Make sure your kernel already embeds KernelSU / KernelPatch.
-> 3. Grant root, manage modules, flash, and theme your device.
+更详细的安装与使用说明请访问 [官方文档](https://spring-bulid.github.io/FollKernel/)。
 
 ---
 
@@ -63,8 +74,8 @@
 
 <div align="center">
 
-[![Download APK](https://img.shields.io/badge/%E4%B8%8B%E8%BD%BD%20APK-ec407a?style=for-the-badge&logo=android&logoColor=white)](https://github.com/Spring-bulid/FollKernel/releases/latest)
-[![Official Docs](https://img.shields.io/badge/%E5%AE%98%E6%96%B9%E6%96%87%E6%A1%A3-7c4dff?style=for-the-badge)](https://spring-bulid.github.io/FollKernel/)
+[![下载 APK](https://img.shields.io/badge/%E4%B8%8B%E8%BD%BD%20APK-ec407a?style=for-the-badge&logo=android&logoColor=white)](https://github.com/Spring-bulid/FollKernel/releases/latest)
+[![官方文档](https://img.shields.io/badge/%E5%AE%98%E6%96%B9%E6%96%87%E6%A1%A3-7c4dff?style=for-the-badge)](https://spring-bulid.github.io/FollKernel/)
 
 </div>
 
@@ -78,12 +89,24 @@
 
 ```bash
 # 编译 APK
-# Build the manager APK
 cd KernelSU/manager
 ./gradlew assembleRelease
 ```
 
-> 提示：Windows 环境下请使用 `gradlew.bat`。
+提示：Windows 环境下请使用 `gradlew.bat`。
+
+---
+
+## 项目结构
+
+```text
+FollKernel/
+├── KernelSU/          # 管理器与内核模块源码
+├── kernel/            # FollKernel 内核补丁源码
+├── FollKernel-site/   # 官方文档站
+├── README.md          # 简体中文说明
+└── README_EN.md       # English README
+```
 
 ---
 
@@ -91,8 +114,8 @@ cd KernelSU/manager
 
 FollKernel 的成长离不开前辈们的肩膀。
 
-| 项目 / Project | 贡献 / Contribution |
-|----------------|---------------------|
+| 项目 | 贡献 |
+|------|------|
 | [KernelSU](https://github.com/tiann/KernelSU) | 内核级 Root 能力与安全模型 |
 | [FolkPatch](https://github.com/LyraVoid/FolkPatch) | 多布局与视觉灵感 |
 | [KernelPatch](https://github.com/bmax121/KernelPatch) | KPM 内核补丁参考 |
@@ -109,7 +132,5 @@ FollKernel 的成长离不开前辈们的肩膀。
 **GPL-3.0** — 自由开源，永远保持热爱。
 
 *“愿你刷机不翻车，Root 不报错，模块都兼容，主题都好看。”*
-
-*Made with passion for the Android rooting community*
 
 </div>

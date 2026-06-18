@@ -123,6 +123,7 @@
     <string name="module_start_downloading">Start downloading: %s</string>
     <string name="module_action_success">Module action executed successfully.</string>
     <string name="new_version_available">New version %s is available, click to upgrade!</string>
+    <string name="check_update_failed">Failed to check for updates. Please try again later.</string>
     <string name="launch_app">Launch</string>
     <string name="force_stop_app">Force stop</string>
     <string name="restart_app">Restart</string>
@@ -171,7 +172,7 @@
     <string name="install_next">Next</string>
     <string name="install_select_partition">Select partition</string>
     <string name="install_upload_lkm_file">Use local LKM file</string>
-    <string name="install_only_support_ko_file">Only .ko files are supported</string>
+    <string name="install_only_support_ko_file">Only .kpm files are supported</string>
     <string name="select_file_tip">%1$s partition image is recommended</string>
     <string name="select_kmi">Select KMI</string>
     <string name="settings_uninstall">Uninstall</string>
@@ -239,11 +240,6 @@
     <string name="settings_ui_mode_summary">Choose the interface style.</string>
     <string name="settings_page_scale">Page Scale</string>
     <string name="settings_page_scale_summary">Adjust the global display scale.</string>
-    <string name="settings_home_layout_style">Home Layout</string>
-    <string name="settings_home_layout_rekernelsu">ReKernelSU</string>
-    <string name="settings_home_layout_circle">Circle</string>
-    <string name="settings_home_layout_stats">Stats</string>
-    <string name="settings_home_layout_dashboard_ui">Dashboard Pro</string>
     <string name="settings_color_spec">Color Spec</string>
     <string name="settings_color_style">Color Style</string>
     <string name="color_blue">Blue</string>

@@ -83,26 +83,9 @@ fun HomePager(
         },
     )
 
-    when (uiState.homeLayoutStyle) {
-        "circle" -> HomeCircleLayout(
-            state = uiState,
-            actions = actions,
-            bottomInnerPadding = bottomInnerPadding,
-        )
-        "stats" -> HomeStatsLayout(
-            state = uiState,
-            actions = actions,
-            bottomInnerPadding = bottomInnerPadding,
-        )
-        "dashboard_ui" -> HomeDashboardLayout(
-            state = uiState,
-            actions = actions,
-            bottomInnerPadding = bottomInnerPadding,
-        )
-        else -> HomePagerMaterial(
-            state = uiState,
-            actions = actions,
-            bottomInnerPadding = bottomInnerPadding,
-        )
-    }
+    HomePagerMaterial(
+        state = uiState,
+        actions = actions,
+        bottomInnerPadding = bottomInnerPadding,
+    )
 }

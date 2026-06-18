@@ -41,7 +41,6 @@ class SettingsViewModel(
             val enableWebDebugging = repo.enableWebDebugging
             val colorStyle = repo.colorStyle
             val colorSpec = repo.colorSpec
-            val homeLayoutStyle = repo.homeLayoutStyle
             val isLkmMode = repo.isLkmMode()
 
             // Async loading for natives/features
@@ -74,7 +73,6 @@ class SettingsViewModel(
                     enableWebDebugging = enableWebDebugging,
                     colorStyle = colorStyle,
                     colorSpec = colorSpec,
-                    homeLayoutStyle = homeLayoutStyle,
                     suCompatStatus = suCompatStatus,
                     suCompatMode = suCompatMode,
                     isSuEnabled = isSuEnabled,
@@ -138,11 +136,6 @@ class SettingsViewModel(
     fun setPageScale(scale: Float) {
         repo.pageScale = scale
         _uiState.update { it.copy(pageScale = scale) }
-    }
-
-    fun setHomeLayoutStyle(style: String) {
-        repo.homeLayoutStyle = style
-        _uiState.update { it.copy(homeLayoutStyle = style) }
     }
 
     fun setEnableWebDebugging(enabled: Boolean) {
