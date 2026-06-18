@@ -16,6 +16,10 @@ internal data class InstallUiState(
     val advancedOptionsShown: Boolean,
     val allowShell: Boolean,
     val enableAdb: Boolean,
+    val patchEnableMksu: Boolean,
+    val patchEnableRksu: Boolean,
+    val patchEnableSusfs: Boolean,
+    val patchEnableKernelpatch: Boolean,
 )
 
 @Immutable
@@ -31,4 +35,8 @@ internal data class InstallScreenActions(
     val onAdvancedOptionsClicked: () -> Unit,
     val onSelectAllowShell: (Boolean) -> Unit,
     val onSelectEnableAdb: (Boolean) -> Unit,
+    val onTogglePatchMksu: (Boolean) -> Unit,
+    val onTogglePatchRksu: (Boolean) -> Unit,
+    val onTogglePatchSusfs: (Boolean) -> Unit,
+    val onTogglePatchKernelpatch: (Boolean) -> Unit,
 )

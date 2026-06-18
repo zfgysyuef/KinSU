@@ -144,6 +144,47 @@ internal fun InstallScreenMaterial(
                 }
             )
 
+            if (uiState.installMethod is InstallMethod.PatchKernel) {
+                SegmentedColumn(
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    content = buildList {
+                        add {
+                            SegmentedListItem(
+                                headlineContent = { Text(stringResource(R.string.patch_kernel_select_features)) },
+                            )
+                        }
+                        add {
+                            SegmentedCheckboxItem(
+                                title = stringResource(id = R.string.patch_kernel_feature_mksu),
+                                checked = uiState.patchEnableMksu,
+                                onCheckedChange = actions.onTogglePatchMksu,
+                            )
+                        }
+                        add {
+                            SegmentedCheckboxItem(
+                                title = stringResource(id = R.string.patch_kernel_feature_rksu),
+                                checked = uiState.patchEnableRksu,
+                                onCheckedChange = actions.onTogglePatchRksu,
+                            )
+                        }
+                        add {
+                            SegmentedCheckboxItem(
+                                title = stringResource(id = R.string.patch_kernel_feature_susfs),
+                                checked = uiState.patchEnableSusfs,
+                                onCheckedChange = actions.onTogglePatchSusfs,
+                            )
+                        }
+                        add {
+                            SegmentedCheckboxItem(
+                                title = stringResource(id = R.string.patch_kernel_feature_kernelpatch),
+                                checked = uiState.patchEnableKernelpatch,
+                                onCheckedChange = actions.onTogglePatchKernelpatch,
+                            )
+                        }
+                    }
+                )
+            }
+
             SegmentedColumn(
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                 visibleLen = if (uiState.advancedOptionsShown) 0 else 1,
@@ -228,6 +269,7 @@ private fun SelectInstallMethod(
             is InstallMethod.DirectInstall -> onSelected(option)
             is InstallMethod.DirectInstallToInactiveSlot -> confirmDialog.showConfirm(dialogTitle, dialogContent)
             is InstallMethod.HorizonKernel -> onSelectHorizonKernel()
+            is InstallMethod.PatchKernel -> onSelected(option)
         }
     }
 

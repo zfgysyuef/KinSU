@@ -35,6 +35,16 @@ internal sealed class InstallMethod : Parcelable {
             get() = R.string.horizon_kernel
     }
 
+    data class PatchKernel(
+        val enableMksu: Boolean = true,
+        val enableRksu: Boolean = false,
+        val enableSusfs: Boolean = false,
+        val enableKernelpatch: Boolean = false,
+    ) : InstallMethod() {
+        override val label: Int
+            get() = R.string.patch_kernel
+    }
+
     abstract val label: Int
 
     @IgnoredOnParcel

@@ -82,6 +82,14 @@
     <string name="home_jailbreak">Jailbreak</string>
     <string name="home_lkm_load">Load LKM</string>
     <string name="horizon_kernel">AnyKernel3 Flash</string>
+    <string name="patch_kernel">Patch Kernel</string>
+    <string name="patch_kernel_desc">Patch the kernel image with FollKernel for GKI mode</string>
+    <string name="patch_kernel_feature_mksu">MKSU: Magic Mount Support</string>
+    <string name="patch_kernel_feature_rksu">RKSU: non-GKI Support</string>
+    <string name="patch_kernel_feature_susfs">susfs: Hide Kernel Patches &amp; Userspace Modules</string>
+    <string name="patch_kernel_feature_kernelpatch">KernelPatch: Kernel Module (APatch Implementation)</string>
+    <string name="patch_kernel_select_features">Select Kernel Patch Features</string>
+    <string name="patch_kernel_gki_mode">GKI Mode Patching</string>
     <string name="kernel_flashing">Kernel Flashing</string>
     <string name="jailbreak_timeout">Jailbreak may have failed, please check logs</string>
     <string name="safe_mode_module_disabled">Module installation is disabled in safe mode</string>

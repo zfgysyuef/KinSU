@@ -49,6 +49,14 @@
     <string name="reboot_download">重启到 Download</string>
     <string name="reboot_edl">重启到 EDL</string>
     <string name="horizon_kernel">AnyKernel3 刷写</string>
+    <string name="patch_kernel">修补内核</string>
+    <string name="patch_kernel_desc">基于 FollKernel 内核进行 GKI 模式修补</string>
+    <string name="patch_kernel_feature_mksu">MKSU：魔法坐骑支持</string>
+    <string name="patch_kernel_feature_rksu">RKSU：non-GKI 支持</string>
+    <string name="patch_kernel_feature_susfs">susfs：隐藏内核补丁及用户空间模组</string>
+    <string name="patch_kernel_feature_kernelpatch">KernelPatch：内核模块（APatch 实现）</string>
+    <string name="patch_kernel_select_features">选择内核补丁特性</string>
+    <string name="patch_kernel_gki_mode">GKI 模式修补</string>
     <string name="kernel_flashing">内核刷写</string>
     <string name="about">关于</string>
     <string name="module_uninstall_confirm">确定要卸载模块 %s 吗？</string>
