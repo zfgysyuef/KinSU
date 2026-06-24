@@ -127,6 +127,20 @@ grep -q "kernelsu" "$DRIVER_KCONFIG" || sed -i "/endmenu/i\\source \"drivers/ker
 
 echo ">>> KinSU 内核驱动集成完成"
 
+# ===== 修复 KinSU uapi 符号链接 =====
+echo ">>> 修复 KinSU uapi 符号链接..."
+KINSU_KERNEL="$WORKDIR/kernel_workspace/KinSU/kernel"
+if [ ! -f "$KINSU_KERNEL/uapi/app_profile.h" ]; then
+    echo "ERROR: uapi/app_profile.h not found in KinSU kernel!"
+    exit 1
+fi
+# Fix include/uapi symlink — Git may store it as a plain file on some systems
+if [ -f "$KINSU_KERNEL/include/uapi" ] && [ ! -L "$KINSU_KERNEL/include/uapi" ]; then
+    rm -f "$KINSU_KERNEL/include/uapi"
+    ln -s ../../uapi "$KINSU_KERNEL/include/uapi"
+fi
+echo ">>> uapi 符号链接已修复: $(readlink $KINSU_KERNEL/include/uapi)"
+
 # ===== 克隆补丁仓库&应用 SUSFS 补丁 =====
 cd "$WORKDIR/kernel_workspace"
 echo ">>> 应用 SUSFS&hook 补丁..."
