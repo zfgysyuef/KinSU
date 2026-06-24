@@ -40,6 +40,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Dashboard
+import androidx.compose.material.icons.rounded.Extension
+import androidx.compose.material.icons.rounded.RestartAlt
+import androidx.compose.material.icons.rounded.Settings
+import androidx.compose.material.icons.rounded.Shield
+import androidx.compose.material.icons.rounded.SystemUpdate
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.rounded.MenuOpen
@@ -48,6 +54,8 @@ import androidx.compose.material.icons.filled.Brightness3
 import androidx.compose.material.icons.filled.Brightness4
 import androidx.compose.material.icons.filled.Brightness7
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.SupervisorAccount
 import androidx.compose.material.icons.rounded.AspectRatio
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Dashboard
@@ -93,6 +101,8 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.layout.wrapContentSize
 import com.materialkolor.PaletteStyle
 import com.materialkolor.dynamiccolor.ColorSpec
 import com.materialkolor.rememberDynamicColorScheme
@@ -103,6 +113,7 @@ import com.mikokernel.ui.component.material.SegmentedListItem
 import com.mikokernel.ui.component.material.SegmentedSwitchItem
 import com.mikokernel.ui.component.material.TonalCard
 import com.mikokernel.ui.theme.ColorMode
+import com.mikokernel.ui.theme.FontMode
 import com.mikokernel.ui.theme.keyColorOptions
 
 @Composable
@@ -179,15 +190,15 @@ fun ColorPaletteScreenMaterial(
                     )
                 }
 
-                items(keyColorOptions) { color ->
+                items(keyColorOptions) { colorOption ->
                     ColorButtonMaterial(
-                        color = Color(color),
-                        isSelected = currentKeyColor == color,
+                        color = Color(colorOption.color),
+                        isSelected = currentKeyColor == colorOption.color,
                         isDark = isDark,
                         paletteStyle = colorStyle,
                         colorSpec = colorSpec,
                         onClick = {
-                            actions.onSetKeyColor(color)
+                            actions.onSetKeyColor(colorOption.color)
                         }
                     )
                 }
@@ -249,10 +260,23 @@ fun ColorPaletteScreenMaterial(
                     content = listOf(
                         {
                             val styles = PaletteStyle.entries
+                            val styleNames = styles.map { style ->
+                                when (style) {
+                                    PaletteStyle.TonalSpot -> "色调点"
+                                    PaletteStyle.Neutral -> "中性"
+                                    PaletteStyle.Vibrant -> "鲜艳"
+                                    PaletteStyle.Expressive -> "表现力"
+                                    PaletteStyle.Rainbow -> "彩虹"
+                                    PaletteStyle.FruitSalad -> "水果沙拉"
+                                    PaletteStyle.Monochrome -> "单色"
+                                    PaletteStyle.Content -> "内容"
+                                    else -> style.name
+                                }
+                            }
                             SegmentedDropdownItem(
                                 icon = Icons.Rounded.Style,
                                 title = stringResource(R.string.settings_color_style),
-                                items = styles.map { it.name },
+                                items = styleNames,
                                 selectedIndex = styles.indexOf(colorStyle),
                                 onItemSelected = { index ->
                                     actions.onSetColorStyle(styles[index].name)
@@ -261,10 +285,17 @@ fun ColorPaletteScreenMaterial(
                         },
                         {
                             val specs = ColorSpec.SpecVersion.entries
+                            val specNames = specs.map { spec ->
+                                when (spec) {
+                                    ColorSpec.SpecVersion.SPEC_2021 -> "2021 标准"
+                                    ColorSpec.SpecVersion.SPEC_2025 -> "2025 标准"
+                                    else -> spec.name
+                                }
+                            }
                             SegmentedDropdownItem(
                                 icon = Icons.Rounded.DesignServices,
                                 title = stringResource(R.string.settings_color_spec),
-                                items = specs.map { it.name },
+                                items = specNames,
                                 selectedIndex = specs.indexOf(colorSpec).coerceAtLeast(0),
                                 onItemSelected = { index ->
                                     actions.onSetColorSpec(specs[index].name)
@@ -290,6 +321,24 @@ fun ColorPaletteScreenMaterial(
                         )
                     )
                 }
+
+                SegmentedColumn(
+                    modifier = Modifier.padding(top = 4.dp),
+                    content = listOf(
+                        {
+                            val fonts = FontMode.entries
+                            SegmentedDropdownItem(
+                                icon = Icons.Rounded.Dashboard,
+                                title = "字体",
+                                items = fonts.map { it.displayName },
+                                selectedIndex = fonts.indexOf(state.currentFontMode).coerceAtLeast(0),
+                                onItemSelected = { index ->
+                                    actions.onSetFontMode(fonts[index])
+                                }
+                            )
+                        }
+                    )
+                )
 
                 TonalCard(modifier = Modifier.padding(top = 4.dp)) {
                     var sliderValue by remember(uiState.pageScale) { mutableFloatStateOf(uiState.pageScale) }
@@ -381,7 +430,6 @@ private fun ThemePreviewCard(
             style = paletteStyle,
             specVersion = colorSpec,
         )
-
     }
 
     Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.TopCenter) {
@@ -394,89 +442,109 @@ private fun ThemePreviewCard(
             border = BorderStroke(1.dp, color = MaterialTheme.colorScheme.outlineVariant)
         ) {
             Column {
-                // top bar
+                // Top bar: shield icon
                 Box(
                     modifier = Modifier
-                        .height(48.dp)
-                        .fillMaxWidth(),
-                    contentAlignment = Alignment.TopStart
+                        .height(40.dp)
+                        .fillMaxWidth()
+                        .padding(horizontal = 10.dp),
+                    contentAlignment = Alignment.CenterStart
                 ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(start = 12.dp, top = 16.dp, bottom = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = stringResource(id = R.string.app_name),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = colorScheme.onSurface
-                        )
-                    }
+                    Icon(
+                        Icons.Rounded.Shield,
+                        contentDescription = null,
+                        tint = colorScheme.primary,
+                        modifier = Modifier.size(18.dp)
+                    )
                 }
 
-                Box(
+                // Status card — mimics home StatusCard layout with color bars instead of text
+                TonalCard(
+                    containerColor = colorScheme.secondaryContainer,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .weight(1f),
-                    contentAlignment = Alignment.TopStart
-                ) {
-                    Column(
-                        modifier = Modifier.padding(horizontal = 8.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        TonalCard(
-                            containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(40.dp),
-                            shape = RoundedCornerShape(12.dp),
-                            content = { }
-                        )
+                        .padding(horizontal = 8.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    content = {
                         Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            TonalCard(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .height(32.dp),
-                                shape = RoundedCornerShape(12.dp),
-                                content = { }
-                            )
-                            TonalCard(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .height(32.dp),
-                                shape = RoundedCornerShape(12.dp),
-                                content = { }
-                            )
-                        }
-                        TonalCard(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(96.dp),
-                            shape = RoundedCornerShape(12.dp),
-                            content = { }
-                        )
+                                .padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                Icons.Outlined.CheckCircle,
+                                contentDescription = null,
+                                tint = colorScheme.onSecondaryContainer,
+                                modifier = Modifier.size(24.dp)
+                            )
+                            Spacer(Modifier.width(16.dp))
+                            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                // Title row: color bar + GKI tag
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Box(
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .height(8.dp)
+                                            .clip(RoundedCornerShape(4.dp))
+                                            .background(colorScheme.onSecondaryContainer.copy(alpha = 0.7f))
+                                    )
+                                    Spacer(Modifier.width(6.dp))
+                                    Box(
+                                        modifier = Modifier
+                                            .clip(RoundedCornerShape(4.dp))
+                                            .background(colorScheme.primary)
+                                            .padding(horizontal = 8.dp, vertical = 2.dp)
+                                    )
+                                }
+                                // Version bar
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth(0.6f)
+                                        .height(5.dp)
+                                        .clip(RoundedCornerShape(2.5.dp))
+                                        .background(colorScheme.onSecondaryContainer.copy(alpha = 0.4f))
+                                )
+                                // Superuser bar
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth(0.5f)
+                                        .height(5.dp)
+                                        .clip(RoundedCornerShape(2.5.dp))
+                                        .background(colorScheme.onSecondaryContainer.copy(alpha = 0.3f))
+                                )
+                                // Module bar
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth(0.45f)
+                                        .height(5.dp)
+                                        .clip(RoundedCornerShape(2.5.dp))
+                                        .background(colorScheme.onSecondaryContainer.copy(alpha = 0.25f))
+                                )
+                            }
+                        }
                     }
-                }
+                )
 
-                // bottom bar
+                Spacer(modifier = Modifier.weight(1f))
+
+                // Bottom navigation bar — icons only
                 Surface(
                     color = colorScheme.surfaceContainer,
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Row(
                         modifier = Modifier
-                            .height(40.dp)
+                            .height(36.dp)
                             .fillMaxWidth()
                             .padding(horizontal = 8.dp),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-                            Icon(Icons.Filled.Home, null, tint = colorScheme.primary)
-                        }
+                        Icon(Icons.Filled.Home, null, tint = colorScheme.primary, modifier = Modifier.size(16.dp))
+                        Icon(Icons.Rounded.Dashboard, null, tint = colorScheme.onSurfaceVariant, modifier = Modifier.size(16.dp))
+                        Icon(Icons.Rounded.Extension, null, tint = colorScheme.onSurfaceVariant, modifier = Modifier.size(16.dp))
+                        Icon(Icons.Rounded.Settings, null, tint = colorScheme.onSurfaceVariant, modifier = Modifier.size(16.dp))
                     }
                 }
             }

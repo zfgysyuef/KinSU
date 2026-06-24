@@ -41,13 +41,13 @@ enum Commands {
     /// Trigger `boot-complete` event
     BootCompleted,
 
-    /// Load follkernel.ko and execute late-load stage scripts
+    /// Load kinsu.ko and execute late-load stage scripts
     LateLoad {
         /// Use adb root to execute late-load for jailbreaking by Magica
         #[arg(long, default_missing_value = "5555", num_args = 0..=1)]
         magica: Option<u16>,
 
-        /// Pass allow_shell=1 when loading follkernel.ko
+        /// Pass allow_shell=1 when loading kinsu.ko
         #[arg(long)]
         allow_shell: bool,
 
@@ -60,7 +60,7 @@ enum Commands {
         kmi: Option<String>,
 
         /// manager package name
-        #[arg(long, default_value_t = String::from("me.weishu.follkernel"))]
+        #[arg(long, default_value_t = String::from("me.weishu.kinsu"))]
         package_name: String,
     },
 
@@ -87,7 +87,7 @@ enum Commands {
 
     /// Uninstall KernelSU modules and itself(LKM Only)
     Uninstall {
-        #[arg(long, default_value_t = String::from("me.weishu.follkernel"))]
+        #[arg(long, default_value_t = String::from("me.weishu.kinsu"))]
         package_name: String,
     },
 
@@ -176,7 +176,7 @@ enum Debug {
     /// Set the manager app, kernel CONFIG_KSU_DEBUG should be enabled.
     SetManager {
         /// manager package name
-        #[arg(default_value_t = String::from("me.weishu.follkernel"))]
+        #[arg(default_value_t = String::from("me.weishu.kinsu"))]
         apk: String,
     },
 
@@ -224,6 +224,12 @@ enum Debug {
         #[command(subcommand)]
         command: SusfsCommand,
     },
+
+    /// KPM (KernelPatch Module) management
+    Kpm {
+        #[command(subcommand)]
+        command: KpmCommand,
+    },
 }
 
 #[derive(clap::Subcommand, Debug)]
@@ -234,6 +240,44 @@ enum SusfsCommand {
     Features,
     /// Check if SuSFS is supported
     Status,
+}
+
+#[derive(clap::Subcommand, Debug)]
+enum KpmCommand {
+    /// Diagnose supercall availability
+    Diag,
+    /// Show KernelPatch version
+    Version,
+    /// Show number of loaded KPM modules
+    Num,
+    /// List all loaded KPM modules (JSON)
+    List,
+    /// Load a KPM module from path
+    Load {
+        /// Path to the KPM module file
+        path: String,
+        /// Arguments to pass to the module
+        #[arg(default_value = "")]
+        args: String,
+    },
+    /// Unload a KPM module by name
+    Unload {
+        /// Name of the KPM module
+        name: String,
+    },
+    /// Get info about a KPM module
+    Info {
+        /// Name of the KPM module
+        name: String,
+    },
+    /// Send control command to a KPM module
+    Control {
+        /// Name of the KPM module
+        name: String,
+        /// Control arguments
+        #[arg(default_value = "")]
+        args: String,
+    },
 }
 
 #[derive(clap::Subcommand, Debug)]
@@ -752,6 +796,94 @@ pub fn run() -> Result<()> {
                 SusfsCommand::Status => {
                     println!("{}", crate::susfs::get_susfs_status());
                     Ok(())
+                }
+            },
+            Debug::Kpm { command } => match command {
+                KpmCommand::Diag => {
+                    println!("{}", crate::kpm::kpm_diag());
+                    Ok(())
+                }
+                KpmCommand::Version => {
+                    println!("KPM module loader: ioctl-based (v2.0)");
+                    println!("Built into kinsu.ko - no kpimg injection needed.");
+                    Ok(())
+                }
+                KpmCommand::Num => {
+                    match crate::kpm::kpm_nums() {
+                        Ok(n) => { println!("{}", n); Ok(()) }
+                        Err(e) => { println!("Error: {}", e); Err(e) }
+                    }
+                }
+                KpmCommand::List => {
+                    match crate::kpm::kpm_list() {
+                        Ok(s) => { println!("{}", s); Ok(()) }
+                        Err(e) => { println!("Error: {}", e); Err(e) }
+                    }
+                }
+                KpmCommand::Load { path, args } => {
+                    let result = crate::kpm::kpm_load_module(&path, &args);
+                    match result {
+                        Ok(0) => {
+                            println!("OK");
+                            Ok(())
+                        }
+                        Ok(code) => {
+                            let errno_desc = match -code {
+                                2 => "文件不存在 (ENOENT)",
+                                8 => "不是有效的 KPM 模块 (ENOEXEC)",
+                                12 => "内存不足 (ENOMEM)",
+                                17 => "模块已加载 (EEXIST)",
+                                22 => "参数无效 (EINVAL)",
+                                _ => ""
+                            };
+                            println!("Error: {} {}", code, errno_desc);
+                            Err(anyhow::anyhow!("KPM load failed: {} {}", code, errno_desc))
+                        }
+                        Err(e) => {
+                            println!("Error: {}", e);
+                            Err(anyhow::anyhow!("KPM load failed: {}", e))
+                        }
+                    }
+                }
+                KpmCommand::Unload { name } => {
+                    let result = crate::kpm::kpm_unload_module(&name);
+                    match result {
+                        Ok(0) => {
+                            println!("OK");
+                            Ok(())
+                        }
+                        Ok(code) => {
+                            println!("Error: {}", code);
+                            Err(anyhow::anyhow!("KPM unload failed: {}", code))
+                        }
+                        Err(e) => {
+                            println!("Error: {}", e);
+                            Err(anyhow::anyhow!("KPM unload failed: {}", e))
+                        }
+                    }
+                }
+                KpmCommand::Info { name } => {
+                    match crate::kpm::kpm_info(&name) {
+                        Ok(s) => { println!("{}", s); Ok(()) }
+                        Err(e) => { println!("Error: {}", e); Err(e) }
+                    }
+                }
+                KpmCommand::Control { name, args } => {
+                    let result = crate::kpm::kpm_control(&name, &args);
+                    match result {
+                        Ok(0) => {
+                            println!("OK");
+                            Ok(())
+                        }
+                        Ok(code) => {
+                            println!("Error: {}", code);
+                            Err(anyhow::anyhow!("KPM control failed: {}", code))
+                        }
+                        Err(e) => {
+                            println!("Error: {}", e);
+                            Err(anyhow::anyhow!("KPM control failed: {}", e))
+                        }
+                    }
                 }
             },
         },

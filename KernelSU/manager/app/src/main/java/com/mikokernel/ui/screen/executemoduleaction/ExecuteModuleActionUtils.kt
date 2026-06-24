@@ -103,7 +103,7 @@ fun saveLog(
             val date = format.format(Date())
             val file = File(
                 Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
-                "FollKernel_module_action_log_${date}.log"
+                "KinSU_module_action_log_${date}.log"
             )
             file.writeText(logContent.toString())
             showMessage("Log saved to ${file.absolutePath}")

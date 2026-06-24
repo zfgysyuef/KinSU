@@ -21,6 +21,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Block
+import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.SystemUpdate
@@ -52,6 +53,7 @@ import androidx.compose.ui.unit.dp
 import com.mikokernel.KernelVersion
 import com.mikokernel.Natives
 import com.mikokernel.R
+import com.mikokernel.isGkiDevice
 import com.mikokernel.ui.navigation3.LocalNavigator
 import com.mikokernel.ui.navigation3.Route
 import com.mikokernel.ui.component.dialog.rememberConfirmDialog
@@ -68,7 +70,7 @@ fun HomePagerMaterial(
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
 
     Scaffold(
-        topBar = { TopBar(scrollBehavior = scrollBehavior, onInstallClick = actions.onInstallClick) },
+        topBar = { TopBar(scrollBehavior = scrollBehavior, onInstallClick = actions.onInstallClick, isKpmActive = state.isKpmActive) },
         contentWindowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal)
     ) { innerPadding ->
         Column(
@@ -142,17 +144,23 @@ internal fun UpdateCard(
 internal fun TopBar(
     scrollBehavior: TopAppBarScrollBehavior? = null,
     onInstallClick: () -> Unit = {},
+    isKpmActive: Boolean = false,
 ) {
     val navigator = LocalNavigator.current
     LargeFlexibleTopAppBar(
         title = { Text(stringResource(R.string.app_name)) },
         actions = {
+            IconButton(onClick = onInstallClick) {
+                Icon(Icons.Outlined.SystemUpdate, stringResource(R.string.install))
+            }
             RebootListPopup()
             IconButton(onClick = { navigator?.push(Route.Settings) }) {
                 Icon(Icons.Outlined.Settings, stringResource(R.string.settings))
             }
-            IconButton(onClick = onInstallClick) {
-                Icon(Icons.Outlined.SystemUpdate, stringResource(R.string.install))
+            if (isKpmActive) {
+                IconButton(onClick = { navigator?.push(Route.Kpm) }) {
+                    Icon(Icons.Outlined.BugReport, "GKI Debug")
+                }
             }
         },
         colors = TopAppBarDefaults.topAppBarColors(
@@ -185,10 +193,10 @@ internal fun StatusCard(
             ) {
                 when {
                     state.ksuVersion != null -> {
-                        val workingMode = when (state.lkmMode) {
-                            null -> ""
-                            true -> "LKM"
-                            else -> "GKI"
+                        val workingMode = when {
+                            state.isKpmActive -> "GKI"
+                            state.lkmMode == true -> "LKM"
+                            else -> ""
                         }
 
                         Icon(Icons.Outlined.CheckCircle, stringResource(R.string.home_working))
@@ -241,7 +249,7 @@ internal fun StatusCard(
                         }
                     }
 
-                    state.kernelVersion.isGKI() -> {
+                    isGkiDevice() -> {
                         Icon(Icons.Outlined.Warning, stringResource(R.string.home_not_installed))
                         Column(
                             modifier = Modifier
@@ -257,17 +265,6 @@ internal fun StatusCard(
                                 text = stringResource(R.string.home_click_to_install),
                                 style = MaterialTheme.typography.bodyMedium
                             )
-                        }
-                        if (state.showLkmPrompt) {
-                            Button(
-                                onClick = actions.onLoadLkmClick,
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = MaterialTheme.colorScheme.primary,
-                                    contentColor = MaterialTheme.colorScheme.onPrimary
-                                )
-                            ) {
-                                Text(stringResource(R.string.home_lkm_load))
-                            }
                         }
                         if (state.isSELinuxPermissive) {
                             Button(
@@ -528,10 +525,12 @@ private fun previewHomeScreenState(
     superuserCount: Int = 0,
     moduleCount: Int = 0,
     selinuxStatus: String = "Enforcing",
+    isKpmActive: Boolean = false,
 ) = HomeUiState(
     kernelVersion = KernelVersion(6, 1, 0),
     ksuVersion = ksuVersion,
     lkmMode = lkmMode,
+    isKpmActive = isKpmActive,
     isManager = true,
     isManagerPrBuild = false,
     isKernelPrBuild = false,

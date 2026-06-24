@@ -10,8 +10,8 @@ val androidCompileSdkVersion by extra(37)
 val androidCompileSdkVersionMinor by extra(0)
 val androidBuildToolsVersion by extra("37.0.0")
 val androidCompileNdkVersion: String by extra(libs.versions.ndk.get())
-val androidSourceCompatibility by extra(JavaVersion.VERSION_21)
-val androidTargetCompatibility by extra(JavaVersion.VERSION_21)
+val androidSourceCompatibility by extra(JavaVersion.VERSION_17)
+val androidTargetCompatibility by extra(JavaVersion.VERSION_17)
 val managerVersionCode by extra(getVersionCode())
 val managerVersionName by extra(getVersionName())
 
@@ -38,9 +38,9 @@ fun getGitDescribe(): String {
 }
 
 fun getVersionCode(): Int {
-    return 30022
+    return 11250
 }
 
 fun getVersionName(): String {
-    return "v${getVersionCode()}"
+    return "1.12"
 }

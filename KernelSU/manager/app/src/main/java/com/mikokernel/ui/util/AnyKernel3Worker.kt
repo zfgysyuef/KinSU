@@ -61,9 +61,16 @@ class AnyKernel3Worker(
             var origSlot: String? = null
 
             if (isAb && selectedSlot != null) {
-                onLog(AnyKernel3FlashLog(context.getString(R.string.anykernel3_setting_target_slot, selectedSlot), 0.45f))
+                // Validate selectedSlot: only allow alphanumeric and underscore
+                val safeSlot = selectedSlot.filter { it.isLetterOrDigit() || it == '_' }
+                if (safeSlot != selectedSlot) {
+                    onError("Invalid slot name: $selectedSlot")
+                    cleanupArtifacts()
+                    return
+                }
+                onLog(AnyKernel3FlashLog(context.getString(R.string.anykernel3_setting_target_slot, safeSlot), 0.45f))
                 origSlot = Shell.cmd("getprop ro.boot.slot_suffix").exec().out.firstOrNull()?.trim()
-                runCommand(true, "resetprop -n ro.boot.slot_suffix _$selectedSlot")
+                runCommand(true, "resetprop -n ro.boot.slot_suffix _$safeSlot")
             }
 
             onLog(AnyKernel3FlashLog(context.getString(R.string.anykernel3_flashing_kernel), 0.5f, context.getString(R.string.anykernel3_flashing)))
@@ -71,7 +78,10 @@ class AnyKernel3Worker(
             try {
                 process.outputStream.bufferedWriter().use { writer ->
                     writer.write("export POSTINSTALL=$workDir\n")
-                    selectedSlot?.let { writer.write("echo \"$it\" > $slotFile\n") }
+                    selectedSlot?.let { slot ->
+                        val safeSlot = slot.filter { c -> c.isLetterOrDigit() || c == '_' }
+                        writer.write("echo \"$safeSlot\" > $slotFile\n")
+                    }
                     val cmd = buildString {
                         append("sh $binaryPath 3 1 \"$zipPath\"")
                         if (selectedSlot != null) append(" \"\$(cat $slotFile)\"")

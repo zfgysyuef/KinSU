@@ -15,6 +15,7 @@ data class SettingsUiState(
     val enablePredictiveBack: Boolean = false,
     val pageScale: Float = 1.0f,
     val enableWebDebugging: Boolean = false,
+    val fontMode: Int = 0,
 
     // Su Compat
     val suCompatStatus: String = "",
@@ -61,5 +62,7 @@ data class SettingsScreenActions(
     val onSetDefaultUmountModules: (Boolean) -> Unit,
     val onSetEnableWebDebugging: (Boolean) -> Unit,
     val onSetAutoJailbreak: (Boolean) -> Unit,
+    val onOpenKpm: () -> Unit,
+    val onOpenSusfs: () -> Unit,
     val onOpenAbout: () -> Unit,
 )

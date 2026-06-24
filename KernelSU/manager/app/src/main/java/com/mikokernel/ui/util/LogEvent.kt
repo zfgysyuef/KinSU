@@ -91,7 +91,7 @@ fun getBugreportFile(context: Context): File {
         pw.println("Sysname: ${uname.sysname}")
 
         val ksuKernel = Natives.version
-        pw.println("FollKernel: $ksuKernel")
+        pw.println("KinSU: $ksuKernel")
         val safeMode = Natives.isSafeMode
         pw.println("SafeMode: $safeMode")
         val lkmMode = Natives.isLkmMode
@@ -105,7 +105,7 @@ fun getBugreportFile(context: Context): File {
     val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH_mm")
     val current = LocalDateTime.now().format(formatter)
 
-    val targetFile = File(context.cacheDir, "FollKernel_bugreport_${current}.tar.gz")
+    val targetFile = File(context.cacheDir, "KinSU_bugreport_${current}.tar.gz")
 
     shell.newJob().add("tar czf ${targetFile.absolutePath} -C ${bugreportDir.absolutePath} .").exec()
     shell.newJob().add("rm -rf ${bugreportDir.absolutePath}").exec()

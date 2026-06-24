@@ -177,4 +177,51 @@ static const __u32 KSU_IOCTL_SET_INIT_PGRP = _IO('K', 19);
 static const __u32 KSU_IOCTL_GET_SULOG_FD = _IOW('K', 20, struct ksu_get_sulog_fd_cmd);
 static const __u32 KSU_IOCTL_DISABLE_ESCAPE_TO_ROOT = _IO('K', 21);
 
+/* KPM (KernelPatch Module) IOCTL commands */
+struct ksu_kpm_load_cmd {
+    __aligned_u64 path;   /* Input: userspace pointer to module path */
+    __aligned_u64 args;   /* Input: userspace pointer to args string */
+    __s32 result;         /* Output: 0 on success, negative errno on error */
+    __s32 reserved;
+};
+
+struct ksu_kpm_unload_cmd {
+    __aligned_u64 name;   /* Input: userspace pointer to module name */
+    __s32 result;         /* Output: 0 on success, negative errno on error */
+    __s32 reserved;
+};
+
+struct ksu_kpm_nums_cmd {
+    __s32 nums;           /* Output: number of loaded KPM modules */
+    __s32 reserved;
+};
+
+struct ksu_kpm_list_cmd {
+    __aligned_u64 buf;    /* Output: userspace buffer for module list */
+    __u32 buf_size;       /* Input: buffer size */
+    __s32 result;         /* Output: bytes written or negative errno */
+};
+
+struct ksu_kpm_info_cmd {
+    __aligned_u64 name;   /* Input: userspace pointer to module name */
+    __aligned_u64 buf;    /* Output: userspace buffer for module info */
+    __u32 buf_size;       /* Input: buffer size */
+    __s32 result;         /* Output: bytes written or negative errno */
+};
+
+struct ksu_kpm_control_cmd {
+    __aligned_u64 name;   /* Input: userspace pointer to module name */
+    __aligned_u64 args;   /* Input: userspace pointer to ctl args */
+    __aligned_u64 out_buf;/* Output: userspace buffer for ctl response */
+    __s32 out_len;        /* Input: output buffer length */
+    __s32 result;         /* Output: 0 on success, negative errno on error */
+};
+
+static const __u32 KSU_IOCTL_KPM_LOAD    = _IOWR('K', 0x30, struct ksu_kpm_load_cmd);
+static const __u32 KSU_IOCTL_KPM_UNLOAD  = _IOWR('K', 0x31, struct ksu_kpm_unload_cmd);
+static const __u32 KSU_IOCTL_KPM_NUMS    = _IOWR('K', 0x32, struct ksu_kpm_nums_cmd);
+static const __u32 KSU_IOCTL_KPM_LIST    = _IOWR('K', 0x33, struct ksu_kpm_list_cmd);
+static const __u32 KSU_IOCTL_KPM_INFO    = _IOWR('K', 0x34, struct ksu_kpm_info_cmd);
+static const __u32 KSU_IOCTL_KPM_CONTROL = _IOWR('K', 0x35, struct ksu_kpm_control_cmd);
+
 #endif

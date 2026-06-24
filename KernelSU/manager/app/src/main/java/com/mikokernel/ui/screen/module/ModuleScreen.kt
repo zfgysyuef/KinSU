@@ -120,11 +120,19 @@ fun ModulePager(
             viewModel.toggleSortEnabledFirst()
         },
         onOpenWebUi = { module ->
-            webUILauncher.launch(
-                Intent(context, WebUIActivity::class.java)
-                    .setData("kernelsu://webui/${module.id}".toUri())
-                    .putExtra("id", module.id)
-            )
+            // Validate module.id to prevent URI injection — only allow alphanumeric, dash, underscore, dot
+            val safeId = module.id.filter { it.isLetterOrDigit() || it == '-' || it == '_' || it == '.' }
+            if (safeId != module.id) {
+                viewModel.emitEffect(
+                    ModuleEffect.Toast("Invalid module ID: ${module.id}")
+                )
+            } else {
+                webUILauncher.launch(
+                    Intent(context, WebUIActivity::class.java)
+                        .setData("kernelsu://webui/$safeId".toUri())
+                        .putExtra("id", safeId)
+                )
+            }
         },
         onToggleModule = { module ->
             viewModel.toggleModule(module)

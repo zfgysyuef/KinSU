@@ -2,6 +2,7 @@ package com.mikokernel.ui.screen.flash
 
 import android.net.Uri
 import android.os.Environment
+import android.util.Log
 import android.os.Handler
 import android.os.Looper
 import android.os.Parcelable
@@ -29,6 +30,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.parcelize.Parcelize
 import com.mikokernel.R
+import com.mikokernel.kpm.KpmMode
+import com.mikokernel.ksuApp
 import com.mikokernel.ui.util.FlashResult
 import com.mikokernel.ui.util.LkmSelection
 import com.mikokernel.ui.util.flashModule
@@ -161,6 +164,11 @@ fun FlashEffect(
                 }
                 logContent.append(it).append("\n")
             }, onStderr = {
+                val tempText = "stderr: $it\n"
+                currentText += tempText
+                mainHandler.post {
+                    onTextUpdate(currentText)
+                }
                 logContent.append(it).append("\n")
             }).apply {
                 if (code != 0) {
@@ -175,6 +183,12 @@ fun FlashEffect(
                         onTextUpdate(currentText)
                         onShowRebootChange(true)
                     }
+                }
+                // KPM 安装成功后激活 GKI 模式
+                if (code == 0 && flashIt is FlashIt.FlashBoot && flashIt.enableKpm) {
+                    KpmMode.activate()
+                    KpmMode.persist(ksuApp)
+                    Log.i("KinSU", "KPM/GKI mode activated after successful install")
                 }
                 mainHandler.post {
                     onFlashingStatusChange(if (code == 0) FlashingStatus.SUCCESS else FlashingStatus.FAILED)
@@ -195,7 +209,7 @@ fun saveLog(
             val date = format.format(Date())
             val file = File(
                 Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
-                "FollKernel_install_log_${date}.log"
+                "KinSU_install_log_${date}.log"
             )
             file.writeText(logContent.toString())
             showMessage("Log saved to ${file.absolutePath}")

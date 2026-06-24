@@ -37,9 +37,13 @@ android {
     namespace = "com.mikokernel"
     val isPrBuild = project.findProperty("IS_PR_BUILD")?.toString()?.toBoolean() ?: false
 
-    // FollKernel: kernel module only supports v2 APK signature
+    // KinSU: kernel module only supports v2 APK signature
     signingConfigs {
         getByName("debug") {
+            enableV1Signing = false
+            enableV2Signing = true
+        }
+        create("release") {
             enableV1Signing = false
             enableV2Signing = true
         }
@@ -164,7 +168,7 @@ androidComponents {
 
 base {
     archivesName.set(
-        "FollKernel_${managerVersionName}_${managerVersionCode}"
+        "KinSU_${managerVersionName}_${managerVersionCode}"
     )
 }
 

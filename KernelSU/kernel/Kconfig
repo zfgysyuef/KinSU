@@ -1,7 +1,7 @@
-﻿menu "FollKernel"
+menu "KinSU"
 
 config KSU
-	tristate "FollKernel function support"
+	tristate "KinSU function support"
 	depends on KPROBES && EXT4_FS
 	default y
 	help
@@ -9,17 +9,17 @@ config KSU
 	  Requires CONFIG_KPROBES for kernel hooking support.
 	  Requires CONFIG_EXT4_FS for `ext4_unregister_sysfs`.
 	  To compile as a module, choose M here: the
-	  module will be called follkernel.
+	  module will be called kinsu.
 
 config KSU_DEBUG
-	bool "FollKernel debug mode"
+	bool "KinSU debug mode"
 	depends on KSU
 	default n
 	help
-	  Enable FollKernel debug mode.
+	  Enable KinSU debug mode.
 
 config KSU_DISABLE_MANAGER
-	bool "Disable FollKernel manager integration"
+	bool "Disable KinSU manager integration"
 	depends on KSU
 	default n
 	help
@@ -27,7 +27,7 @@ config KSU_DISABLE_MANAGER
 	  Root will be used in place of manager-only functionality.
 
 config KSU_DISABLE_POLICY
-	bool "Disable FollKernel policy profiles"
+	bool "Disable KinSU policy profiles"
 	depends on KSU
 	default n
 	help

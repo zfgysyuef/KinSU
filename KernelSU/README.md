@@ -1,14 +1,14 @@
-﻿[English](#english) | 中文
+[English](#english) | 中文
 
-# FollKernel
+# KinSU
 
 <p align="center">
   <strong>基于 Android 内核的 root 方案。KernelSU 的完全重命名与进化版本。</strong>
 </p>
 
 <p align="center">
-  <a href="https://github.com/Spring-bulid/FollKernel/releases/latest"><img src="https://img.shields.io/github/v/release/Spring-bulid/FollKernel?label=Latest%20Release&logo=github&color=blueviolet" alt="Latest Release"></a>
-  <a href="https://github.com/Spring-bulid/FollKernel/releases/latest"><img src="https://img.shields.io/github/downloads/Spring-bulid/FollKernel/total?logo=android&color=green" alt="Downloads"></a>
+  <a href="https://github.com/Spring-bulid/KinSU/releases/latest"><img src="https://img.shields.io/github/v/release/Spring-bulid/KinSU?label=Latest%20Release&logo=github&color=blueviolet" alt="Latest Release"></a>
+  <a href="https://github.com/Spring-bulid/KinSU/releases/latest"><img src="https://img.shields.io/github/downloads/Spring-bulid/KinSU/total?logo=android&color=green" alt="Downloads"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-GPL%20v3-blue.svg?logo=gnu" alt="License"></a>
   <a href="#"><img src="https://img.shields.io/badge/Platform-Android%2012%2B-brightgreen?logo=android" alt="Platform"></a>
   <a href="#"><img src="https://img.shields.io/badge/Arch-arm64--v8a%20%7C%20x86__64-blue?logo=arm" alt="Architecture"></a>
@@ -18,7 +18,7 @@
 
 ## 📖 目录
 
-- [什么是 FollKernel？](#-什么是-follkernel)
+- [什么是 KinSU？](#-什么是-KinSU)
 - [核心特性](#-核心特性)
 - [与 KernelSU 的区别](#-与-kernelsu-的区别)
 - [项目架构](#-项目架构)
@@ -33,16 +33,16 @@
 
 ---
 
-## 🤔 什么是 FollKernel？
+## 🤔 什么是 KinSU？
 
-FollKernel 是一个**基于 Linux 内核的 Android root 权限管理方案**。它通过内核模块（LKM）在内核层面拦截和管理 `su` 调用，而非依赖用户态的 su 二进制文件。
+KinSU 是一个**基于 Linux 内核的 Android root 权限管理方案**。它通过内核模块（LKM）在内核层面拦截和管理 `su` 调用，而非依赖用户态的 su 二进制文件。
 
 **这意味着：**
 - Root 权限的授予由内核直接控制，无法被用户态程序绕过或伪造
 - 不修改 `/system` 分区，真正做到**无系统修改（systemless）**
 - 通过 App Profile 对每个应用独立设置 root 策略，把 root 权力关进笼子里
 
-FollKernel 脱胎于 [KernelSU](https://github.com/tiann/KernelSU)，在保留其全部内核能力的基础上，进行了**深度的品牌独立化改造**。
+KinSU 脱胎于 [KernelSU](https://github.com/tiann/KernelSU)，在保留其全部内核能力的基础上，进行了**深度的品牌独立化改造**。
 
 ---
 
@@ -89,14 +89,14 @@ APK 内嵌 7 个预编译的 KMI 内核模块，覆盖 Android 12∼16：
 
 ## 🔄 与 KernelSU 的区别
 
-| 方面 | KernelSU | FollKernel |
+| 方面 | KernelSU | KinSU |
 |------|----------|----------|
-| 品牌名 | KernelSU | FollKernel |
+| 品牌名 | KernelSU | KinSU |
 | UI 框架 | MIUIX (小米风格) | Material Design 3 (全新重写) |
-| 守护进程 | `libksud.so` | `libfollkerneld.so` |
-| 内核模块 | `kernelsu.ko` | `follkernel.ko` |
-| 包名 | `me.weishu.kernelsu` | `me.weishu.follkernel` |
-| 所有字符串 | KernelSU | FollKernel (40+ 语言) |
+| 守护进程 | `libksud.so` | `libKinSUd.so` |
+| 内核模块 | `kernelsu.ko` | `KinSU.ko` |
+| 包名 | `me.weishu.kernelsu` | `me.weishu.KinSU` |
+| 所有字符串 | KernelSU | KinSU (40+ 语言) |
 | 核心功能 | 完全兼容 | 完全兼容 |
 
 ---
@@ -124,13 +124,13 @@ APK 内嵌 7 个预编译的 KMI 内核模块，覆盖 Android 12∼16：
 │  │  └─ Root Shell (su)                     ││                 │
 │  ├──────────────────────────────────────────┤│                 │
 │  │  ksuinit (早期启动)                       ││                 │
-│  │  └─ 加载 follkernel.ko → execve 真实 init  ││                 │
+│  │  └─ 加载 KinSU.ko → execve 真实 init  ││                 │
 │  └──────────────────────────────────────────┘│                 │
 │                                              │                 │
 ├──────────────────────────────────────────────┼─────────────────┤
 │                 Linux Kernel Module           │                 │
 │  ┌───────────────────────────────────────────┴──────────────┐ │
-│  │  follkernel.ko                                              │ │
+│  │  KinSU.ko                                              │ │
 │  │  ├─ supercall.c        IOCTL 调度                        │ │
 │  │  ├─ allowlist.c        应用白名单                         │ │
 │  │  ├─ app_profile.c      每应用 root 策略                   │ │
@@ -160,9 +160,9 @@ APK 内嵌 7 个预编译的 KMI 内核模块，覆盖 Android 12∼16：
 
 **路径 A：GKI 预打包（推荐）**
 ```
-Bootloader → Linux Kernel (含 follkernel.ko)
+Bootloader → Linux Kernel (含 KinSU.ko)
   → ksuinit 替换 /init
-  → ksuinit 通过 init_module() 加载 follkernel.ko
+  → ksuinit 通过 init_module() 加载 KinSU.ko
   → 所有内核子系统在早期启动中初始化
   → ksuinit execves 真正的 /init
 ```
@@ -174,7 +174,7 @@ Bootloader → Stock Kernel
   → Fork ksud "late-load --magica 5555"
   → ksud 通过属性操作启用 adbd root
   → ADB TCP 连接，exec 自身为 "late-load --post-magica"
-  → 检测 KMI，从内嵌资源加载 follkernel.ko
+  → 检测 KMI，从内嵌资源加载 KinSU.ko
   → 运行阶段脚本，重启 Manager
 ```
 
@@ -209,9 +209,9 @@ Bootloader → Stock Kernel
 
 ## 🚀 快速开始
 
-1. 从 [Releases](https://github.com/Spring-bulid/FollKernel/releases/latest) 下载最新 APK
+1. 从 [Releases](https://github.com/Spring-bulid/KinSU/releases/latest) 下载最新 APK
 2. 安装 APK 到你的 Android 设备
-3. 打开 FollKernel Manager
+3. 打开 KinSU Manager
 4. **GKI 设备**：在 Manager 中选择对应 KMI 版本，一键刷入
 5. **非 GKI 设备**：手动编译内核模块，使用「使用本地 LKM 文件」刷入
 6. 重启设备，开始使用 root 权限管理！
@@ -232,15 +232,15 @@ Bootloader → Stock Kernel
 
 ```bash
 # 1. 编译 ksud 守护进程（两个架构）
-cd FollKernel
+cd KinSU
 cargo build --release --target aarch64-linux-android -p ksud
 cargo build --release --target x86_64-linux-android -p ksud
 
 # 2. 复制编译产物到 jniLibs
 cp target/aarch64-linux-android/release/ksud \
-   manager/app/src/main/jniLibs/arm64-v8a/libfollkerneld.so
+   manager/app/src/main/jniLibs/arm64-v8a/libKinSUd.so
 cp target/x86_64-linux-android/release/ksud \
-   manager/app/src/main/jniLibs/x86_64/libfollkerneld.so
+   manager/app/src/main/jniLibs/x86_64/libKinSUd.so
 
 # 3. 编译内核模块（可选，用于替换占位文件）
 # 需要 Linux 环境 + DDK 工具
@@ -252,7 +252,7 @@ cd ../manager
 ANDROID_HOME=/path/to/sdk ./gradlew assembleRelease
 ```
 
-APK 输出位置：`manager/app/build/outputs/apk/release/FollKernel_*-release.apk`
+APK 输出位置：`manager/app/build/outputs/apk/release/KinSU_*-release.apk`
 
 ---
 
@@ -294,7 +294,7 @@ APK 输出位置：`manager/app/build/outputs/apk/release/FollKernel_*-release.a
 
 ## 🙏 鸣谢
 
-FollKernel 基于以下开源项目构建：
+KinSU 基于以下开源项目构建：
 
 - [**KernelSU**](https://github.com/tiann/KernelSU) — 上游项目，提供完整的内核 root 方案
 - [**kernel-assisted-superuser**](https://git.zx2c4.com/kernel-assisted-superuser/about/) — 最初的灵感来源
@@ -306,23 +306,23 @@ FollKernel 基于以下开源项目构建：
 
 <h2 id="english">English</h2>
 
-# FollKernel
+# KinSU
 
 <p align="center">
   <strong>A kernel-based root solution for Android. Rebranded and evolved from KernelSU.</strong>
 </p>
 
 <p align="center">
-  <a href="https://github.com/Spring-bulid/FollKernel/releases/latest"><img src="https://img.shields.io/github/v/release/Spring-bulid/FollKernel?label=Latest%20Release&logo=github&color=blueviolet" alt="Latest Release"></a>
-  <a href="https://github.com/Spring-bulid/FollKernel/releases/latest"><img src="https://img.shields.io/github/downloads/Spring-bulid/FollKernel/total?logo=android&color=green" alt="Downloads"></a>
+  <a href="https://github.com/Spring-bulid/KinSU/releases/latest"><img src="https://img.shields.io/github/v/release/Spring-bulid/KinSU?label=Latest%20Release&logo=github&color=blueviolet" alt="Latest Release"></a>
+  <a href="https://github.com/Spring-bulid/KinSU/releases/latest"><img src="https://img.shields.io/github/downloads/Spring-bulid/KinSU/total?logo=android&color=green" alt="Downloads"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-GPL%20v3-blue.svg?logo=gnu" alt="License"></a>
   <a href="#"><img src="https://img.shields.io/badge/Platform-Android%2012%2B-brightgreen?logo=android" alt="Platform"></a>
   <a href="#"><img src="https://img.shields.io/badge/Arch-arm64--v8a%20%7C%20x86__64-blue?logo=arm" alt="Architecture"></a>
 </p>
 
-## What is FollKernel?
+## What is KinSU?
 
-FollKernel is a **kernel-level root access management solution** for Android. It intercepts `su` calls through a Linux kernel module (LKM) at the kernel level, rather than relying on userspace `su` binaries.
+KinSU is a **kernel-level root access management solution** for Android. It intercepts `su` calls through a Linux kernel module (LKM) at the kernel level, rather than relying on userspace `su` binaries.
 
 This means root access is **granted directly by the kernel**, bypassing traditional userspace tools — making it resistant to tampering and detection.
 
@@ -337,7 +337,7 @@ This means root access is **granted directly by the kernel**, bypassing traditio
 ## Project Architecture
 
 ```
-Kotlin/Compose Manager → C++ JNI → Rust ksud daemon → C kernel module (follkernel.ko)
+Kotlin/Compose Manager → C++ JNI → Rust ksud daemon → C kernel module (KinSU.ko)
 ```
 
 Three communication channels between userspace and kernel:
@@ -359,11 +359,11 @@ Three communication channels between userspace and kernel:
 
 ## Quick Start
 
-Download the latest APK from [Releases](https://github.com/Spring-bulid/FollKernel/releases/latest), install, select your KMI version, and flash.
+Download the latest APK from [Releases](https://github.com/Spring-bulid/KinSU/releases/latest), install, select your KMI version, and flash.
 
 ## GKI Kernel Build Guide
 
-Complete guide for compiling FollKernel GKI kernel modules with three methods (DDK tool, manual build, setup.sh integration).
+Complete guide for compiling KinSU GKI kernel modules with three methods (DDK tool, manual build, setup.sh integration).
 
 👉 **[View Full Guide →](docs/gki-build-guide.md)**
 

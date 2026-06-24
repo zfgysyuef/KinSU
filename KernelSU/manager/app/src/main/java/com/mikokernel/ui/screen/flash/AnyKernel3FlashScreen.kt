@@ -90,7 +90,7 @@ fun AnyKernel3FlashScreen(kernelUri: String, slot: String? = null) {
     fun saveLog() {
         scope.launch {
             val fmt = SimpleDateFormat("yyyy-MM-dd-HH-mm-ss", Locale.getDefault())
-            val file = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "FollKernel_flash_${fmt.format(Date())}.log")
+            val file = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "KinSU_flash_${fmt.format(Date())}.log")
             file.writeText(logContent.toString())
         }
     }

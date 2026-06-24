@@ -13,7 +13,6 @@ data class KernelVersion(val major: Int, val patchLevel: Int, val subLevel: Int)
     }
 
     fun isGKI(): Boolean {
-
         // kernel 6.x
         if (major > 5) {
             return true
@@ -25,6 +24,26 @@ data class KernelVersion(val major: Int, val patchLevel: Int, val subLevel: Int)
         }
 
         return false
+    }
+}
+
+/**
+ * Check if the device is a GKI device.
+ * This is more reliable than just checking kernel version,
+ * because third-party kernels may have non-GKI version strings
+ * on GKI devices.
+ */
+fun isGkiDevice(): Boolean {
+    // First check kernel version (fast, no root needed)
+    val kernelGki = getKernelVersion().isGKI()
+    if (kernelGki) return true
+
+    // If kernel version says non-GKI, check for init_boot partition
+    // (GKI devices have init_boot, non-GKI devices don't)
+    return try {
+        java.io.File("/dev/block/by-name/init_boot").exists()
+    } catch (_: Exception) {
+        false
     }
 }
 

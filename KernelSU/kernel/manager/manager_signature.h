@@ -1,6 +1,6 @@
-/* Auto-generated manager signature for FollKernel
+/* Auto-generated manager signature for KinSU
  *
- * These values identify the FollKernel manager APK.
+ * These values identify the KinSU manager APK.
  * The kernel module uses these to verify the manager app
  * when searching /data/app for the correct APK.
  *
@@ -22,7 +22,7 @@
 
 /* SHA256 hash of the APK v2 signing certificate */
 #ifndef EXPECTED_HASH
-#define EXPECTED_HASH "a23fe337cb870393959384b66050ae8e9d717701cf681ef21f741afa5469919f"
+#define EXPECTED_HASH "eb4ae49882e0ea80c13989ea2141368b1f819e2bfe10801b3c15b743bd647dab"
 #endif
 
 /*

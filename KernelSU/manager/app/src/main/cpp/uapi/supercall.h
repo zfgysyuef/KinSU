@@ -1,4 +1,4 @@
-﻿#ifndef __KSU_UAPI_SUPERCALL_H
+#ifndef __KSU_UAPI_SUPERCALL_H
 #define __KSU_UAPI_SUPERCALL_H
 
 #include <linux/ioctl.h>
@@ -52,17 +52,6 @@ struct ksu_sepolicy_cmd_hdr {
     __u32 cmd; /* Input: command type, CMD_* */
     __u32 subcmd; /* Input: command subtype */
 };
-/*
- * After each ksu_sepolicy_cmd_hdr, command arguments are encoded sequentially as:
- * [u32 len][len bytes][\0], where len excludes the trailing '\0'.
- * len == 0 represents ALL.
- * Argument count is derived from cmd:
- * KSU_SEPOLICY_CMD_NORMAL_PERM=4, KSU_SEPOLICY_CMD_XPERM=5,
- * KSU_SEPOLICY_CMD_TYPE_STATE=1, KSU_SEPOLICY_CMD_TYPE=2,
- * KSU_SEPOLICY_CMD_TYPE_ATTR=2, KSU_SEPOLICY_CMD_ATTR=1,
- * KSU_SEPOLICY_CMD_TYPE_TRANSITION=5, KSU_SEPOLICY_CMD_TYPE_CHANGE=4,
- * KSU_SEPOLICY_CMD_GENFSCON=3.
- */
 
 struct ksu_check_safemode_cmd {
     __u8 in_safe_mode; /* Output: true if in safe mode, false otherwise */

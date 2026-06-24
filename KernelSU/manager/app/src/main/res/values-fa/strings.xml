@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="home">خانه</string>
     <string name="home_not_installed">نصب نشده است</string>
@@ -45,7 +45,7 @@
     <string name="home_learn_kernelsu_url">https://kernelsu.org/guide/what-is-kernelsu.html</string>
     <string name="home_click_to_learn_kernelsu">یاد بگیرید چگونه از کرنل اس یو و ماژول ها استفاده کنید</string>
     <string name="home_support_title">از ما حمایت کنید</string>
-    <string name="home_support_content">FollKernel رایگان است و همیشه خواهد بود و منبع باز است. با این حال، می توانید با اهدای کمک مالی به ما نشان دهید که برایتان مهم است.</string>
+    <string name="home_support_content">KinSU رایگان است و همیشه خواهد بود و منبع باز است. با این حال، می توانید با اهدای کمک مالی به ما نشان دهید که برایتان مهم است.</string>
     <string name="about_source_code">
 <![CDATA[ View source code at %1$s<br/>Join our %2$s channel ]]>
 </string>
@@ -63,6 +63,6 @@
     <string name="settings_sucompat">تغییر مسیر باینری su</string>
     <string name="settings_sucompat_summary">تغییر مسیر /system/bin/su به ksud برای برنامه‌هایی که مجوز Superuser در پروفایل برنامه دارند؛ فقط برای فرآیندهای جدید موثر است.</string>
     <string name="settings_kernel_umount">جداسازی هسته</string>
-    <string name="settings_kernel_umount_summary">رفتار جداسازی در سطح هسته که توسط FollKernel کنترل می‌شود</string>
-    <string name="profile_flags_desc_no_new_privs">از افزایش بیشتر سطح دسترسی از طریق FollKernel در چارچوب این پروفایل روت جلوگیری می‌کند.</string>
+    <string name="settings_kernel_umount_summary">رفتار جداسازی در سطح هسته که توسط KinSU کنترل می‌شود</string>
+    <string name="profile_flags_desc_no_new_privs">از افزایش بیشتر سطح دسترسی از طریق KinSU در چارچوب این پروفایل روت جلوگیری می‌کند.</string>
 </resources>

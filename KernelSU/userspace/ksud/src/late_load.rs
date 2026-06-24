@@ -1,4 +1,4 @@
-﻿use anyhow::{Context, Result};
+use anyhow::{Context, Result};
 use log::{info, warn};
 use rustix::cstr;
 use std::process::Command;
@@ -51,20 +51,20 @@ pub fn run(package_name: &String, kmi: Option<String>, allow_shell: bool) -> Res
         )?;
         info!("Detected KMI: {kmi}");
 
-        // 3. Get follkernel.ko from embedded assets
-        let ko_name = format!("{kmi}_follkernel.ko");
+        // 3. Get KinSU.ko from embedded assets
+        let ko_name = format!("{kmi}_KinSU.ko");
         let ko_data = assets::get_asset_data(&ko_name)
             .with_context(|| format!("Failed to get {ko_name} from assets"))?;
 
-        // 4. Load follkernel.ko from memory with manual relocation
-        info!("Loading follkernel.ko for KMI {kmi}...");
+        // 4. Load KinSU.ko from memory with manual relocation
+        info!("Loading KinSU.ko for KMI {kmi}...");
         let params = if allow_shell {
             cstr!("allow_shell=1")
         } else {
             cstr!("")
         };
-        ksuinit::load_module(&ko_data, params).context("Failed to load follkernel.ko")?;
-        info!("follkernel.ko loaded successfully!");
+        ksuinit::load_module(&ko_data, params).context("Failed to load KinSU.ko")?;
+        info!("KinSU.ko loaded successfully!");
         dump_process_info("after load_module");
     }
 

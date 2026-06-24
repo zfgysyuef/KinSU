@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="home">主页</string>
     <string name="home_not_installed">未安装</string>
@@ -7,8 +7,8 @@
     <string name="home_working_version">版本：%s</string>
     <string name="home_kp_need_update">内核补丁需要更新</string>
     <string name="home_unsupported">不支持</string>
-    <string name="home_unsupported_reason">FollKernel 现在只支持 GKI 内核，但是你可以为 GKI 设备补丁镜像。</string>
-    <string name="home_version_mismatch">管理器版本 (%1$d) 与 FollKernel 驱动版本 (%2$d) 不匹配。</string>
+    <string name="home_unsupported_reason">KinSU 现在只支持 GKI 内核，但是你可以为 GKI 设备补丁镜像。</string>
+    <string name="home_version_mismatch">管理器版本 (%1$d) 与 KinSU 驱动版本 (%2$d) 不匹配。</string>
     <string name="home_device_model">设备型号</string>
     <string name="home_kernel">内核版本</string>
     <string name="home_manager_version">管理器版本</string>
@@ -51,11 +51,13 @@
     <string name="horizon_kernel">AnyKernel3 刷写</string>
     <string name="patch_kernel">修补内核并刷入</string>
     <string name="patch_kernel_and_flash">修补内核并刷入</string>
-    <string name="patch_kernel_desc">使用 FollKernel 修补并刷入内核镜像</string>
+    <string name="patch_kernel_desc">使用 KinSU 修补并刷入内核镜像</string>
     <string name="patch_kernel_feature_kpm">KPM：KernelPatch 模块支持</string>
     <string name="patch_kernel_feature_susfs">susfs：隐藏内核补丁及用户空间模组</string>
     <string name="patch_kernel_select_features">选择内核补丁特性</string>
     <string name="patch_kernel_gki_mode">GKI 模式修补</string>
+    <string name="kpm_gki_mode_active">🟢 GKI/KPM 模式已激活</string>
+    <string name="kpm_gki_mode_active_desc">KernelPatch supercall 可用。KPM 模块通过内核补丁加载。Root 和常规模块仍由 KinSU 处理。</string>
     <string name="kernel_flashing">内核刷写</string>
     <string name="about">关于</string>
     <string name="module_uninstall_confirm">确定要卸载模块 %s 吗？</string>
@@ -73,11 +75,11 @@
     <string name="safe_mode_module_disabled">处于安全模式下，禁止安装模块</string>
     <string name="reboot_to_apply">重启生效</string>
     <string name="module_magisk_conflict">因与 Magisk 有冲突，所有模块不可用！</string>
-    <string name="home_learn_kernelsu">了解 FollKernel</string>
+    <string name="home_learn_kernelsu">了解 KinSU</string>
     <string name="home_learn_kernelsu_url">https://kernelsu.org/zh_CN/guide/what-is-kernelsu.html</string>
-    <string name="home_click_to_learn_kernelsu">了解如何安装 FollKernel 以及如何开发模块</string>
+    <string name="home_click_to_learn_kernelsu">了解如何安装 KinSU 以及如何开发模块</string>
     <string name="home_support_title">支持开发</string>
-    <string name="home_support_content">FollKernel 将保持免费开源，向开发者捐赠以表示支持</string>
+    <string name="home_support_content">KinSU 将保持免费开源，向开发者捐赠以表示支持</string>
     <string name="home_gki_warning">自 v3.0.0 起 GKI 工作模式将仅用于测试环境，我们不建议用于日常使用，也不再提供镜像文件</string>
     <string name="about_source_code"><![CDATA[在 %1$s 查看源码<br/>加入我们的 %2$s 频道<br/>加入我们的 <b><a href="https://pd.qq.com/s/8lipl1brp">QQ</a></b> 频道]]></string>
     <string name="profile_default">默认</string>
@@ -94,12 +96,12 @@
     <string name="profile_selinux_context">SELinux</string>
     <string name="profile_umount_modules">卸载模块</string>
     <string name="failed_to_update_app_profile">为 %s 更新应用配置失败</string>
-    <string name="uapi_mismatch">管理器 uapi 版本 (%1$d) 与 FollKernel 驱动 uapi 版本 (%2$d) 不匹配。</string>
-    <string name="require_manager_version">当前 FollKernel 管理器版本 %1$d 过低，FollKernel 无法正常工作. 请将 FollKernel 管理器版本升级至 %2$d 或以上!</string>
-    <string name="require_kernel_version">当前 FollKernel 版本 %1$d 过低，管理器无法正常工作，请将内核 FollKernel 版本升级至 %2$d 或以上！</string>
+    <string name="uapi_mismatch">管理器 uapi 版本 (%1$d) 与 KinSU 驱动 uapi 版本 (%2$d) 不匹配。</string>
+    <string name="require_manager_version">当前 KinSU 管理器版本 %1$d 过低，KinSU 无法正常工作. 请将 KinSU 管理器版本升级至 %2$d 或以上!</string>
+    <string name="require_kernel_version">当前 KinSU 版本 %1$d 过低，管理器无法正常工作，请将内核 KinSU 版本升级至 %2$d 或以上！</string>
     <string name="settings_umount_modules_default">默认卸载模块</string>
     <string name="settings_umount_modules_default_summary">应用配置中「卸载模块」的全局默认值，如果启用，会移除没有单独设置应用配置的应用所受的所有模块系统修改</string>
-    <string name="profile_umount_modules_summary">启用该选项后将允许 FollKernel 为本应用还原被模块修改过的文件</string>
+    <string name="profile_umount_modules_summary">启用该选项后将允许 KinSU 为本应用还原被模块修改过的文件</string>
     <string name="profile_selinux_domain">域</string>
     <string name="profile_selinux_rules">规则</string>
     <string name="recently_installed">最近安装</string>
@@ -163,9 +165,9 @@
     <string name="settings_uninstall_temporary">临时卸载</string>
     <string name="settings_uninstall_permanent">永久卸载</string>
     <string name="settings_restore_stock_image">恢复原厂镜像</string>
-    <string name="settings_uninstall_temporary_message">临时卸载 FollKernel，下次重启后恢复至原始状态</string>
-    <string name="settings_uninstall_permanent_message">完全并永久卸载 FollKernel（Root 权限和所有模块）</string>
-    <string name="settings_restore_stock_image_message">恢复原厂镜像（若存在备份），一般在 OTA 前使用；如果你需要卸载 FollKernel，请使用「永久卸载」</string>
+    <string name="settings_uninstall_temporary_message">临时卸载 KinSU，下次重启后恢复至原始状态</string>
+    <string name="settings_uninstall_permanent_message">完全并永久卸载 KinSU（Root 权限和所有模块）</string>
+    <string name="settings_restore_stock_image_message">恢复原厂镜像（若存在备份），一般在 OTA 前使用；如果你需要卸载 KinSU，请使用「永久卸载」</string>
     <string name="flashing">刷写中</string>
     <string name="flash_success">刷写完成</string>
     <string name="flash_failed">刷写失败</string>
@@ -293,5 +295,5 @@
     <string name="sort_by_install_time">安装时间</string>
     <string name="sort_by_update_time">更新时间</string>
     <string name="sort_reverse">倒序</string>
-    <string name="profile_flags_desc_no_new_privs">禁止从此 Root 配置上下文中通过 FollKernel 进一步提升权限</string>
+    <string name="profile_flags_desc_no_new_privs">禁止从此 Root 配置上下文中通过 KinSU 进一步提升权限</string>
 </resources>

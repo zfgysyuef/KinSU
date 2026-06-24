@@ -14,28 +14,27 @@ import org.json.JSONObject
 class ModuleRepoRepositoryImpl : ModuleRepoRepository {
 
     companion object {
-        private const val MODULES_URL = "https://modules.kernelsu.org/modules.json"
+        private const val MODULES_URL = "https://raw.githubusercontent.com/Spring-bulid/KinSU-Modules/main/modules.json"
     }
 
     override suspend fun fetchModules(): Result<List<RepoModule>> = withContext(Dispatchers.IO) {
-        runCatching {
-            if (!isNetworkAvailable(ksuApp)) {
-                throw Exception("Network unavailable")
-            }
-
+        try {
+            if (!isNetworkAvailable(ksuApp)) return@withContext Result.success(emptyList())
+            val client = okhttp3.OkHttpClient.Builder()
+                .connectTimeout(10, java.util.concurrent.TimeUnit.SECONDS)
+                .readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+                .build()
             val request = Request.Builder().url(MODULES_URL).build()
-            ksuApp.okhttpClient.newCall(request).execute().use { response ->
-                if (!response.isSuccessful) {
-                    throw Exception("Fetch failed: ${response.code}")
-                }
-
-                val body = response.body.string()
-                val json = JSONArray(body)
-                (0 until json.length()).mapNotNull { idx ->
-                    val item = json.optJSONObject(idx) ?: return@mapNotNull null
-                    parseRepoModule(item)
-                }
+            val response = client.newCall(request).execute()
+            if (!response.isSuccessful) return@withContext Result.success(emptyList())
+            val body = response.body?.string() ?: return@withContext Result.success(emptyList())
+            val array = JSONArray(body)
+            val modules = (0 until array.length()).mapNotNull { idx ->
+                parseRepoModule(array.optJSONObject(idx))
             }
+            Result.success(modules)
+        } catch (_: Throwable) {
+            Result.success(emptyList())
         }
     }
 

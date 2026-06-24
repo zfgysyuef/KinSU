@@ -15,6 +15,7 @@ import kotlinx.coroutines.withContext
 import com.mikokernel.BuildConfig
 import com.mikokernel.Natives
 import com.mikokernel.getKernelVersion
+import com.mikokernel.isGkiDevice
 import com.mikokernel.ksuApp
 import com.mikokernel.ui.screen.home.HomeUiState
 import com.mikokernel.ui.screen.home.SystemInfo
@@ -23,6 +24,7 @@ import com.mikokernel.ui.util.checkNewVersion
 import com.mikokernel.ui.util.getModuleCount
 import com.mikokernel.ui.util.getSELinuxStatusRaw
 import com.mikokernel.ui.util.getSuperuserCount
+import com.mikokernel.ui.util.kpmGetVersion
 import com.mikokernel.ui.util.module.LatestVersionInfo
 import com.mikokernel.ui.util.resolveDeviceName
 import com.mikokernel.ui.util.rootAvailable
@@ -50,7 +52,20 @@ class HomeViewModel : ViewModel() {
         val ksuVersion = if (isManager) Natives.version else null
         val kernelUAPIVersion = if (isManager) Natives.kernelUAPIVersion else null
         val managerUAPIVersion = Natives.managerUAPIVersion
-        val lkmMode = ksuVersion?.let { if (kernelVersion.isGKI()) Natives.isLkmMode else null }
+        val lkmMode = ksuVersion?.let { if (isGkiDevice()) Natives.isLkmMode else null }
+        // Detect GKI mode by checking if kpimg is actually active (hooked the stub functions).
+        // If kinsu_kpm_version() returns a real version (not "N/A"), kpimg is active → GKI.
+        // Direct Install (LKM) → shows "LKM", Patch Kernel (GKI) → shows "GKI".
+        val isKpmActive = if (ksuVersion != null) {
+            try {
+                val version = kpmGetVersion()
+                version.isNotBlank() && version != "unsupported" && !version.startsWith("N/A")
+            } catch (_: Exception) {
+                false
+            }
+        } else {
+            false
+        }
         val isRootAvailable = rootAvailable()
         val managerVersion = getManagerVersion(ksuApp)
 
@@ -58,6 +73,7 @@ class HomeViewModel : ViewModel() {
             kernelVersion = kernelVersion,
             ksuVersion = ksuVersion,
             lkmMode = lkmMode,
+            isKpmActive = isKpmActive,
             isManager = isManager,
             isManagerPrBuild = BuildConfig.IS_PR_BUILD,
             isKernelPrBuild = Natives.isPrBuild,

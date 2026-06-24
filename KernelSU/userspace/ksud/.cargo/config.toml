@@ -1,0 +1,7 @@
+[target.aarch64-linux-android]
+linker = "/home/hanha/Android/Sdk/ndk/29.0.14206865/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android26-clang"
+
+[env]
+CC_aarch64_linux_android = "/home/hanha/Android/Sdk/ndk/29.0.14206865/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android26-clang"
+CXX_aarch64_linux_android = "/home/hanha/Android/Sdk/ndk/29.0.14206865/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android26-clang++"
+AR_aarch64_linux_android = "/home/hanha/Android/Sdk/ndk/29.0.14206865/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar"

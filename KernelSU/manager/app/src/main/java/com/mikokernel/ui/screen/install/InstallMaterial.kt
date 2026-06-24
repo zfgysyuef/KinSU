@@ -167,6 +167,7 @@ internal fun InstallScreenMaterial(
                                 onCheckedChange = actions.onTogglePatchSusfs,
                             )
                         }
+
                     }
                 )
             }

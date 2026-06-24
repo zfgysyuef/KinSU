@@ -43,7 +43,7 @@ suspend fun download(
 suspend fun checkNewVersion(): LatestVersionInfo {
     return withContext(Dispatchers.IO) {
         try {
-            val url = URL("https://api.github.com/repos/Spring-bulid/FollKernel/releases/latest")
+            val url = URL("https://api.github.com/repos/Spring-bulid/KinSU/releases/latest")
             val conn = (url.openConnection() as HttpURLConnection).apply {
                 requestMethod = "GET"
                 setRequestProperty("Accept", "application/vnd.github+json")

@@ -10,6 +10,7 @@ interface SettingsRepository {
     var enablePredictiveBack: Boolean
     var pageScale: Float
     var enableWebDebugging: Boolean
+    var fontMode: Int
     var autoJailbreak: Boolean
 
     suspend fun getSuCompatStatus(): String

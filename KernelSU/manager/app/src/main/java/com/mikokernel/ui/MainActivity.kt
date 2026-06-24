@@ -74,6 +74,7 @@ import com.mikokernel.ui.screen.flash.FlashScreen
 import com.mikokernel.ui.screen.flash.AnyKernel3FlashScreen
 import com.mikokernel.ui.screen.home.HomePager
 import com.mikokernel.ui.screen.install.InstallScreen
+import com.mikokernel.ui.screen.kpm.KpmScreen
 import com.mikokernel.ui.screen.module.ModulePager
 import com.mikokernel.ui.screen.modulerepo.ModuleRepoDetailScreen
 import com.mikokernel.ui.screen.modulerepo.ModuleRepoScreen
@@ -185,6 +186,7 @@ class MainActivity : ComponentActivity() {
                                 entry<Route.ModuleRepo> { ModuleRepoScreen() }
                                 entry<Route.ModuleRepoDetail> { key -> ModuleRepoDetailScreen(key.module) }
                                 entry<Route.Install> { InstallScreen() }
+                                entry<Route.Kpm> { KpmScreen() }
                                 entry<Route.Flash> { key -> FlashScreen(key.flashIt) }
                                 entry<Route.AnyKernel3Flash> { key -> AnyKernel3FlashScreen(key.kernelUri, key.slot) }
                                 entry<Route.ExecuteModuleAction> { key -> ExecuteModuleActionScreen(key.moduleId, key.fromShortcut) }

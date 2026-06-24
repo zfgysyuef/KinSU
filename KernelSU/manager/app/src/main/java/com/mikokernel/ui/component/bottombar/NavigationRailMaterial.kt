@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.union
 import androidx.compose.material.icons.Icons
@@ -21,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import com.mikokernel.Natives
 import com.mikokernel.R
 import com.mikokernel.ui.LocalMainPagerState
@@ -62,7 +64,8 @@ fun NavigationRailMaterial(
                     if (index == 1) {
                         Icon(
                             painter = painterResource(R.drawable.ic_superuser),
-                            contentDescription = stringResource(label)
+                            contentDescription = stringResource(label),
+                            modifier = Modifier.size(20.dp)
                         )
                     } else {
                         Icon(

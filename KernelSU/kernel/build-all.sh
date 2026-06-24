@@ -1,4 +1,4 @@
-﻿#!/bin/bash
+#!/bin/bash
 set -e
 
 if [ -z "$1" ]; then
@@ -16,10 +16,10 @@ for kmi in $KMIS; do
     echo "========== Building $kmi =========="
     ODIR="$(realpath .)/out/$kmi"
     if ddk build "$kmi" "ODIR=$ODIR" -e CONFIG_KSU=m; then
-        if [ -f "$ODIR/follkernel.ko" ]; then
-            cp "$ODIR/follkernel.ko" "follkernel-${kmi}.ko"
-            llvm-strip -d "follkernel-${kmi}.ko"
-            echo "✓ Built follkernel-${kmi}.ko"
+        if [ -f "$ODIR/KinSU.ko" ]; then
+            cp "$ODIR/KinSU.ko" "KinSU-${kmi}.ko"
+            llvm-strip -d "KinSU-${kmi}.ko"
+            echo "✓ Built KinSU-${kmi}.ko"
         fi
     else
         echo "✗ Build failed for $kmi"

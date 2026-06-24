@@ -1,55 +1,67 @@
-follkernel-objs := core/init.o
+kinsu-objs := core/init.o
 
-follkernel-objs += feature/kernel_umount.o
-follkernel-objs += feature/sulog.o
-follkernel-objs += feature/sucompat.o
+kinsu-objs += feature/kernel_umount.o
+kinsu-objs += feature/sulog.o
+kinsu-objs += feature/sucompat.o
 
-follkernel-objs += hook/lsm_hook.o
-follkernel-objs += hook/setuid_hook.o
-follkernel-objs += hook/syscall_event_bridge.o
-follkernel-objs += hook/syscall_hook_manager.o
-follkernel-objs += hook/tp_marker.o
+kinsu-objs += kpm/module.o
+kinsu-objs += kpm/relo.o
+
+kinsu-objs += hook/lsm_hook.o
+kinsu-objs += hook/setuid_hook.o
+kinsu-objs += hook/syscall_event_bridge.o
+kinsu-objs += hook/syscall_hook_manager.o
+kinsu-objs += hook/tp_marker.o
 ifeq ($(CONFIG_ARM64),y)
-follkernel-objs += hook/arm64/patch_memory.o
-follkernel-objs += hook/arm64/syscall_hook.o
+kinsu-objs += hook/arm64/patch_memory.o
+kinsu-objs += hook/arm64/syscall_hook.o
 else ifeq ($(CONFIG_X86_64),y)
-follkernel-objs += hook/x86_64/patch_memory.o
-follkernel-objs += hook/x86_64/syscall_hook.o
+kinsu-objs += hook/x86_64/patch_memory.o
+kinsu-objs += hook/x86_64/syscall_hook.o
 endif
 
-follkernel-objs += infra/file_wrapper.o
-follkernel-objs += infra/event_queue.o
-follkernel-objs += infra/seccomp_cache.o
-follkernel-objs += infra/su_mount_ns.o
-follkernel-objs += infra/symbol_resolver.o
+kinsu-objs += infra/file_wrapper.o
+kinsu-objs += infra/event_queue.o
+kinsu-objs += infra/seccomp_cache.o
+kinsu-objs += infra/su_mount_ns.o
+kinsu-objs += infra/symbol_resolver.o
 
 ifneq ($(CONFIG_KSU_DISABLE_MANAGER),y)
-follkernel-objs += manager/apk_sign.o
-follkernel-objs += manager/pkg_observer.o
-follkernel-objs += manager/throne_tracker.o
+kinsu-objs += manager/apk_sign.o
+kinsu-objs += manager/pkg_observer.o
+kinsu-objs += manager/throne_tracker.o
 endif
 
-follkernel-objs += policy/allowlist.o
-follkernel-objs += policy/app_profile.o
-follkernel-objs += policy/feature.o
+kinsu-objs += policy/allowlist.o
+kinsu-objs += policy/app_profile.o
+kinsu-objs += policy/feature.o
 
-follkernel-objs += runtime/boot_event.o
-follkernel-objs += runtime/ksud_integration.o
+kinsu-objs += runtime/boot_event.o
+kinsu-objs += runtime/ksud_integration.o
 
-follkernel-objs += selinux/selinux.o
-follkernel-objs += selinux/rules.o
-follkernel-objs += selinux/sepolicy.o
+kinsu-objs += selinux/selinux.o
+kinsu-objs += selinux/rules.o
+kinsu-objs += selinux/sepolicy.o
 
-follkernel-objs += sulog/event.o
-follkernel-objs += sulog/fd.o
+kinsu-objs += sulog/event.o
+kinsu-objs += sulog/fd.o
 
-follkernel-objs += supercall/dispatch.o
-follkernel-objs += supercall/perm.o
-follkernel-objs += supercall/supercall.o
+kinsu-objs += supercall/dispatch.o
+kinsu-objs += supercall/perm.o
+kinsu-objs += supercall/supercall.o
 
-follkernel-objs += feature/adb_root.o
+kinsu-objs += feature/adb_root.o
 
-follkernel-objs += feature/selinux_hide.o
+kinsu-objs += feature/selinux_hide.o
+
+# SUSFS support - compile susfs sources when enabled
+ifdef KSU_SUSFS
+ccflags-y += -DCONFIG_KSU_SUSFS=1
+kinsu-objs += susfs/susfs.o
+kinsu-objs += susfs/susfs_coredump.o
+kinsu-objs += susfs/sucompat.o
+$(info -- KernelSU SUSFS: enabled)
+endif
 
 ifdef KBUILD_EXTMOD
 ifeq ($(CONFIG_KSU_DISABLE_MANAGER),y)
@@ -74,7 +86,7 @@ endif
 
 ccflags-y += -I$(KSU_KERNEL_DIR) -I$(KSU_KERNEL_DIR)/include
 
-obj-$(CONFIG_KSU) += follkernel.o
+obj-$(CONFIG_KSU) += kinsu.o
 
 MDIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
@@ -103,13 +115,13 @@ endif
 # Calculate version if git version is available
 ifdef KSU_GIT_VERSION_VALID
 # ksu_version: major * 10000 + git version + 200 for historical reasons
-$(eval KSU_VERSION=$(shell expr 30000 + $(KSU_GIT_VERSION)))
+$(eval KSU_VERSION=$(shell expr 10000 + $(KSU_GIT_VERSION)))
 $(info -- KernelSU version: $(KSU_VERSION))
 ccflags-y += -DKSU_VERSION=$(KSU_VERSION)
 else
 # If there is no .git directory, use default version
 $(warning "KSU_GIT_VERSION not defined! It is better to make KernelSU a git repository!")
-ccflags-y += -DKSU_VERSION=32513
+ccflags-y += -DKSU_VERSION=11250
 endif
 
 KSU_NEW_DCACHE_FLUSH := $(shell grep -q __flush_dcache_area $(srctree)/arch/arm64/include/asm/cacheflush.h ; echo $$?)
@@ -121,7 +133,7 @@ KSU_EXPECTED_SIZE := 0x2d4
 endif
 
 ifndef KSU_EXPECTED_HASH
-KSU_EXPECTED_HASH := a23fe337cb870393959384b66050ae8e9d717701cf681ef21f741afa5469919f
+KSU_EXPECTED_HASH := eb4ae49882e0ea80c13989ea2141368b1f819e2bfe10801b3c15b743bd647dab
 endif
 
 ifndef KSU_MANAGER_PACKAGE

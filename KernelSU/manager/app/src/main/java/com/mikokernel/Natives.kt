@@ -32,7 +32,7 @@ object Natives {
     const val ROOT_GID = 0
 
     init {
-        System.loadLibrary("follkernel")
+        System.loadLibrary("KinSU")
     }
 
     val version: Int

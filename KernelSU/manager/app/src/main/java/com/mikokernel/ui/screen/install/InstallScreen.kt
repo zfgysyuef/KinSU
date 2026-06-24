@@ -22,6 +22,7 @@ import androidx.lifecycle.compose.dropUnlessResumed
 import kotlinx.coroutines.launch
 import com.mikokernel.R
 import com.mikokernel.getKernelVersion
+import com.mikokernel.isGkiDevice
 import com.mikokernel.ui.component.choosekmidialog.ChooseKmiDialog
 import com.mikokernel.ui.navigation3.LocalNavigator
 import com.mikokernel.ui.navigation3.Route
@@ -59,7 +60,7 @@ fun InstallScreen() {
     val defaultPartition by produceState(initialValue = "") { value = getDefaultPartition() }
     val rootAvailable by produceState(initialValue = false) { value = rootAvailable() }
     val isAbDevice by produceState(initialValue = false) { value = isAbDevice() }
-    val isGkiDevice by produceState(initialValue = false) { value = getKernelVersion().isGKI() }
+    val isGkiDevice by produceState(initialValue = false) { value = isGkiDevice() }
 
     val selectFileTip = stringResource(id = R.string.select_file_tip, defaultPartition)
     val selectFileTipNoGki = stringResource(id = R.string.select_file_tip_nogki)
@@ -70,8 +71,9 @@ fun InstallScreen() {
                 add(InstallMethod.DirectInstall)
                 if (isAbDevice) add(InstallMethod.DirectInstallToInactiveSlot)
                 add(InstallMethod.HorizonKernel())
-                add(InstallMethod.PatchKernel())
             }
+            // PatchKernel is always available - it can patch without root (select file mode)
+            add(InstallMethod.PatchKernel())
         }
     }
 
@@ -108,11 +110,17 @@ fun InstallScreen() {
                     navigator.push(Route.AnyKernel3Flash(zipp.uri.toString(), zipp.slot))
                 }
             } else if (method is InstallMethod.PatchKernel) {
-                // Patch kernel uses direct install with GKI mode
+                // Patch kernel: if no root, require boot image selection first
+                val bootUri = if (!rootAvailable) {
+                    // In non-root mode, user must select a boot image file
+                    (installMethod as? InstallMethod.SelectFile)?.uri
+                } else {
+                    null // In root mode, use direct install
+                }
                 navigator.push(
                     Route.Flash(
                         FlashIt.FlashBoot(
-                            boot = null,
+                            boot = bootUri,
                             lkm = lkmSelection,
                             ota = false,
                             partition = partitions.getOrNull(partitionSelectionIndex),

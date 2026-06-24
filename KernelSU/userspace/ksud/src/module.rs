@@ -98,7 +98,8 @@ fn exec_install_script(module_file: &str, is_metamodule: bool, module_id: &str) 
 
     // Get install script from metamodule module
     let install_script =
-        metamodule::get_install_script(is_metamodule, INSTALLER_CONTENT, INSTALL_MODULE_SCRIPT)?;
+        metamodule::get_install_script(is_metamodule, INSTALLER_CONTENT, INSTALL_MODULE_SCRIPT)?
+            .replace('\r', "");
 
     let result = Command::new(assets::BUSYBOX_PATH)
         .args(["sh", "-c", &install_script])
@@ -520,9 +521,6 @@ pub fn handle_updated_modules() -> Result<()> {
 
 fn install_module_to_system(zip: &str) -> Result<()> {
     ensure_boot_completed()?;
-
-    // print banner
-    println!(include_str!("banner"));
 
     assets::ensure_binaries(false).with_context(|| "Failed to extract assets")?;
 

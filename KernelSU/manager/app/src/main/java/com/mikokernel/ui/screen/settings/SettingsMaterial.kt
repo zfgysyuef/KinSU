@@ -25,8 +25,10 @@ import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Policy
 import androidx.compose.material.icons.filled.RemoveCircle
 import androidx.compose.material.icons.filled.RemoveModerator
+import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Update
 import androidx.compose.material.icons.rounded.Dashboard
+import androidx.compose.material.icons.rounded.Extension
 import androidx.compose.material.icons.rounded.UploadFile
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LargeFlexibleTopAppBar
@@ -49,6 +51,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.mikokernel.R
+import com.mikokernel.isGkiDevice
 import com.mikokernel.ui.component.KsuIsValid
 import com.mikokernel.ui.component.material.SegmentedColumn
 import com.mikokernel.ui.component.material.SegmentedDropdownItem
@@ -137,6 +140,44 @@ fun SettingPagerMaterial(
                     }
                 }
             )
+
+            KsuIsValid {
+                if (isGkiDevice()) {
+                    SegmentedColumn(
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                        content = listOf(
+                            {
+                                SegmentedListItem(
+                                    onClick = actions.onOpenKpm,
+                                    headlineContent = { Text("KPM 模块") },
+                                    supportingContent = { Text("内核补丁模块管理") },
+                                    leadingContent = { Icon(Icons.Rounded.Extension, "KPM") },
+                                    trailingContent = {
+                                        Icon(
+                                            Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                                            null
+                                        )
+                                    }
+                                )
+                            },
+                            {
+                                SegmentedListItem(
+                                    onClick = actions.onOpenSusfs,
+                                    headlineContent = { Text("SUSFS 隐藏") },
+                                    supportingContent = { Text("隐藏内核补丁和用户空间模块") },
+                                    leadingContent = { Icon(Icons.Filled.Security, "SuSFS") },
+                                    trailingContent = {
+                                        Icon(
+                                            Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                                            null
+                                        )
+                                    }
+                                )
+                            }
+                        )
+                    )
+                }
+            }
 
             val profileTemplate = stringResource(id = R.string.settings_profile_template)
             KsuIsValid {

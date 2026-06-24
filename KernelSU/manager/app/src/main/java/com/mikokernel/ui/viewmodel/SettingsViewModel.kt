@@ -18,6 +18,7 @@ import com.mikokernel.data.repository.SettingsRepositoryImpl
 import com.mikokernel.ksuApp
 import com.mikokernel.ui.screen.settings.SettingsUiState
 import com.mikokernel.ui.theme.ColorMode
+import com.mikokernel.ui.theme.FontMode
 
 class SettingsViewModel(
     private val repo: SettingsRepository = SettingsRepositoryImpl()
@@ -41,6 +42,7 @@ class SettingsViewModel(
             val enableWebDebugging = repo.enableWebDebugging
             val colorStyle = repo.colorStyle
             val colorSpec = repo.colorSpec
+            val fontMode = repo.fontMode
             val isLkmMode = repo.isLkmMode()
 
             // Async loading for natives/features
@@ -73,6 +75,7 @@ class SettingsViewModel(
                     enableWebDebugging = enableWebDebugging,
                     colorStyle = colorStyle,
                     colorSpec = colorSpec,
+                    fontMode = fontMode,
                     suCompatStatus = suCompatStatus,
                     suCompatMode = suCompatMode,
                     isSuEnabled = isSuEnabled,
@@ -141,6 +144,11 @@ class SettingsViewModel(
     fun setEnableWebDebugging(enabled: Boolean) {
         repo.enableWebDebugging = enabled
         _uiState.update { it.copy(enableWebDebugging = enabled) }
+    }
+
+    fun setFontMode(mode: FontMode) {
+        repo.fontMode = mode.value
+        _uiState.update { it.copy(fontMode = mode.value) }
     }
 
     fun setSuCompatMode(mode: Int) {

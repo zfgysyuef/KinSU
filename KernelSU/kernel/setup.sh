@@ -1,4 +1,4 @@
-﻿#!/bin/sh
+#!/bin/sh
 set -eu
 
 GKI_ROOT=$(pwd)
@@ -38,8 +38,8 @@ perform_cleanup() {
 
 # Sets up or update KernelSU environment
 setup_kernelsu() {
-    echo "[+] Setting up FollKernel..."
-    test -d "$GKI_ROOT/KernelSU" || git clone https://github.com/Spring-bulid/FollKernel KernelSU && echo "[+] Repository cloned."
+    echo "[+] Setting up KinSU..."
+    test -d "$GKI_ROOT/KernelSU" || git clone https://github.com/Spring-bulid/KinSU KernelSU && echo "[+] Repository cloned."
     cd "$GKI_ROOT/KernelSU"
     git stash && echo "[-] Stashed current changes."
     if [ "$(git status | grep -Po 'v\d+(\.\d+)*' | head -n1)" ]; then

@@ -272,7 +272,7 @@ clean:
     filp_close(fp, 0);
 
     if (v3_signing_exist || v3_1_signing_exist) {
-        // FollKernel: v3 signing is present alongside v2, this is expected.
+        // KinSU: v3 signing is present alongside v2, this is expected.
         // The v2 check above should still validate successfully.
         pr_info("v3 signature scheme found alongside v2, ignoring.\n");
     }

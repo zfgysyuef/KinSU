@@ -15,9 +15,9 @@ public class AppZygotePreload implements ZygotePreload {
 
     @Override
     public void doPreload(@NonNull ApplicationInfo appInfo) {
-        File f = new File(appInfo.nativeLibraryDir, "libfollkerneld.so");
+        File f = new File(appInfo.nativeLibraryDir, "libKinSUd.so");
         try {
-            System.loadLibrary("follkernel");
+            System.loadLibrary("KinSU");
             Log.d(TAG, "executing magica ...");
             forkDontCareAndExecKsud(f.getAbsolutePath(), appInfo.packageName);
         } catch (Throwable t) {

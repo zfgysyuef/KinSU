@@ -37,6 +37,10 @@ class WebViewInterface(private val state: WebUIState) {
         exec(cmd, null, callbackFunc)
     }
 
+    private fun shellEscape(s: String): String {
+        return s.replace("'", "'\\''")
+    }
+
     private fun processOptions(sb: StringBuilder, options: String?) {
         val opts = if (options == null) JSONObject() else {
             JSONObject(options)
@@ -44,12 +48,14 @@ class WebViewInterface(private val state: WebUIState) {
 
         val cwd = opts.optString("cwd")
         if (!TextUtils.isEmpty(cwd)) {
-            sb.append("cd ${cwd};")
+            sb.append("cd '${shellEscape(cwd)}';")
         }
 
         opts.optJSONObject("env")?.let { env ->
             env.keys().forEach { key ->
-                sb.append("export ${key}=${env.getString(key)};")
+                val escapedKey = shellEscape(key)
+                val escapedValue = shellEscape(env.getString(key))
+                sb.append("export '$escapedKey'='$escapedValue';")
             }
         }
     }
