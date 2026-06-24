@@ -1,0 +1,50 @@
+.idea
+.vscode
+.DS_Store
+/target
+.cargo/config.toml
+__pycache__
+/dist
+/repack-config.json
+
+# Build outputs
+build/
+app/build/
+
+# IDE
+.gradle/
+.kotlin/
+.cxx/
+*.iml
+local.properties
+
+# CMake temp
+cmake-temp2/
+prefab_extract/
+
+# Native libraries (binaries)
+app/src/main/jniLibs/
+
+# Signing keys
+key.jks
+sign.properties
+follkernel.keystore
+follkernel_build.jks
+
+# Assets binaries
+app/src/main/assets/ksu_susfs_*
+app/src/main/assets/lkm/
+app/src/main/assets/5_10-mkbootfs
+app/src/main/assets/5_15+-mkbootfs
+
+# Build tools binaries
+ninja-temp/
+prefab-cli/
+
+# ksud binaries (built from source)
+userspace/ksud/bin/
+
+# Node
+website/node_modules/
+website/.vitepress/dist/
+website/.vitepress/cache/

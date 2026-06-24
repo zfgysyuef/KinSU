@@ -1,0 +1,39 @@
+# Build outputs
+build/
+app/build/
+
+# IDE
+.idea/
+.gradle/
+.kotlin/
+.cxx/
+*.iml
+local.properties
+
+# OS
+.DS_Store
+
+# CMake temp
+cmake-temp2/
+
+# Prefab extracted (third-party libcxx headers)
+prefab_extract/
+
+# Native libraries (binaries, not source)
+app/src/main/jniLibs/
+
+# Signing keys
+key.jks
+sign.properties
+follkernel.keystore
+follkernel_build.jks
+
+# Assets binaries (kernel modules)
+app/src/main/assets/ksu_susfs_*
+app/src/main/assets/lkm/
+app/src/main/assets/5_10-mkbootfs
+app/src/main/assets/5_15+-mkbootfs
+
+# Build tools (binaries)
+ninja-temp/
+prefab-cli/
