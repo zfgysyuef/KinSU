@@ -1,3 +1,11 @@
+// KinSU - A derivative work of KernelSU
+// Copyright (c) 2022-2024 weishu (KernelSU Project)
+// Copyright (c) 2024 KinSU Project
+//
+// Licensed under GPLv3. See NOTICE at project root for full attribution.
+// Original source: https://github.com/tiann/KernelSU
+// Original author: weishu
+
 #[allow(clippy::wildcard_imports)]
 use crate::utils::*;
 use crate::{

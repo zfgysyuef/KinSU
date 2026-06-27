@@ -1,3 +1,22 @@
+/*
+ * KinSU - A derivative work of KernelSU
+ * Copyright (c) 2022-2024 weishu (KernelSU Project)
+ * Copyright (c) 2024 KinSU Project
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * Original source: https://github.com/tiann/KernelSU
+ * Original author: weishu
+ * The full upstream commit history is preserved.
+ */
+
 #include <linux/export.h>
 #include <linux/fs.h>
 #include <linux/kobject.h>

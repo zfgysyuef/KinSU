@@ -79,9 +79,10 @@
     <string name="home_learn_kernelsu_url">https://spring-bulid.github.io/</string>
     <string name="home_click_to_learn_kernelsu">了解如何安装 KinSU 以及如何开发模块</string>
     <string name="home_support_title">支持开发</string>
-    <string name="home_support_content">KinSU 将保持免费开源，向开发者捐赠以表示支持</string>
+    <string name="home_support_content">本软件基于 KernelSU 源码开发，保留完整提交记录。感谢贡献者 weishu。开源支持归属 KernelSU 项目。</string>
     <string name="home_gki_warning">自 v3.0.0 起 GKI 工作模式将仅用于测试环境，我们不建议用于日常使用，也不再提供镜像文件</string>
     <string name="about_source_code"><![CDATA[在 %1$s 查看源码<br/>加入我们的 %2$s 频道<br/>加入我们的 <b><a href="https://pd.qq.com/s/8lipl1brp">QQ</a></b> 频道]]></string>
+    <string name="about_copyright_notice"><![CDATA[<b>版权声明 / Copyright Notice</b><br/><br/>本软件为 <b><a href="https://github.com/tiann/KernelSU">KernelSU</a></b> 的衍生作品，遵循 GNU GPL v3 协议。<br/>原作者：<b>weishu</b>（KernelSU 项目）<br/>原项目：https://github.com/tiann/KernelSU<br/>贡献者：weishu 及所有 KernelSU 贡献者<br/>KinSU 完整保留了原始提交记录，未做任何篡改。<br/><br/>This software is a derivative work of <b>KernelSU</b>, licensed under GNU GPL v3.<br/>Original author: <b>weishu</b> (KernelSU Project)<br/>Original source: https://github.com/tiann/KernelSU]]></string>
     <string name="profile_default">默认</string>
     <string name="profile_template">模版</string>
     <string name="profile_custom">自定义</string>

@@ -316,6 +316,18 @@ KinSU 基于以下开源项目构建：
 - [**genuine**](https://github.com/brevent/genuine/) — APK v2 签名验证
 - [**Diamorphine**](https://github.com/m0nad/Diamorphine) — rootkit 技术参考
 
+### 版权声明
+
+KinSU 是 [KernelSU](https://github.com/tiann/KernelSU) 的衍生作品（derivative work）。根据 GNU General Public License（GPL v2/v3）的要求，特此声明：
+
+- **原作者**：[weishu](https://github.com/tiann)（KernelSU 项目作者）
+- **原项目**：https://github.com/tiann/KernelSU
+- **原许可协议**：GPL v2（kernel 部分）/ GPL v3（userspace 与 manager 部分）
+- **提交记录**：KinSU 完整保留了 KernelSU 的原始提交历史，未做任何篡改或洗稿
+- **贡献者**：weishu 及所有 [KernelSU 贡献者](https://github.com/tiann/KernelSU/graphs/contributors)
+
+KinSU 在此基础上进行的所有修改均同样遵循 GPL 协议开源。完整声明请见 [NOTICE](NOTICE) 文件。
+
 ---
 
 <h2 id="english">English</h2>
@@ -394,3 +406,15 @@ Complete guide for compiling KinSU GKI kernel modules with three methods (DDK to
 ## Credits
 
 [KernelSU](https://github.com/tiann/KernelSU) · [kernel-assisted-superuser](https://git.zx2c4.com/kernel-assisted-superuser/about/) · [Magisk](https://github.com/topjohnwu/Magisk)
+
+### Copyright Notice
+
+KinSU is a derivative work of [KernelSU](https://github.com/tiann/KernelSU). In accordance with the GNU General Public License (GPL v2/v3):
+
+- **Original Author**: [weishu](https://github.com/tiann) (author of the KernelSU project)
+- **Original Project**: https://github.com/tiann/KernelSU
+- **Original License**: GPL v2 (kernel) / GPL v3 (userspace & manager)
+- **Commit History**: KinSU preserves the complete original commit history of KernelSU without any tampering or rewriting
+- **Contributors**: weishu and all [KernelSU contributors](https://github.com/tiann/KernelSU/graphs/contributors)
+
+All modifications made in KinSU are released under the same GPL license. See the [NOTICE](NOTICE) file for the full statement.

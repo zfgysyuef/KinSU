@@ -346,7 +346,7 @@ internal fun LearnMoreCard(onOpenUrl: (String) -> Unit) {
 
 @Composable
 internal fun DonateCard(onOpenUrl: (String) -> Unit) {
-    TonalCard(onClick = { onOpenUrl("https://github.com/Spring-bulid/KinSU-Modules") }) {
+    TonalCard(onClick = { onOpenUrl("https://github.com/tiann/KernelSU") }) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()

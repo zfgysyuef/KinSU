@@ -8,6 +8,7 @@ data class AboutUiState(
     val appName: String,
     val versionName: String,
     val links: List<LinkInfo>,
+    val copyrightNotice: String,
 )
 
 @Immutable

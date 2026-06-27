@@ -46,7 +46,7 @@
     <string name="home_learn_kernelsu_url">https://kernelsu.org/zh_TW/guide/what-is-kernelsu.html</string>
     <string name="home_click_to_learn_kernelsu">了解如何安裝 KinSU 及使用模組</string>
     <string name="home_support_title">支持開發</string>
-    <string name="home_support_content">KinSU 承諾永久免費且開源，歡迎捐款支持</string>
+    <string name="home_support_content">本軟體基於 KernelSU 源碼開發，保留完整提交記錄。感謝貢獻者 weishu。開源支持歸屬 KernelSU 專案。</string>
     <string name="about_source_code"><![CDATA[在 %1$s 中檢視原始碼<br/>加入我們的 %2$s 頻道]]></string>
     <string name="profile_default">預設</string>
     <string name="profile_name">設定檔名稱</string>

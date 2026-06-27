@@ -22,6 +22,7 @@ fun AboutScreen() {
         appName = stringResource(R.string.app_name),
         versionName = BuildConfig.VERSION_NAME,
         links = extractLinks(htmlString),
+        copyrightNotice = stringResource(R.string.about_copyright_notice),
     )
     val actions = AboutScreenActions(
         onBack = dropUnlessResumed { navigator.pop() },
