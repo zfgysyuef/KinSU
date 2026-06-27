@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name" translatable="false">KinSU</string>
     <string name="home">Home</string>
@@ -97,7 +97,7 @@
     <string name="reboot_to_apply">Reboot to take effect</string>
     <string name="module_magisk_conflict">Modules are unavailable due to a conflict with Magisk!</string>
     <string name="home_learn_kernelsu">Learn KinSU</string>
-    <string name="home_learn_kernelsu_url">https://kernelsu.org/guide/what-is-kernelsu.html</string>
+    <string name="home_learn_kernelsu_url">https://spring-bulid.github.io/</string>
     <string name="home_click_to_learn_kernelsu">Learn how to install KinSU and use modules.</string>
     <string name="home_support_title">Support Us</string>
     <string name="home_support_content">KinSU is, and always will be, free, and open source. However, you can show us that you care by making a donation.</string>

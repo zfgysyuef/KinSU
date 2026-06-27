@@ -57,7 +57,6 @@ class MainActivityViewModel(
             "key_color",
             "color_style",
             "color_spec",
-            "font_mode",
             "page_scale",
         )
     }

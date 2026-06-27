@@ -20,7 +20,7 @@ import com.mikokernel.ui.component.material.SegmentedListItem
 import com.mikokernel.ui.component.profile.dialogs.SingleSelectDialog
 import com.mikokernel.ui.util.listAppProfileTemplates
 import com.mikokernel.ui.util.setSepolicy
-import com.mikokernel.ui.viewmodel.getTemplateInfoById
+import com.mikokernel.data.repository.getTemplateInfoById
 
 private data class TemplateOption(
     val id: String,

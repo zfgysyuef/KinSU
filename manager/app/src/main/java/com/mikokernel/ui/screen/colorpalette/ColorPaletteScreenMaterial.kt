@@ -113,7 +113,6 @@ import com.mikokernel.ui.component.material.SegmentedListItem
 import com.mikokernel.ui.component.material.SegmentedSwitchItem
 import com.mikokernel.ui.component.material.TonalCard
 import com.mikokernel.ui.theme.ColorMode
-import com.mikokernel.ui.theme.FontMode
 import com.mikokernel.ui.theme.keyColorOptions
 
 @Composable
@@ -321,24 +320,6 @@ fun ColorPaletteScreenMaterial(
                         )
                     )
                 }
-
-                SegmentedColumn(
-                    modifier = Modifier.padding(top = 4.dp),
-                    content = listOf(
-                        {
-                            val fonts = FontMode.entries
-                            SegmentedDropdownItem(
-                                icon = Icons.Rounded.Dashboard,
-                                title = "字体",
-                                items = fonts.map { it.displayName },
-                                selectedIndex = fonts.indexOf(state.currentFontMode).coerceAtLeast(0),
-                                onItemSelected = { index ->
-                                    actions.onSetFontMode(fonts[index])
-                                }
-                            )
-                        }
-                    )
-                )
 
                 TonalCard(modifier = Modifier.padding(top = 4.dp)) {
                     var sliderValue by remember(uiState.pageScale) { mutableFloatStateOf(uiState.pageScale) }

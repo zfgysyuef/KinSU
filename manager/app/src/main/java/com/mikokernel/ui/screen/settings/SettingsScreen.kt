@@ -27,17 +27,12 @@ fun SettingPager(
         onSetCheckUpdate = viewModel::setCheckUpdate,
         onSetCheckModuleUpdate = viewModel::setCheckModuleUpdate,
         onOpenTheme = { navigator.push(Route.ColorPalette) },
-        onOpenKpm = { navigator.push(Route.Kpm) },
-        onOpenSusfs = { navigator.push(Route.SuFSConfig) },
-        onOpenProfileTemplate = { navigator.push(Route.AppProfileTemplate) },
         onSetSuCompatMode = viewModel::setSuCompatMode,
         onSetKernelUmountEnabled = viewModel::setKernelUmountEnabled,
         onSetSelinuxHideEnabled = viewModel::setSelinuxHideEnabled,
         onSetSulogEnabled = viewModel::setSulogEnabled,
         onSetAdbRootEnabled = viewModel::setAdbRootEnabled,
         onSetDefaultUmountModules = viewModel::setDefaultUmountModules,
-        onSetEnableWebDebugging = viewModel::setEnableWebDebugging,
-        onSetAutoJailbreak = viewModel::setAutoJailbreak,
         onOpenAbout = { navigator.push(Route.About) },
     )
 

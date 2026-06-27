@@ -70,7 +70,6 @@ fun InstallScreen() {
             if (rootAvailable) {
                 add(InstallMethod.DirectInstall)
                 if (isAbDevice) add(InstallMethod.DirectInstallToInactiveSlot)
-                add(InstallMethod.HorizonKernel())
             }
             // PatchKernel is always available - it can patch without root (select file mode)
             add(InstallMethod.PatchKernel())
@@ -104,12 +103,7 @@ fun InstallScreen() {
 
     val onInstall = {
         installMethod?.let { method ->
-            if (method is InstallMethod.HorizonKernel) {
-                val zipp = (method as InstallMethod.HorizonKernel)
-                if (zipp.uri != null) {
-                    navigator.push(Route.AnyKernel3Flash(zipp.uri.toString(), zipp.slot))
-                }
-            } else if (method is InstallMethod.PatchKernel) {
+            if (method is InstallMethod.PatchKernel) {
                 // Patch kernel: if no root, require boot image selection first
                 val bootUri = if (!rootAvailable) {
                     // In non-root mode, user must select a boot image file

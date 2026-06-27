@@ -11,32 +11,28 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowInsetsControllerCompat
 import com.materialkolor.rememberDynamicColorScheme
 
-/**
- * iPhone-style typography: slightly larger sizes, more weight contrast,
- * mimicking San Francisco / SF Pro characteristics.
- */
-private val iPhoneTypography = Typography(
-    displayLarge = Typography().displayLarge.copy(fontSize = 57.sp, fontWeight = FontWeight.Bold),
-    displayMedium = Typography().displayMedium.copy(fontSize = 45.sp, fontWeight = FontWeight.SemiBold),
-    displaySmall = Typography().displaySmall.copy(fontSize = 36.sp, fontWeight = FontWeight.Medium),
-    headlineLarge = Typography().headlineLarge.copy(fontSize = 32.sp, fontWeight = FontWeight.SemiBold),
-    headlineMedium = Typography().headlineMedium.copy(fontSize = 28.sp, fontWeight = FontWeight.SemiBold),
-    headlineSmall = Typography().headlineSmall.copy(fontSize = 24.sp, fontWeight = FontWeight.Medium),
-    titleLarge = Typography().titleLarge.copy(fontSize = 22.sp, fontWeight = FontWeight.SemiBold),
-    titleMedium = Typography().titleMedium.copy(fontSize = 16.sp, fontWeight = FontWeight.SemiBold, letterSpacing = (-0.01).sp),
-    titleSmall = Typography().titleSmall.copy(fontSize = 14.sp, fontWeight = FontWeight.Medium, letterSpacing = (-0.01).sp),
-    bodyLarge = Typography().bodyLarge.copy(fontSize = 16.sp, letterSpacing = (-0.02).sp),
-    bodyMedium = Typography().bodyMedium.copy(fontSize = 14.sp, letterSpacing = (-0.02).sp),
-    bodySmall = Typography().bodySmall.copy(fontSize = 12.sp, letterSpacing = (-0.03).sp),
-    labelLarge = Typography().labelLarge.copy(fontSize = 14.sp, fontWeight = FontWeight.Medium, letterSpacing = (-0.04).sp),
-    labelMedium = Typography().labelMedium.copy(fontSize = 12.sp, fontWeight = FontWeight.Medium, letterSpacing = (-0.05).sp),
-    labelSmall = Typography().labelSmall.copy(fontSize = 11.sp, fontWeight = FontWeight.Medium, letterSpacing = (-0.06).sp),
+// M3E 排版：更大胆的字重对比，更紧凑的字间距
+private val KinSUTypography = Typography(
+    displayLarge = Typography().displayLarge.copy(fontWeight = FontWeight.Bold),
+    displayMedium = Typography().displayMedium.copy(fontWeight = FontWeight.SemiBold),
+    displaySmall = Typography().displaySmall.copy(fontWeight = FontWeight.SemiBold),
+    headlineLarge = Typography().headlineLarge.copy(fontWeight = FontWeight.SemiBold),
+    headlineMedium = Typography().headlineMedium.copy(fontWeight = FontWeight.SemiBold),
+    headlineSmall = Typography().headlineSmall.copy(fontWeight = FontWeight.Medium),
+    titleLarge = Typography().titleLarge.copy(fontWeight = FontWeight.SemiBold),
+    titleMedium = Typography().titleMedium.copy(fontWeight = FontWeight.SemiBold, letterSpacing = (-0.1).sp),
+    titleSmall = Typography().titleSmall.copy(fontWeight = FontWeight.Medium, letterSpacing = (-0.1).sp),
+    bodyLarge = Typography().bodyLarge.copy(letterSpacing = (-0.15).sp),
+    bodyMedium = Typography().bodyMedium.copy(letterSpacing = (-0.15).sp),
+    bodySmall = Typography().bodySmall.copy(letterSpacing = (-0.2).sp),
+    labelLarge = Typography().labelLarge.copy(fontWeight = FontWeight.Medium, letterSpacing = (-0.25).sp),
+    labelMedium = Typography().labelMedium.copy(fontWeight = FontWeight.Medium),
+    labelSmall = Typography().labelSmall.copy(fontWeight = FontWeight.Medium),
 )
 
 @Composable
@@ -85,14 +81,10 @@ fun MaterialKernelSUTheme(
         }
     }
 
-    val typography = when (appSettings.fontMode) {
-        FontMode.IPHONE -> iPhoneTypography
-        else -> Typography()
-    }
-
     MaterialExpressiveTheme(
         colorScheme = colorScheme,
-        typography = typography,
+        shapes = KinSUShapes,
+        typography = KinSUTypography,
         motionScheme = MotionScheme.expressive(),
         content = content,
     )

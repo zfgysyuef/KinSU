@@ -704,7 +704,7 @@ pub fn patch(args: BootPatchArgs) -> Result<()> {
 
                     match kpm::patch_kernel_with_kpm(&kernel_buf, &kpimg_data, &kptools_data) {
                         Ok(patched_kernel) => {
-                            patcher.replace_kernel(Box::new(Cursor::new(patched_kernel)), true);
+                            patcher.replace_kernel(Box::new(Cursor::new(patched_kernel)), false);
                             println!("- 内核已成功嵌入 KernelPatch (KPM)");
                         }
                         Err(e) => {

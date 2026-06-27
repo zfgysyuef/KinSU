@@ -14,7 +14,7 @@ import androidx.compose.ui.unit.dp
 fun TonalCard(
     modifier: Modifier = Modifier,
     containerColor: Color = MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp),
-    shape: Shape = MaterialTheme.shapes.large,
+    shape: Shape = MaterialTheme.shapes.extraLarge,
     enabled: Boolean = true,
     onClick: () -> Unit,
     content: @Composable () -> Unit
@@ -34,7 +34,7 @@ fun TonalCard(
 fun TonalCard(
     modifier: Modifier = Modifier,
     containerColor: Color = MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp),
-    shape: Shape = MaterialTheme.shapes.large,
+    shape: Shape = MaterialTheme.shapes.extraLarge,
     content: @Composable () -> Unit
 ) {
     Card(

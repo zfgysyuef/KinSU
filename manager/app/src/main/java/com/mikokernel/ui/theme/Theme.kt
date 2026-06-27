@@ -44,21 +44,11 @@ enum class ColorMode(val value: Int) {
     }
 }
 
-enum class FontMode(val value: Int, val displayName: String) {
-    DEFAULT(0, "默认"),
-    IPHONE(1, "iPhone");
-
-    companion object {
-        fun fromValue(value: Int) = entries.find { it.value == value } ?: DEFAULT
-    }
-}
-
 data class AppSettings(
     val colorMode: ColorMode,
     val keyColor: Int,
     val paletteStyle: PaletteStyle,
     val colorSpec: ColorSpec.SpecVersion,
-    val fontMode: FontMode = FontMode.DEFAULT,
 )
 
 object ThemeController {
@@ -80,10 +70,8 @@ object ThemeController {
         } catch (_: Exception) {
             ColorSpec.SpecVersion.Default
         }
-        val fontModeValue = prefs.getInt("font_mode", FontMode.DEFAULT.value)
-        val fontMode = FontMode.fromValue(fontModeValue)
 
-        return AppSettings(colorMode, keyColor, paletteStyle, colorSpec, fontMode)
+        return AppSettings(colorMode, keyColor, paletteStyle, colorSpec)
     }
 }
 

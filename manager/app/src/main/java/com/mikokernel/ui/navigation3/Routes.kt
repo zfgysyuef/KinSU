@@ -8,8 +8,6 @@ import com.mikokernel.ui.screen.flash.FlashIt
 import com.mikokernel.ui.screen.modulerepo.RepoModuleArg
 import com.mikokernel.ui.util.FlashItSerializer
 import com.mikokernel.ui.util.RepoModuleArgSerializer
-import com.mikokernel.ui.util.TemplateInfoSerializer
-import com.mikokernel.ui.viewmodel.TemplateViewModel
 
 /**
  * Type-safe navigation keys for Navigation3.
@@ -54,26 +52,11 @@ sealed interface Route : NavKey, Parcelable {
 
     @Parcelize
     @Serializable
-    data object AppProfileTemplate : Route
-
-    @Parcelize
-    @Serializable
-    data class TemplateEditor(
-        @Serializable(with = TemplateInfoSerializer::class) val template: TemplateViewModel.TemplateInfo,
-        val readOnly: Boolean
-    ) : Route
-
-    @Parcelize
-    @Serializable
     data class AppProfile(val uid: Int) : Route
 
     @Parcelize
     @Serializable
     data object Install : Route
-
-    @Parcelize
-    @Serializable
-    data object Kpm : Route
 
     @Parcelize
     @Serializable
@@ -90,8 +73,4 @@ sealed interface Route : NavKey, Parcelable {
     @Parcelize
     @Serializable
     data class ExecuteModuleAction(val moduleId: String, val fromShortcut: Boolean = false) : Route
-
-    @Parcelize
-    @Serializable
-    data class AnyKernel3Flash(val kernelUri: String, val slot: String? = null) : Route
 }

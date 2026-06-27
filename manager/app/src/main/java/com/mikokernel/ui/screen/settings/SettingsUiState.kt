@@ -14,8 +14,6 @@ data class SettingsUiState(
     val colorSpec: String = ColorSpec.SpecVersion.Default.name,
     val enablePredictiveBack: Boolean = false,
     val pageScale: Float = 1.0f,
-    val enableWebDebugging: Boolean = false,
-    val fontMode: Int = 0,
 
     // Su Compat
     val suCompatStatus: String = "",
@@ -43,9 +41,6 @@ data class SettingsUiState(
 
     val isLkmMode: Boolean = false,
     val isLateLoadMode: Boolean = false,
-
-    // Auto Jailbreak
-    val autoJailbreak: Boolean = false
 )
 
 @Immutable
@@ -53,16 +48,11 @@ data class SettingsScreenActions(
     val onSetCheckUpdate: (Boolean) -> Unit,
     val onSetCheckModuleUpdate: (Boolean) -> Unit,
     val onOpenTheme: () -> Unit,
-    val onOpenProfileTemplate: () -> Unit,
     val onSetSuCompatMode: (Int) -> Unit,
     val onSetKernelUmountEnabled: (Boolean) -> Unit,
     val onSetSelinuxHideEnabled: (Boolean) -> Unit,
     val onSetSulogEnabled: (Boolean) -> Unit,
     val onSetAdbRootEnabled: (Boolean) -> Unit,
     val onSetDefaultUmountModules: (Boolean) -> Unit,
-    val onSetEnableWebDebugging: (Boolean) -> Unit,
-    val onSetAutoJailbreak: (Boolean) -> Unit,
-    val onOpenKpm: () -> Unit,
-    val onOpenSusfs: () -> Unit,
     val onOpenAbout: () -> Unit,
 )

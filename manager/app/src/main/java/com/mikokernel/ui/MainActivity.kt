@@ -71,10 +71,8 @@ import com.mikokernel.ui.screen.colorpalette.ColorPaletteScreen
 import com.mikokernel.ui.screen.executemoduleaction.ExecuteModuleActionScreen
 import com.mikokernel.ui.screen.flash.FlashIt
 import com.mikokernel.ui.screen.flash.FlashScreen
-import com.mikokernel.ui.screen.flash.AnyKernel3FlashScreen
 import com.mikokernel.ui.screen.home.HomePager
 import com.mikokernel.ui.screen.install.InstallScreen
-import com.mikokernel.ui.screen.kpm.KpmScreen
 import com.mikokernel.ui.screen.module.ModulePager
 import com.mikokernel.ui.screen.modulerepo.ModuleRepoDetailScreen
 import com.mikokernel.ui.screen.modulerepo.ModuleRepoScreen
@@ -82,8 +80,6 @@ import com.mikokernel.ui.screen.settings.SettingPager
 import com.mikokernel.ui.screen.sulog.SulogScreen
 import com.mikokernel.ui.susfs.SuSFSConfigScreen
 import com.mikokernel.ui.screen.superuser.SuperUserPager
-import com.mikokernel.ui.screen.template.AppProfileTemplateScreen
-import com.mikokernel.ui.screen.templateeditor.TemplateEditorScreen
 import com.mikokernel.ui.theme.KernelSUTheme
 import com.mikokernel.ui.theme.LocalColorMode
 
@@ -162,17 +158,7 @@ class MainActivity : ComponentActivity() {
                                 rememberViewModelStoreNavEntryDecorator()
                             ),
                             onBack = {
-                                when (val top = navigator.current()) {
-                                    is Route.TemplateEditor -> {
-                                        if (!top.readOnly) {
-                                            navigator.setResult("template_edit", true)
-                                        } else {
-                                            navigator.pop()
-                                        }
-                                    }
-
-                                    else -> navigator.pop()
-                                }
+                                navigator.pop()
                             },
                             entryProvider = entryProvider {
                                 entry<Route.Main> { mainScreenEntry() }
@@ -180,15 +166,11 @@ class MainActivity : ComponentActivity() {
                                 entry<Route.Sulog> { SulogScreen() }
                                 entry<Route.SuFSConfig> { SuSFSConfigScreen() }
                                 entry<Route.ColorPalette> { ColorPaletteScreen() }
-                                entry<Route.AppProfileTemplate> { AppProfileTemplateScreen() }
-                                entry<Route.TemplateEditor> { key -> TemplateEditorScreen(key.template, key.readOnly) }
                                 entry<Route.AppProfile> { key -> AppProfileScreen(key.uid) }
                                 entry<Route.ModuleRepo> { ModuleRepoScreen() }
                                 entry<Route.ModuleRepoDetail> { key -> ModuleRepoDetailScreen(key.module) }
                                 entry<Route.Install> { InstallScreen() }
-                                entry<Route.Kpm> { KpmScreen() }
                                 entry<Route.Flash> { key -> FlashScreen(key.flashIt) }
-                                entry<Route.AnyKernel3Flash> { key -> AnyKernel3FlashScreen(key.kernelUri, key.slot) }
                                 entry<Route.ExecuteModuleAction> { key -> ExecuteModuleActionScreen(key.moduleId, key.fromShortcut) }
                                 entry<Route.Home> { mainScreenEntry() }
                                 entry<Route.SuperUser> { mainScreenEntry() }

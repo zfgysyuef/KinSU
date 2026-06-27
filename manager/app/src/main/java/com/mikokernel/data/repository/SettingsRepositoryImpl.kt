@@ -1,8 +1,6 @@
 package com.mikokernel.data.repository
 
-import android.content.ComponentName
 import android.content.Context
-import android.content.pm.PackageManager
 import android.util.Log
 import androidx.core.content.edit
 import com.materialkolor.PaletteStyle
@@ -10,7 +8,6 @@ import com.materialkolor.dynamiccolor.ColorSpec
 import com.topjohnwu.superuser.ShellUtils
 import com.mikokernel.Natives
 import com.mikokernel.ksuApp
-import com.mikokernel.magica.BootCompletedReceiver
 import com.mikokernel.ui.util.execKsud
 import com.mikokernel.ui.util.getFeaturePersistValue
 import com.mikokernel.ui.util.getFeatureStatus
@@ -52,31 +49,6 @@ class SettingsRepositoryImpl : SettingsRepository {
     override var pageScale: Float
         get() = prefs.getFloat("page_scale", 1.0f)
         set(value) = prefs.edit { putFloat("page_scale", value) }
-
-    override var enableWebDebugging: Boolean
-        get() = prefs.getBoolean("enable_web_debugging", false)
-        set(value) = prefs.edit { putBoolean("enable_web_debugging", value) }
-
-    override var fontMode: Int
-        get() = prefs.getInt("font_mode", 0)
-        set(value) = prefs.edit { putInt("font_mode", value) }
-
-    override var autoJailbreak: Boolean
-        get() = prefs.getBoolean("auto_jailbreak", false)
-        set(value) {
-            runCatching {
-                ksuApp.packageManager.setComponentEnabledSetting(
-                    ComponentName(ksuApp, BootCompletedReceiver::class.java),
-                    if (value) PackageManager.COMPONENT_ENABLED_STATE_ENABLED else PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
-                    PackageManager.DONT_KILL_APP
-                )
-            }.onFailure {
-                Log.e("Settings", "failed to change boot receiver state to $value", it)
-            }
-            prefs.edit {
-                putBoolean("auto_jailbreak", value)
-            }
-        }
 
     override suspend fun getSuCompatStatus(): String = getFeatureStatus("su_compat")
 

@@ -66,7 +66,7 @@ private fun defaultSegmentedColors(): ListItemColors = ListItemDefaults.segmente
 private fun defaultSingleSegmentedShape(index: Int, count: Int): ListItemShapes {
     val base = ListItemDefaults.segmentedShapes(index, count)
     return if (count == 1) {
-        base.copy(shape = MaterialTheme.shapes.large)
+        base.copy(shape = MaterialTheme.shapes.extraLarge)
     } else {
         base
     }

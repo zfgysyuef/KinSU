@@ -52,7 +52,7 @@ pub fn run(package_name: &String, kmi: Option<String>, allow_shell: bool) -> Res
         info!("Detected KMI: {kmi}");
 
         // 3. Get KinSU.ko from embedded assets
-        let ko_name = format!("{kmi}_KinSU.ko");
+        let ko_name = format!("{kmi}_kinsu.ko");
         let ko_data = assets::get_asset_data(&ko_name)
             .with_context(|| format!("Failed to get {ko_name} from assets"))?;
 

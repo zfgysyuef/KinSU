@@ -12,7 +12,6 @@ import com.materialkolor.dynamiccolor.ColorSpec
 import com.mikokernel.KernelSUApplication
 import com.mikokernel.ui.navigation3.LocalNavigator
 import com.mikokernel.ui.theme.ColorMode
-import com.mikokernel.ui.theme.FontMode
 import com.mikokernel.ui.viewmodel.SettingsViewModel
 
 @Composable
@@ -32,13 +31,11 @@ fun ColorPaletteScreen() {
     } catch (_: Exception) {
         ColorSpec.SpecVersion.Default
     }
-    val currentFontMode = FontMode.fromValue(uiState.fontMode)
     val state = ColorPaletteUiState(
         uiState = uiState,
         currentColorMode = ColorMode.fromValue(uiState.themeMode),
         currentPaletteStyle = currentPaletteStyle,
         currentColorSpec = currentColorSpec,
-        currentFontMode = currentFontMode,
     )
     val actions = ColorPaletteScreenActions(
         onBack = dropUnlessResumed { navigator.pop() },
@@ -53,7 +50,6 @@ fun ColorPaletteScreen() {
             activity?.recreate()
         },
         onSetPageScale = viewModel::setPageScale,
-        onSetFontMode = viewModel::setFontMode,
     )
 
     ColorPaletteScreenMaterial(state, actions)

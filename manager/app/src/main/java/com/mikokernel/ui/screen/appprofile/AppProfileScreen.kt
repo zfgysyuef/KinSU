@@ -24,7 +24,7 @@ import com.mikokernel.ui.util.launchApp
 import com.mikokernel.ui.util.restartApp
 import com.mikokernel.ui.util.setSepolicy
 import com.mikokernel.ui.viewmodel.SuperUserViewModel
-import com.mikokernel.ui.viewmodel.getTemplateInfoById
+import com.mikokernel.data.repository.getTemplateInfoById
 
 @Composable
 fun AppProfileScreen(uid: Int) {
@@ -87,14 +87,8 @@ fun AppProfileScreen(uid: Int) {
         onLaunchApp = ::launchApp,
         onForceStopApp = ::forceStopApp,
         onRestartApp = ::restartApp,
-        onViewTemplate = { templateId ->
-            getTemplateInfoById(templateId)?.let { info ->
-                navigator.push(Route.TemplateEditor(info, true))
-            }
-        },
-        onManageTemplate = {
-            navigator.push(Route.AppProfileTemplate)
-        },
+        onViewTemplate = { },
+        onManageTemplate = { },
         onProfileChange = { updatedProfile ->
             scope.launch {
                 if (updatedProfile.allowSu) {
