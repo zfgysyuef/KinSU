@@ -25,6 +25,8 @@ mod feature;
 #[cfg(target_os = "android")]
 mod init_event;
 #[cfg(target_os = "android")]
+mod kpm;
+#[cfg(target_os = "android")]
 mod ksucalls;
 #[cfg(target_os = "android")]
 mod late_load;
@@ -48,6 +50,8 @@ mod sepolicy;
 mod su;
 #[cfg(target_os = "android")]
 mod sulog;
+#[cfg(target_os = "android")]
+mod susfs;
 #[cfg(target_os = "android")]
 mod unload;
 #[cfg(target_os = "android")]

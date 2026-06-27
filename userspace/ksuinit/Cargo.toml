@@ -5,6 +5,10 @@ edition.workspace = true
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[[bin]]
+name = "ksuinit"
+path = "src/main.rs"
+
 [dependencies]
 
 # for elf parsing

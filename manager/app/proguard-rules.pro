@@ -1,0 +1,2 @@
+﻿-keep class com.mikokernel.Natives$Profile { *; }
+-keepclassmembers class com.mikokernel.Natives { native <methods>; }

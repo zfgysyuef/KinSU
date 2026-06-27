@@ -1,5 +1,13 @@
 #![allow(clippy::ref_option, clippy::needless_pass_by_value)]
 
+// KinSU - A derivative work of KernelSU
+// Copyright (c) 2022-2024 weishu (KernelSU Project)
+// Copyright (c) 2024 KinSU Project
+//
+// Licensed under GPLv3. See NOTICE at project root for full attribution.
+// Original source: https://github.com/tiann/KernelSU
+// Original author: weishu
+
 use std::fs::File;
 use std::io::{Cursor, Seek, SeekFrom};
 use std::path::Path;
@@ -17,6 +25,9 @@ use memmap2::{Mmap, MmapOptions};
 use regex_lite::Regex;
 
 use crate::assets;
+
+#[cfg(all(target_arch = "aarch64", target_os = "android"))]
+const EMBEDDED_KSUINIT: &[u8] = include_bytes!("../bin/aarch64/ksuinit");
 
 #[cfg(target_os = "android")]
 mod android {
@@ -266,7 +277,8 @@ mod android {
         let target_slot = i32::from(current_slot == "0");
 
         Command::new(BOOTCTL_PATH)
-            .arg(format!("set-active-boot-slot {target_slot}"))
+            .arg("set-active-boot-slot")
+            .arg(target_slot.to_string())
             .status()?;
 
         let post_fs_data = Path::new(ADB_DIR).join("post-fs-data.d");
@@ -285,6 +297,75 @@ rm -f /data/adb/post-fs-data.d/post_ota.sh
         std::fs::set_permissions(post_ota_sh, std::fs::Permissions::from_mode(0o755))?;
 
         Ok(())
+    }
+}
+
+#[cfg(target_os = "android")]
+mod kpm {
+    use super::Result;
+    use anyhow::{bail, Context};
+    use std::process::Command;
+
+    /// Patch the kernel binary with KernelPatch (kpimg) using kptools.
+    /// This injects kpimg into the kernel image, enabling KPM module support
+    /// and early-boot kernel hooking via paging_init hijack.
+    pub fn patch_kernel_with_kpm(kernel_data: &[u8], kpimg_data: &[u8], kptools_data: &[u8]) -> Result<Vec<u8>> {
+        use std::os::unix::fs::PermissionsExt;
+        use tempfile::TempDir;
+
+        println!("- Patching kernel with KernelPatch (KPM)");
+
+        let temp_dir = TempDir::new().context("create temp dir for KPM patching")?;
+
+        let kernel_path = temp_dir.path().join("Image");
+        std::fs::write(&kernel_path, kernel_data)
+            .context("write kernel to temp file")?;
+
+        let kpimg_path = temp_dir.path().join("kpimg");
+        std::fs::write(&kpimg_path, kpimg_data)
+            .context("write kpimg to temp file")?;
+
+        let kptools_path = temp_dir.path().join("kptools");
+        std::fs::write(&kptools_path, kptools_data)
+            .context("write kptools to temp file")?;
+        std::fs::set_permissions(&kptools_path, std::fs::Permissions::from_mode(0o755))
+            .context("make kptools executable")?;
+
+        let output_path = temp_dir.path().join("oImage");
+
+        println!("- Running kptools to patch kernel...");
+        let result = Command::new(&kptools_path)
+            .args(&[
+                "-p",
+                "-s", "kinsu",
+                "-i", kernel_path.to_str().unwrap(),
+                "-k", kpimg_path.to_str().unwrap(),
+                "-o", output_path.to_str().unwrap(),
+            ])
+            .output()
+            .context("execute kptools")?;
+
+        if !result.status.success() {
+            let stderr = String::from_utf8_lossy(&result.stderr);
+            let stdout = String::from_utf8_lossy(&result.stdout);
+            bail!(
+                "kptools failed (exit code: {}):\nstdout: {}\nstderr: {}",
+                result.status.code().unwrap_or(-1),
+                stdout,
+                stderr
+            );
+        }
+
+        let stdout = String::from_utf8_lossy(&result.stdout);
+        for line in stdout.lines() {
+            println!("  kptools: {line}");
+        }
+
+        let patched_kernel = std::fs::read(&output_path)
+            .context("read patched kernel")?;
+        println!("- Kernel patched successfully, new size: {} bytes (was {} bytes)", patched_kernel.len(), kernel_data.len());
+
+        Ok(patched_kernel)
     }
 }
 
@@ -471,6 +552,19 @@ pub struct BootPatchArgs {
     /// Do not load custom rc
     #[arg(long, default_value = "false")]
     no_custom_rc: bool,
+
+    /// Enable KPM (KernelPatch module) support
+    #[arg(long, default_value = "false")]
+    pub enable_kpm: bool,
+
+    /// Enable SUSFS support
+    #[arg(long, default_value = "false")]
+    pub enable_susfs: bool,
+
+    /// Path to the SUSFS userspace binary to embed into the patched image
+    #[cfg(target_os = "android")]
+    #[arg(long, default_value = None)]
+    pub susfs_binary: Option<PathBuf>,
 }
 
 pub fn patch(args: BootPatchArgs) -> Result<()> {
@@ -495,9 +589,11 @@ pub fn patch(args: BootPatchArgs) -> Result<()> {
             #[cfg(target_os = "android")]
             partition,
             no_custom_rc,
+            enable_kpm,
+            enable_susfs,
+            #[cfg(target_os = "android")]
+            susfs_binary,
         } = args;
-
-        println!(include_str!("banner"));
 
         #[cfg(target_os = "android")]
         let patch_file = image.is_some();
@@ -589,13 +685,53 @@ pub fn patch(args: BootPatchArgs) -> Result<()> {
             patcher.replace_kernel(Box::new(Cursor::new(kernel_data)), false);
         }
 
+        // KPM: patch kernel with kpimg using kptools (GKI mode)
+        // This embeds KernelPatch into the kernel, enabling KPM module support
+        #[cfg(target_os = "android")]
+        if enable_kpm && !no_install {
+            println!("- KPM enabled, patching kernel with KernelPatch");
+            let kptools_data = match assets::get_asset_data("kptools") {
+                Ok(data) => Some(data),
+                Err(_) => {
+                    println!("- WARNING: kptools asset not found, skipping KPM kernel patching");
+                    None
+                }
+            };
+            let kpimg_data = match assets::get_asset_data("kpimg") {
+                Ok(data) => Some(data),
+                Err(_) => {
+                    println!("- WARNING: kpimg asset not found, skipping KPM kernel patching");
+                    None
+                }
+            };
+
+            if let (Some(kptools_data), Some(kpimg_data)) = (kptools_data, kpimg_data) {
+                if let Some(kernel_block) = boot_image.get_blocks().get_kernel() {
+                    let mut kernel_buf = Vec::<u8>::new();
+                    kernel_block.dump(&mut kernel_buf, true)?;
+
+                    match kpm::patch_kernel_with_kpm(&kernel_buf, &kpimg_data, &kptools_data) {
+                        Ok(patched_kernel) => {
+                            patcher.replace_kernel(Box::new(Cursor::new(patched_kernel)), false);
+                            println!("- 内核已成功嵌入 KernelPatch (KPM)");
+                        }
+                        Err(e) => {
+                            bail!("KPM 内核修补失败: {e} - 请检查 kptools 和 kpimg 是否兼容当前内核");
+                        }
+                    }
+                } else {
+                    println!("- WARNING: No kernel found in boot image for KPM patching");
+                }
+            }
+        }
+
         let kernelsu_ko: Box<dyn AsRef<[u8]>> = if no_install {
             Box::new(Vec::<u8>::new())
         } else if let Some(kmod_path) = kmod {
             Box::new(map_file(&kmod_path)?)
         } else {
             println!("- KMI: {kmi}");
-            let name = format!("{kmi}_kernelsu.ko");
+            let name = format!("{kmi}_kinsu.ko");
             assets::get_asset(&name).with_context(|| format!("Failed to load {name}"))?
         };
 
@@ -604,7 +740,10 @@ pub fn patch(args: BootPatchArgs) -> Result<()> {
         } else if let Some(init_path) = init {
             Box::new(map_file(&init_path)?)
         } else {
-            assets::get_asset("ksuinit").context("Failed to load ksuinit")?
+            #[cfg(all(target_arch = "aarch64", target_os = "android"))]
+            { Box::new(EMBEDDED_KSUINIT) }
+            #[cfg(not(all(target_arch = "aarch64", target_os = "android")))]
+            { assets::get_asset("ksuinit").context("Failed to load ksuinit")? }
         };
 
         let (mut cpio, vendor_ramdisk_idx) =
@@ -621,15 +760,15 @@ pub fn patch(args: BootPatchArgs) -> Result<()> {
                 "Cannot work with Magisk patched image"
             );
 
-            println!("- Adding KernelSU LKM");
-            let is_kernelsu_patched = cpio.exists("kernelsu.ko");
+            println!("- Adding KinSU LKM");
+            let is_kernelsu_patched = cpio.exists("kinsu.ko");
 
             if !is_kernelsu_patched && cpio.exists("init") {
                 cpio.mv("init", "init.real")?;
             }
 
             cpio.add("init", CpioEntry::regular(0o755, ksu_init))?;
-            cpio.add("kernelsu.ko", CpioEntry::regular(0o755, kernelsu_ko))?;
+            cpio.add("kinsu.ko", CpioEntry::regular(0o755, kernelsu_ko))?;
 
             #[cfg(target_os = "android")]
             if !is_kernelsu_patched
@@ -663,6 +802,17 @@ pub fn patch(args: BootPatchArgs) -> Result<()> {
 
         apply_config("no custom rc", "norc=1", no_custom_rc);
         apply_config("allow shell", "allow_shell=1", allow_shell);
+        apply_config("KPM", "kpm=1", enable_kpm);
+        apply_config("SUSFS", "susfs=1", enable_susfs);
+
+        #[cfg(target_os = "android")]
+        if enable_susfs {
+            if let Some(binary) = susfs_binary {
+                println!("- Adding SUSFS userspace binary");
+                let susfs_data = map_file(&binary)?;
+                cpio.add("ksu_susfs", CpioEntry::regular(0o755, Box::new(susfs_data)))?;
+            }
+        }
 
         if ksu_config.is_empty() {
             cpio.rm("ksu_config", false);
@@ -841,8 +991,8 @@ pub fn restore(args: BootRestoreArgs) -> Result<()> {
         };
 
     ensure!(
-        cpio.exists("kernelsu.ko"),
-        "boot image is not patched by KernelSU"
+        cpio.exists("kinsu.ko"),
+        "boot image is not patched by KinSU"
     );
 
     #[cfg(target_os = "android")]
@@ -928,8 +1078,8 @@ fn rebuild_without_ksu(
     cpio: &mut Cpio,
     vendor_ramdisk_idx: Option<usize>,
 ) -> Result<Vec<u8>> {
-    println!("- Removing KernelSU from boot image");
-    cpio.rm("kernelsu.ko", false);
+    println!("- Removing KinSU from boot image");
+    cpio.rm("kinsu.ko", false);
     if cpio.exists("init.real") {
         cpio.mv("init.real", "init")?;
     }

@@ -1,3 +1,24 @@
+// KinSU - A derivative work of KernelSU
+// Copyright (c) 2022-2024 weishu (KernelSU Project)
+// Copyright (c) 2024 KinSU Project
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
+// Original source: https://github.com/tiann/KernelSU
+// Original author: weishu
+// The full upstream commit history is preserved.
+
 use anyhow::{Context, Ok, Result};
 use clap::Parser;
 use std::path::PathBuf;
@@ -12,7 +33,7 @@ use crate::{
     utils,
 };
 
-/// KernelSU userspace cli
+/// KinSU userspace cli
 #[derive(Parser, Debug)]
 #[command(author, version = defs::VERSION_NAME, about, long_about = None)]
 struct Args {
@@ -22,7 +43,7 @@ struct Args {
 
 #[derive(clap::Subcommand, Debug)]
 enum Commands {
-    /// Manage KernelSU modules
+    /// Manage KinSU modules
     Module {
         #[command(subcommand)]
         command: Module,
@@ -41,13 +62,13 @@ enum Commands {
     /// Trigger `boot-complete` event
     BootCompleted,
 
-    /// Load kernelsu.ko and execute late-load stage scripts
+    /// Load kinsu.ko and execute late-load stage scripts
     LateLoad {
         /// Use adb root to execute late-load for jailbreaking by Magica
         #[arg(long, default_missing_value = "5555", num_args = 0..=1)]
         magica: Option<u16>,
 
-        /// Pass allow_shell=1 when loading kernelsu.ko
+        /// Pass allow_shell=1 when loading kinsu.ko
         #[arg(long)]
         allow_shell: bool,
 
@@ -60,7 +81,7 @@ enum Commands {
         kmi: Option<String>,
 
         /// manager package name
-        #[arg(long, default_value_t = String::from("me.weishu.kernelsu"))]
+        #[arg(long, default_value_t = String::from("me.weishu.kinsu"))]
         package_name: String,
     },
 
@@ -76,18 +97,18 @@ enum Commands {
         params: Vec<String>,
     },
 
-    /// Install KernelSU userspace component to system
+    /// Install KinSU userspace component to system
     Install {
         #[arg(long, default_value = None)]
         libadbroot: Option<PathBuf>,
     },
 
-    /// Unload KernelSU kernel module (LKM Only)
+    /// Unload KinSU kernel module (LKM Only)
     Unload,
 
-    /// Uninstall KernelSU modules and itself(LKM Only)
+    /// Uninstall KinSU modules and itself(LKM Only)
     Uninstall {
-        #[arg(long, default_value_t = String::from("me.weishu.kernelsu"))]
+        #[arg(long, default_value_t = String::from("me.weishu.kinsu"))]
         package_name: String,
     },
 
@@ -109,10 +130,10 @@ enum Commands {
         command: Feature,
     },
 
-    /// Patch boot or init_boot images to apply KernelSU
+    /// Patch boot or init_boot images to apply KinSU
     BootPatch(BootPatchArgs),
 
-    /// Restore boot or init_boot images patched by KernelSU
+    /// Restore boot or init_boot images patched by KinSU
     BootRestore(BootRestoreArgs),
 
     /// Show boot information
@@ -176,7 +197,7 @@ enum Debug {
     /// Set the manager app, kernel CONFIG_KSU_DEBUG should be enabled.
     SetManager {
         /// manager package name
-        #[arg(default_value_t = String::from("me.weishu.kernelsu"))]
+        #[arg(default_value_t = String::from("me.weishu.kinsu"))]
         apk: String,
     },
 
@@ -218,6 +239,66 @@ enum Debug {
 
     /// Get kernel info
     Info,
+
+    /// Get SuSFS version and status
+    Susfs {
+        #[command(subcommand)]
+        command: SusfsCommand,
+    },
+
+    /// KPM (KernelPatch Module) management
+    Kpm {
+        #[command(subcommand)]
+        command: KpmCommand,
+    },
+}
+
+#[derive(clap::Subcommand, Debug)]
+enum SusfsCommand {
+    /// Show SuSFS version
+    Version,
+    /// Show SuSFS enabled features
+    Features,
+    /// Check if SuSFS is supported
+    Status,
+}
+
+#[derive(clap::Subcommand, Debug)]
+enum KpmCommand {
+    /// Diagnose supercall availability
+    Diag,
+    /// Show KernelPatch version
+    Version,
+    /// Show number of loaded KPM modules
+    Num,
+    /// List all loaded KPM modules (JSON)
+    List,
+    /// Load a KPM module from path
+    Load {
+        /// Path to the KPM module file
+        path: String,
+        /// Arguments to pass to the module
+        #[arg(default_value = "")]
+        args: String,
+    },
+    /// Unload a KPM module by name
+    Unload {
+        /// Name of the KPM module
+        name: String,
+    },
+    /// Get info about a KPM module
+    Info {
+        /// Name of the KPM module
+        name: String,
+    },
+    /// Send control command to a KPM module
+    Control {
+        /// Name of the KPM module
+        name: String,
+        /// Control arguments
+        #[arg(default_value = "")]
+        args: String,
+    },
 }
 
 #[derive(clap::Subcommand, Debug)]
@@ -481,7 +562,7 @@ pub fn run() -> Result<()> {
     android_logger::init_once(
         Config::default()
             .with_max_level(crate::debug_select!(LevelFilter::Trace, LevelFilter::Info))
-            .with_tag("KernelSU"),
+            .with_tag("KinSU"),
     );
 
     // the kernel executes su with argv[0] = "su" and replace it with us
@@ -644,7 +725,7 @@ pub fn run() -> Result<()> {
         }
         Commands::Services => {
             if ksucalls::get_version() <= 0 {
-                info!("KernelSU not available, exiting services");
+                info!("KinSU not available, exiting services");
                 std::process::exit(0);
             }
             init_event::on_services();
@@ -724,8 +805,109 @@ pub fn run() -> Result<()> {
                 );
                 Ok(())
             }
+            Debug::Susfs { command } => match command {
+                SusfsCommand::Version => {
+                    println!("{}", crate::susfs::get_susfs_version());
+                    Ok(())
+                }
+                SusfsCommand::Features => {
+                    println!("{}", crate::susfs::get_susfs_features());
+                    Ok(())
+                }
+                SusfsCommand::Status => {
+                    println!("{}", crate::susfs::get_susfs_status());
+                    Ok(())
+                }
+            },
+            Debug::Kpm { command } => match command {
+                KpmCommand::Diag => {
+                    println!("{}", crate::kpm::kpm_diag());
+                    Ok(())
+                }
+                KpmCommand::Version => {
+                    println!("KPM module loader: ioctl-based (v2.0)");
+                    println!("Built into kinsu.ko - no kpimg injection needed.");
+                    Ok(())
+                }
+                KpmCommand::Num => {
+                    match crate::kpm::kpm_nums() {
+                        Ok(n) => { println!("{}", n); Ok(()) }
+                        Err(e) => { println!("Error: {}", e); Err(e) }
+                    }
+                }
+                KpmCommand::List => {
+                    match crate::kpm::kpm_list() {
+                        Ok(s) => { println!("{}", s); Ok(()) }
+                        Err(e) => { println!("Error: {}", e); Err(e) }
+                    }
+                }
+                KpmCommand::Load { path, args } => {
+                    let result = crate::kpm::kpm_load_module(&path, &args);
+                    match result {
+                        Ok(0) => {
+                            println!("OK");
+                            Ok(())
+                        }
+                        Ok(code) => {
+                            let errno_desc = match -code {
+                                2 => "文件不存在 (ENOENT)",
+                                8 => "不是有效的 KPM 模块 (ENOEXEC)",
+                                12 => "内存不足 (ENOMEM)",
+                                17 => "模块已加载 (EEXIST)",
+                                22 => "参数无效 (EINVAL)",
+                                _ => ""
+                            };
+                            println!("Error: {} {}", code, errno_desc);
+                            Err(anyhow::anyhow!("KPM load failed: {} {}", code, errno_desc))
+                        }
+                        Err(e) => {
+                            println!("Error: {}", e);
+                            Err(anyhow::anyhow!("KPM load failed: {}", e))
+                        }
+                    }
+                }
+                KpmCommand::Unload { name } => {
+                    let result = crate::kpm::kpm_unload_module(&name);
+                    match result {
+                        Ok(0) => {
+                            println!("OK");
+                            Ok(())
+                        }
+                        Ok(code) => {
+                            println!("Error: {}", code);
+                            Err(anyhow::anyhow!("KPM unload failed: {}", code))
+                        }
+                        Err(e) => {
+                            println!("Error: {}", e);
+                            Err(anyhow::anyhow!("KPM unload failed: {}", e))
+                        }
+                    }
+                }
+                KpmCommand::Info { name } => {
+                    match crate::kpm::kpm_info(&name) {
+                        Ok(s) => { println!("{}", s); Ok(()) }
+                        Err(e) => { println!("Error: {}", e); Err(e) }
+                    }
+                }
+                KpmCommand::Control { name, args } => {
+                    let result = crate::kpm::kpm_control(&name, &args);
+                    match result {
+                        Ok(0) => {
+                            println!("OK");
+                            Ok(())
+                        }
+                        Ok(code) => {
+                            println!("Error: {}", code);
+                            Err(anyhow::anyhow!("KPM control failed: {}", code))
+                        }
+                        Err(e) => {
+                            println!("Error: {}", e);
+                            Err(anyhow::anyhow!("KPM control failed: {}", e))
+                        }
+                    }
+                }
+            },
         },
-
         Commands::BootPatch(boot_patch) => crate::boot_patch::patch(boot_patch),
 
         Commands::BootInfo { command } => match command {

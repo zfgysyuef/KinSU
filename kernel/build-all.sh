@@ -16,10 +16,10 @@ for kmi in $KMIS; do
     echo "========== Building $kmi =========="
     ODIR="$(realpath .)/out/$kmi"
     if ddk build "$kmi" "ODIR=$ODIR" -e CONFIG_KSU=m; then
-        if [ -f "$ODIR/kernelsu.ko" ]; then
-            cp "$ODIR/kernelsu.ko" "kernelsu-${kmi}.ko"
-            llvm-strip -d "kernelsu-${kmi}.ko"
-            echo "✓ Built kernelsu-${kmi}.ko"
+        if [ -f "$ODIR/KinSU.ko" ]; then
+            cp "$ODIR/KinSU.ko" "KinSU-${kmi}.ko"
+            llvm-strip -d "KinSU-${kmi}.ko"
+            echo "✓ Built KinSU-${kmi}.ko"
         fi
     else
         echo "✗ Build failed for $kmi"

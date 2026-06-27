@@ -184,7 +184,6 @@ const fn resetprop() -> ResetProp {
         persist_only: false,
         verbose: false,
         show_context: false,
-        rebuild: false,
     }
 }
 
@@ -202,7 +201,8 @@ fn wait_for_boot_completed() -> Result<()> {
     sys_prop::init().context("Failed to initialize system property API")?;
     let rp = resetprop();
     info!("waiting for boot complete");
-    rp.wait("sys.boot_completed", Some("0"), None)
+    // 120秒超时，防止永久等待卡死
+    rp.wait("sys.boot_completed", Some("0"), Some(120.0))
         .context("wait for sys.boot_completed failed")?;
     Ok(())
 }

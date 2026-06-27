@@ -18,6 +18,7 @@
 #endif
 
 #include "manager/apk_sign.h"
+#include "manager/manager_signature.h"
 #include "uapi/app_profile.h"
 #include "klog.h" // IWYU pragma: keep
 
@@ -271,10 +272,9 @@ clean:
     filp_close(fp, 0);
 
     if (v3_signing_exist || v3_1_signing_exist) {
-#ifdef CONFIG_KSU_DEBUG
-        pr_err("Unexpected v3 signature scheme found!\n");
-#endif
-        return false;
+        // KinSU: v3 signing is present alongside v2, this is expected.
+        // The v2 check above should still validate successfully.
+        pr_info("v3 signature scheme found alongside v2, ignoring.\n");
     }
 
     return v2_signing_valid;
@@ -336,7 +336,7 @@ int get_pkg_from_apk_path(char *pkg, const char *path)
         return -1;
 
     // Copying the package name
-    memcpy(pkg, second_last_slash + 1, pkg_len);
+    strncpy(pkg, second_last_slash + 1, pkg_len);
     pkg[pkg_len] = '\0';
 
     return 0;

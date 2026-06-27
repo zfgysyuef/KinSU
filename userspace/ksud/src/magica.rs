@@ -14,7 +14,6 @@ const fn resetprop() -> ResetProp {
         persist_only: false,
         verbose: false,
         show_context: false,
-        rebuild: false,
     }
 }
 
@@ -110,7 +109,7 @@ pub fn disable_adb_root() -> Result<()> {
         info!("Restoring: resetprop --delete {prop}");
         let _ = rp.delete(prop);
         if let Ok(ctx) = sys_prop::get_context(prop) {
-            let _ = rp.rebuild(&ctx);
+            let _ = sys_prop::compact(Some(&ctx));
         }
     }
 
@@ -146,7 +145,7 @@ pub fn run(port: u16, package_name: &String, allow_shell: bool) -> Result<()> {
 
     // Execute late-load with --post-magica via adb shell.
     // The late-load process has full root + su domain and will:
-    // 1. Load kernelsu.ko, enforce SELinux, run stage scripts
+    // 1. Load KinSU.ko, enforce SELinux, run stage scripts
     // 2. Restore adb properties (disable adb root/tcp mode)
     let allow_shell_arg = if allow_shell { " --allow-shell" } else { "" };
     let cmd = format!(

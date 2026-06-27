@@ -196,7 +196,7 @@ pub fn install(libadbroot: Option<PathBuf>) -> Result<()> {
         std::env::current_exe().with_context(|| "Failed to get self exe path")?,
         defs::DAEMON_PATH,
     )?;
-    restorecon::lsetfilecon(defs::DAEMON_PATH, restorecon::KSU_CON)?;
+    restorecon::lsetfilecon(defs::DAEMON_PATH, restorecon::ADB_CON)?;
     // install binary assets
     assets::ensure_binaries(false).with_context(|| "Failed to extract assets")?;
 
@@ -230,7 +230,7 @@ pub fn uninstall(package_name: &str) -> Result<()> {
         out: None,
         out_name: None,
     })?;
-    println!("- Uninstall KernelSU manager..");
+    println!("- Uninstall KinSU manager..");
     Command::new("pm")
         .args(["uninstall", package_name])
         .spawn()?;

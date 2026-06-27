@@ -34,8 +34,20 @@ val baseCFlags = listOf(
 val baseCppFlags = baseCFlags + "-fno-rtti"
 
 android {
-    namespace = "me.weishu.kernelsu"
+    namespace = "com.mikokernel"
     val isPrBuild = project.findProperty("IS_PR_BUILD")?.toString()?.toBoolean() ?: false
+
+    // KinSU: kernel module only supports v2 APK signature
+    signingConfigs {
+        getByName("debug") {
+            enableV1Signing = false
+            enableV2Signing = true
+        }
+        create("release") {
+            enableV1Signing = false
+            enableV2Signing = true
+        }
+    }
 
     buildTypes {
         debug {
@@ -92,11 +104,12 @@ android {
         }
     }
 
-    externalNativeBuild {
-        cmake {
-            path = file("src/main/cpp/CMakeLists.txt")
-        }
-    }
+    // Build native libs manually on Windows to work around Ninja GetOverlappedResult bug.
+    // externalNativeBuild {
+    //     cmake {
+    //         path = file("src/main/cpp/CMakeLists.txt")
+    //     }
+    // }
 
     dependenciesInfo {
         includeInApk = false
@@ -123,16 +136,16 @@ android {
 
         buildConfigField("boolean", "IS_PR_BUILD", isPrBuild.toString())
 
-        externalNativeBuild {
-            cmake {
-                arguments += "-DANDROID_STL=none"
-                cFlags += baseCFlags + "-std=c2x"
-                cppFlags += baseCppFlags + "-std=c++2b"
-            }
-        }
+        // externalNativeBuild {
+        //     cmake {
+        //         arguments += "-DANDROID_STL=none"
+        //         cFlags += baseCFlags + "-std=c2x"
+        //         cppFlags += baseCppFlags + "-std=c++2b"
+        //     }
+        // }
 
         ndk {
-            abiFilters += listOf("arm64-v8a", "x86_64")
+            abiFilters += listOf("arm64-v8a")
         }
     }
 
@@ -155,7 +168,7 @@ androidComponents {
 
 base {
     archivesName.set(
-        "KernelSU_${managerVersionName}_${managerVersionCode}"
+        "KinSU_${managerVersionName}_${managerVersionCode}"
     )
 }
 
@@ -177,6 +190,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.navigation3)
 
     implementation(libs.androidx.navigation3.runtime)
+    implementation(libs.androidx.navigation3.ui)
     implementation(libs.androidx.navigationevent.compose)
 
     implementation(libs.com.github.topjohnwu.libsu.core)
@@ -198,12 +212,6 @@ dependencies {
     implementation(libs.lsposed.cxx)
 
     implementation(libs.hiddenapibypass)
-
-    implementation(libs.miuix.ui)
-    implementation(libs.miuix.icons)
-    implementation(libs.miuix.navigation3.ui)
-    implementation(libs.miuix.preference)
-    implementation(libs.miuix.blur)
 
     implementation(platform(libs.okhttp.bom))
     implementation(libs.okhttp)

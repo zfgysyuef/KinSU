@@ -1,0 +1,40 @@
+KinSU NOTICE
+================
+
+This product is a derivative work of KernelSU (https://github.com/tiann/KernelSU).
+
+Original Project: KernelSU
+Original Author:   weishu (https://github.com/tiann)
+Upstream License:  GNU General Public License v3 (userspace & manager)
+                   GNU General Public License v2 (kernel)
+
+Copyright (c) 2022-2024 weishu (KernelSU Project)
+Copyright (c) 2024 KinSU Project
+
+All original copyright notices, author attributions, and commit history
+are preserved in accordance with the GNU General Public License.
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+For the original source code and full commit history, please visit:
+https://github.com/tiann/KernelSU
+
+Contributors (upstream):
+  - weishu (https://github.com/tiann) -- Original author of KernelSU
+  - See https://github.com/tiann/KernelSU/graphs/contributors for the
+    full list of KernelSU contributors whose work is included herein.
+
+KinSU modifications are additionally licensed under GPLv3. The modified
+source code is available at:
+https://github.com/Spring-bulid/KinSU

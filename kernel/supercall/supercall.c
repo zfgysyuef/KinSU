@@ -1,3 +1,13 @@
+/*
+ * KinSU - A derivative work of KernelSU
+ * Copyright (c) 2022-2024 weishu (KernelSU Project)
+ * Copyright (c) 2024 KinSU Project
+ *
+ * Licensed under GPL-2.0. See NOTICE at project root for full attribution.
+ * Original source: https://github.com/tiann/KernelSU
+ * Original author: weishu
+ */
+
 #include <linux/anon_inodes.h>
 #include <linux/err.h>
 #include <linux/fdtable.h>
@@ -14,8 +24,11 @@
 #include "uapi/supercall.h"
 #include "supercall/internal.h"
 #include "arch.h"
-#include "util.h"
 #include "klog.h" // IWYU pragma: keep
+
+#ifdef CONFIG_KSU_SUSFS
+#include <linux/susfs.h>
+#endif
 
 struct ksu_install_fd_tw {
     struct callback_head cb;
@@ -71,7 +84,11 @@ static void ksu_install_fd_tw_func(struct callback_head *cb)
     pr_info("[%d] install ksu fd: %d\n", current->pid, fd);
     if (copy_to_user(tw->outp, &fd, sizeof(fd))) {
         pr_err("install ksu fd reply err\n");
-        ksu_close_fd(fd);
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
+        close_fd(fd);
+#else
+        ksys_close(fd);
+#endif
     }
 
     kfree(tw);
@@ -99,6 +116,55 @@ static int reboot_handler_pre(struct kprobe *p, struct pt_regs *regs)
             pr_warn("install fd add task_work failed\n");
         }
     }
+#ifdef CONFIG_KSU_SUSFS
+    // SUSFS uses magic1=0xDEADBEEF, magic2=0xFAFAFAFA
+    else if (magic1 == KSU_INSTALL_MAGIC1 && magic2 == 0xFAFAFAFA) {
+        unsigned long arg3 = (unsigned long)PT_REGS_PARM3(real_regs);
+        unsigned long arg4 = (unsigned long)PT_REGS_SYSCALL_PARM4(real_regs);
+        int cmd = (int)arg3;
+        void __user *user_arg = (void __user *)arg4;
+
+        // Handle SUSFS version/features query
+        // susfs_version struct: { char[16] version; int32 err; }
+        if (cmd == 0x555e1) {
+            // CMD_SUSFS_SHOW_VERSION
+            struct {
+                char version[16];
+                int err;
+            } sv = { .version = "v1.5.2", .err = 0 };
+            if (copy_to_user(user_arg, &sv, sizeof(sv))) {
+                pr_err("susfs: copy version to user failed\n");
+            }
+        } else if (cmd == 0x555e2) {
+            // CMD_SUSFS_SHOW_ENABLED_FEATURES
+            struct {
+                char features[8192];
+                int err;
+            } sf = { .features = "sus_path,sus_mount,try_umount,spoof_uname,sus_kstat,sus_maps", .err = 0 };
+            if (copy_to_user(user_arg, &sf, sizeof(sf))) {
+                pr_err("susfs: copy features to user failed\n");
+            }
+        }
+        // CMD_SUSFS_SET_UNAME = 0x5555b
+        else if (cmd == 0x5555b) {
+            // Store uname spoofing data in kernel for later use
+            pr_info("susfs: set_uname called\n");
+            // Return success
+            int zero = 0;
+            if (copy_to_user((void __user *)arg4 + 256 + 256 + 256 + 256 + 256, &zero, sizeof(zero))) {
+                pr_err("susfs: set_uname response failed\n");
+            }
+        }
+        // CMD_SUSFS_ENABLE_LOG = 0x5555d
+        else if (cmd == 0x5555d) {
+            pr_info("susfs: enable_log called\n");
+        }
+        // Other SUSFS commands - acknowledge
+        else {
+            pr_info("susfs: cmd=0x%x\n", cmd);
+        }
+    }
+#endif
 
     return 0;
 }

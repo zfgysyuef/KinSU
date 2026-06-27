@@ -1,3 +1,11 @@
+// KinSU - A derivative work of KernelSU
+// Copyright (c) 2022-2024 weishu (KernelSU Project)
+// Copyright (c) 2024 KinSU Project
+//
+// Licensed under GPLv3. See NOTICE at project root for full attribution.
+// Original source: https://github.com/tiann/KernelSU
+// Original author: weishu
+
 #[allow(clippy::wildcard_imports)]
 use crate::utils::*;
 use crate::{
@@ -98,7 +106,8 @@ fn exec_install_script(module_file: &str, is_metamodule: bool, module_id: &str) 
 
     // Get install script from metamodule module
     let install_script =
-        metamodule::get_install_script(is_metamodule, INSTALLER_CONTENT, INSTALL_MODULE_SCRIPT)?;
+        metamodule::get_install_script(is_metamodule, INSTALLER_CONTENT, INSTALL_MODULE_SCRIPT)?
+            .replace('\r', "");
 
     let result = Command::new(assets::BUSYBOX_PATH)
         .args(["sh", "-c", &install_script])
@@ -238,11 +247,39 @@ pub fn exec_script<T: AsRef<Path>>(path: T, wait: bool) -> Result<()> {
         .envs(get_common_script_envs(validated_module_id));
 
     let result = if wait {
-        command.status().map(|_| ())
+        // 30秒超时，防止模块脚本卡死导致开机阻塞
+        let mut child = command.spawn().map_err(|e| {
+            anyhow!("Failed to exec {}: {e}", path.as_ref().display())
+        })?;
+        let timeout = std::time::Duration::from_secs(30);
+        let start = std::time::Instant::now();
+        loop {
+            match child.try_wait() {
+                Ok(Some(_)) => break Ok(()),
+                Ok(None) => {
+                    if start.elapsed() >= timeout {
+                        // 杀掉超时进程及其子进程
+                        unsafe {
+                            libc::kill(child.id() as i32, libc::SIGKILL);
+                        }
+                        warn!(
+                            "exec {} timed out after 30s, killed",
+                            path.as_ref().display()
+                        );
+                        break Ok(());
+                    }
+                    std::thread::sleep(std::time::Duration::from_millis(200));
+                }
+                Err(e) => {
+                    warn!("exec {} wait failed: {e}", path.as_ref().display());
+                    break Ok(());
+                }
+            }
+        }
     } else {
         command.spawn().map(|_| ())
     };
-    result.map_err(|e| anyhow!("Failed to exec {}: {e}", path.as_ref().display()))
+    result
 }
 
 pub fn exec_stage_script(stage: &str, block: bool) -> Result<()> {
@@ -520,9 +557,6 @@ pub fn handle_updated_modules() -> Result<()> {
 
 fn install_module_to_system(zip: &str) -> Result<()> {
     ensure_boot_completed()?;
-
-    // print banner
-    println!(include_str!("banner"));
 
     assets::ensure_binaries(false).with_context(|| "Failed to extract assets")?;
 

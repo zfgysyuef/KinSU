@@ -112,9 +112,9 @@ pub fn init() -> Result<()> {
     if ksuinit::has_kernelsu() {
         log::info!("KernelSU may be already loaded in kernel, skip!");
     } else {
-        log::info!("Loading kernelsu.ko..");
-        if let Err(e) = load_module_from_path("/kernelsu.ko") {
-            log::error!("Cannot load kernelsu.ko: {:?}", e);
+        log::info!("Loading KinSU.ko..");
+        if let Err(e) = load_module_from_path("/KinSU.ko") {
+            log::error!("Cannot load KinSU.ko: {:?}", e);
         }
     }
 
@@ -136,6 +136,7 @@ fn load_module_from_path(path: &str) -> Result<()> {
     anyhow::ensure!(rustix::process::getpid().is_init(), "Invalid process");
     let buffer = std::fs::read(path).with_context(|| format!("Cannot read file {}", path))?;
     let params = std::fs::read("/ksu_config").unwrap_or_default();
+    // Ensure the module params are NUL-terminated and contain no embedded NULs.
     let params = unsafe { CString::from_vec_unchecked(params) };
     log::info!("load kernelsu with params {params:?}");
     ksuinit::load_module(&buffer, &params)

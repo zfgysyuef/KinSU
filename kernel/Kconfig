@@ -1,7 +1,7 @@
-menu "KernelSU"
+menu "KinSU"
 
 config KSU
-	tristate "KernelSU function support"
+	tristate "KinSU function support"
 	depends on KPROBES && EXT4_FS
 	default y
 	help
@@ -9,17 +9,17 @@ config KSU
 	  Requires CONFIG_KPROBES for kernel hooking support.
 	  Requires CONFIG_EXT4_FS for `ext4_unregister_sysfs`.
 	  To compile as a module, choose M here: the
-	  module will be called kernelsu.
+	  module will be called kinsu.
 
 config KSU_DEBUG
-	bool "KernelSU debug mode"
+	bool "KinSU debug mode"
 	depends on KSU
 	default n
 	help
-	  Enable KernelSU debug mode.
+	  Enable KinSU debug mode.
 
 config KSU_DISABLE_MANAGER
-	bool "Disable KernelSU manager integration"
+	bool "Disable KinSU manager integration"
 	depends on KSU
 	default n
 	help
@@ -27,7 +27,7 @@ config KSU_DISABLE_MANAGER
 	  Root will be used in place of manager-only functionality.
 
 config KSU_DISABLE_POLICY
-	bool "Disable KernelSU policy profiles"
+	bool "Disable KinSU policy profiles"
 	depends on KSU
 	default n
 	help
@@ -36,3 +36,4 @@ config KSU_DISABLE_POLICY
 	  non-root handling will follow the global umount policy only.
 
 endmenu
+

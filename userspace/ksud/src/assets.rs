@@ -14,8 +14,10 @@ mod android {
 
     pub fn ensure_binaries(ignore_if_exist: bool) -> anyhow::Result<()> {
         for file in Asset::iter() {
-            if file == "ksuinit" || file.ends_with(".ko") {
-                // don't extract ksuinit and kernel modules
+            if file == "ksuinit" || file.ends_with(".ko") || file == "kptools" || file == "kpimg" {
+                // don't extract ksuinit, kernel modules, kptools, and kpimg to device
+                // ksuinit and .ko are added to ramdisk during boot patching
+                // kptools and kpimg are used only during KPM kernel patching
                 continue;
             }
             let asset =
@@ -60,8 +62,8 @@ pub fn get_asset(name: &str) -> Result<Box<dyn AsRef<[u8]>>> {
 pub fn list_supported_kmi() -> std::vec::Vec<std::string::String> {
     let mut list = Vec::new();
     for file in Asset::iter() {
-        // kmi_name = "xxx_kernelsu.ko"
-        if let Some(kmi) = file.strip_suffix("_kernelsu.ko") {
+        // kmi_name = "xxx_kinsu.ko"
+        if let Some(kmi) = file.strip_suffix("_kinsu.ko") {
             list.push(kmi.to_string());
         }
     }

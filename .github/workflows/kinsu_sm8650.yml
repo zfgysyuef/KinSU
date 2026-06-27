@@ -1,0 +1,134 @@
+name: KinSU SM8650 Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      kernel_suffix:
+        description: 'Kernel suffix'
+        type: string
+        default: 'KinSU'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: KinSU Kernel Build
+        run: |
+          sudo apt update && sudo apt-get install -y --no-install-recommends binutils python-is-python3 libssl-dev libelf-dev aria2 zip unzip curl git ccache
+
+          wget -q https://github.com/cctv18/oppo_oplus_realme_sm8650/raw/refs/heads/main/lib/ccache-x86-64 -O ccache
+          sudo cp -f ./ccache /usr/bin/ccache && sudo chmod +x /usr/bin/ccache && rm -f ./ccache
+
+          echo ">>> Downloading OPPO SM8650 6.1.118 kernel source..."
+          aria2c -s16 -x16 -k1M https://github.com/cctv18/android_kernel_common_oneplus_sm8650/archive/refs/heads/oneplus/sm8650_b_16.0.0_oneplus12.zip -o common.zip
+          unzip -q common.zip
+          mv android_kernel_common_oneplus_sm8650-oneplus-sm8650_b_16.0.0_oneplus12 common && rm common.zip
+
+          mkdir -p clang20
+          aria2c -s16 -x16 -k1M https://github.com/cctv18/oneplus_sm8650_toolchain/releases/download/LLVM-Clang20-r547379/clang-r547379.zip -o clang.zip
+          unzip -q clang.zip -d clang20 && rm clang.zip
+
+          aria2c -s16 -x16 -k1M https://github.com/cctv18/oneplus_sm8650_toolchain/releases/download/LLVM-Clang20-r547379/build-tools.zip -o bt.zip
+          unzip -q bt.zip && rm bt.zip
+
+          rm -f common/android/abi_gki_protected_exports_*
+          for f in common/scripts/setlocalversion; do
+            sed -i 's/ -dirty//g' "$f"
+            sed -i '$i res=$(echo "$res" | sed '"'"'s/-dirty//g'"'"')' "$f"
+          done
+
+          SUFFIX="${{ inputs.kernel_suffix }}"
+          [ -z "$SUFFIX" ] && SUFFIX="KinSU"
+          for f in common/scripts/setlocalversion; do
+            sed -i "\$s|echo \"\\\$res\"|echo \"-${SUFFIX}-6.1.118\"|" "$f"
+          done
+
+      - name: Setup KinSU
+        run: |
+          wget -q https://raw.githubusercontent.com/Spring-bulid/KinSU/master/kernel/setup.sh -O setup_ksu.sh
+          chmod +x setup_ksu.sh
+          cd common && bash ../setup_ksu.sh
+          cd ..
+
+      - name: Apply SuSFS patches
+        run: |
+          git clone --depth=1 https://github.com/cctv18/susfs4oki.git susfs4ksu -b oki-android14-6.1
+          cp ./susfs4ksu/kernel_patches/50_add_susfs_in_gki-android14-6.1.patch ./common/
+          cp ./susfs4ksu/kernel_patches/fs/* ./common/fs/ 2>/dev/null || true
+          cp ./susfs4ksu/kernel_patches/include/linux/* ./common/include/linux/ 2>/dev/null || true
+          cd common && patch -p1 -F 3 < 50_add_susfs_in_gki-android14-6.1.patch || true
+          cd ..
+
+      - name: Apply LZ4 and ZSTD patches
+        run: |
+          git clone --depth=1 https://github.com/cctv18/oppo_oplus_realme_sm8650.git oppo_ref
+          cp ./oppo_ref/zram_patch/001-lz4.patch ./common/
+          cp ./oppo_ref/zram_patch/lz4armv8.S ./common/lib/
+          cp ./oppo_ref/zram_patch/002-zstd.patch ./common/
+          cd common && git apply -p1 < 001-lz4.patch || true && patch -p1 < 002-zstd.patch || true
+          cd .. && rm -rf oppo_ref
+
+      - name: Configure defconfig
+        run: |
+          DEF="./common/arch/arm64/configs/gki_defconfig"
+
+          cat >> "$DEF" <<'DEFEOF'
+CONFIG_KSU=y
+CONFIG_KPROBES=y
+CONFIG_HAVE_KPROBES=y
+CONFIG_KALLSYMS=y
+CONFIG_KALLSYMS_ALL=y
+CONFIG_TMPFS_XATTR=y
+CONFIG_TMPFS_POSIX_ACL=y
+CONFIG_CC_OPTIMIZE_FOR_PERFORMANCE=y
+CONFIG_HEADERS_INSTALL=n
+CONFIG_KSU_SUSFS=y
+CONFIG_KSU_SUSFS_HAS_MAGIC_MOUNT=y
+CONFIG_KSU_SUSFS_SUS_PATH=y
+CONFIG_KSU_SUSFS_SUS_MOUNT=y
+CONFIG_KSU_SUSFS_AUTO_ADD_SUS_KSU_DEFAULT_MOUNT=y
+CONFIG_KSU_SUSFS_AUTO_ADD_SUS_BIND_MOUNT=y
+CONFIG_KSU_SUSFS_SUS_KSTAT=y
+CONFIG_KSU_SUSFS_TRY_UMOUNT=y
+CONFIG_KSU_SUSFS_AUTO_ADD_TRY_UMOUNT_FOR_BIND_MOUNT=y
+CONFIG_KSU_SUSFS_SPOOF_UNAME=y
+CONFIG_KSU_SUSFS_ENABLE_LOG=y
+CONFIG_KSU_SUSFS_HIDE_KSU_SUSFS_SYMBOLS=y
+CONFIG_KSU_SUSFS_SPOOF_CMDLINE_OR_BOOTCONFIG=y
+CONFIG_KSU_SUSFS_OPEN_REDIRECT=y
+CONFIG_KSU_SUSFS_SUS_MAP=y
+CONFIG_MQ_IOSCHED_SSG=y
+CONFIG_MQ_IOSCHED_SSG_CGROUP=y
+CONFIG_BBG=y
+DEFEOF
+
+          cd common
+          curl -sSL https://github.com/cctv18/Baseband-guard/raw/master/setup.sh | bash
+          sed -i '/^config LSM$/,/^help$/{ /^[[:space:]]*default/ { /baseband_guard/! s/selinux/selinux,baseband_guard/ } }' security/Kconfig
+          cd ..
+          sed -i 's/check_defconfig//' ./common/build.config.gki
+
+      - name: Build KinSU
+        run: |
+          export PATH="$GITHUB_WORKSPACE/clang20/bin:$GITHUB_WORKSPACE/build-tools/bin:$PATH"
+          cd common
+          echo "core_ctl" >> drivers/soc/qcom/.gitignore 2>/dev/null || true
+          make -j$(nproc) LLVM=-20 ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabihf- CC=clang LD=ld.lld HOSTCC=clang HOSTLD=ld.lld O=out KCFLAGS+=-O2 KCFLAGS+=-Wno-error gki_defconfig all
+          echo "=== KinSU BUILD SUCCESS ==="
+          ls -lh out/arch/arm64/boot/Image
+
+      - name: Package AnyKernel3
+        run: |
+          git clone https://github.com/cctv18/AnyKernel3 --depth=1
+          rm -rf AnyKernel3/.git
+          cp common/out/arch/arm64/boot/Image AnyKernel3/
+          cd AnyKernel3
+          ZIP="KinSU-SM8650-susfs-$(date +%Y%m%d).zip"
+          zip -r "../$ZIP" ./*
+          echo "ZIP_NAME=$ZIP" >> $GITHUB_ENV
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: KinSU-SM8650
+          path: KinSU-SM8650-*.zip

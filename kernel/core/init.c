@@ -1,3 +1,22 @@
+/*
+ * KinSU - A derivative work of KernelSU
+ * Copyright (c) 2022-2024 weishu (KernelSU Project)
+ * Copyright (c) 2024 KinSU Project
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * Original source: https://github.com/tiann/KernelSU
+ * Original author: weishu
+ * The full upstream commit history is preserved.
+ */
+
 #include <linux/export.h>
 #include <linux/fs.h>
 #include <linux/kobject.h>
@@ -26,6 +45,12 @@
 #include "feature/adb_root.h"
 #include "feature/selinux_hide.h"
 #include "infra/symbol_resolver.h"
+
+#ifdef CONFIG_KSU_SUSFS
+#include "susfs/susfs.h"
+#endif
+
+#include "kpm/module.h"
 
 #if defined(__x86_64__)
 #include <asm/cpufeature.h>
@@ -123,7 +148,6 @@ int __init kernelsu_init(void)
     ksu_cred = prepare_creds();
     if (!ksu_cred) {
         pr_err("prepare cred failed!\n");
-        return -ENOSYS;
     }
 
     ksu_init_symbol_resolver();
@@ -136,6 +160,12 @@ int __init kernelsu_init(void)
     ksu_selinux_hide_init();
 
     ksu_supercalls_init();
+
+    kpm_module_init();
+
+#ifdef CONFIG_KSU_SUSFS
+    susfs_init();
+#endif
 
     if (ksu_late_loaded) {
         pr_info("late load mode, skipping kprobe hooks\n");
@@ -193,6 +223,8 @@ void __exit kernelsu_exit(void)
 
     ksu_supercalls_exit();
 
+    kpm_module_exit();
+
     if (!ksu_late_loaded)
         ksu_ksud_exit();
 
@@ -212,7 +244,13 @@ void __exit kernelsu_exit(void)
     ksu_sulog_exit();
     ksu_feature_exit();
 
-    put_cred(ksu_cred);
+#ifdef CONFIG_KSU_SUSFS
+    susfs_exit();
+#endif
+
+    if (ksu_cred) {
+        put_cred(ksu_cred);
+    }
 }
 
 #if NEED_OWN_STACKPROTECTOR
@@ -230,3 +268,108 @@ MODULE_IMPORT_NS("VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver");
 #else
 MODULE_IMPORT_NS(VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver);
 #endif
+
+// ============================================================================
+// KPM (KernelPatch Module) stub functions
+// These stub functions are hooked by kpimg at runtime to provide KPM support.
+// When kpimg is not present, these functions simply return default values.
+// This follows the same architecture as SukiSU's sukisu_kpm_* stubs.
+// ============================================================================
+
+/**
+ * kinsu_kpm_load_module_path - Load a KPM module from filesystem path
+ * @path: Path to the KPM module file
+ * @args: Arguments to pass to the module
+ * @ptr: Reserved pointer
+ *
+ * Return: 0 on success, negative error code on failure
+ * Default (no kpimg): returns -ENOSYS
+ */
+int kinsu_kpm_load_module_path(const char *path, const char *args, void *ptr)
+{
+    return -ENOSYS;
+}
+EXPORT_SYMBOL(kinsu_kpm_load_module_path);
+
+/**
+ * kinsu_kpm_unload_module - Unload a KPM module by name
+ * @name: Name of the KPM module to unload
+ * @ptr: Reserved pointer
+ *
+ * Return: 0 on success, negative error code on failure
+ * Default (no kpimg): returns -ENOSYS
+ */
+int kinsu_kpm_unload_module(const char *name, void *ptr)
+{
+    return -ENOSYS;
+}
+EXPORT_SYMBOL(kinsu_kpm_unload_module);
+
+/**
+ * kinsu_kpm_num - Get the number of loaded KPM modules
+ * @result: Pointer to store the result
+ *
+ * Default (no kpimg): sets result to 0
+ */
+void kinsu_kpm_num(int *result)
+{
+    *result = 0;
+}
+EXPORT_SYMBOL(kinsu_kpm_num);
+
+/**
+ * kinsu_kpm_list - List all loaded KPM modules
+ * @out: Buffer to write module list
+ * @len: Buffer length
+ * @result: Pointer to store the number of bytes written
+ *
+ * Default (no kpimg): sets result to 0
+ */
+void kinsu_kpm_list(char *out, int len, int *result)
+{
+    *result = 0;
+}
+EXPORT_SYMBOL(kinsu_kpm_list);
+
+/**
+ * kinsu_kpm_info - Get information about a KPM module
+ * @name: Name of the KPM module
+ * @buf: Buffer to write module info
+ * @buf_size: Buffer size
+ * @size: Pointer to store the number of bytes written
+ *
+ * Default (no kpimg): sets size to 0
+ */
+void kinsu_kpm_info(const char *name, char *buf, int buf_size, int *size)
+{
+    *size = 0;
+}
+EXPORT_SYMBOL(kinsu_kpm_info);
+
+/**
+ * kinsu_kpm_control - Send a control command to a KPM module
+ * @name: Name of the KPM module
+ * @args: Control arguments
+ * @arg_len: Length of arguments
+ * @result: Pointer to store the result
+ *
+ * Default (no kpimg): sets result to -ENOSYS
+ */
+void kinsu_kpm_control(const char *name, const char *args, long arg_len, int *result)
+{
+    *result = -ENOSYS;
+}
+EXPORT_SYMBOL(kinsu_kpm_control);
+
+/**
+ * kinsu_kpm_version - Get KernelPatch version string
+ * @buf: Buffer to write version string
+ * @buf_size: Buffer size
+ *
+ * Default (no kpimg): writes "N/A"
+ */
+void kinsu_kpm_version(char *buf, int buf_size)
+{
+    snprintf(buf, buf_size, "N/A (kpimg not loaded)");
+}
+EXPORT_SYMBOL(kinsu_kpm_version);
