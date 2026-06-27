@@ -21,7 +21,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Block
-import androidx.compose.material.icons.outlined.Build
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Pets
 import androidx.compose.material.icons.outlined.Settings
@@ -70,7 +69,7 @@ fun HomePagerMaterial(
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
 
     Scaffold(
-        topBar = { TopBar(scrollBehavior = scrollBehavior, onInstallClick = actions.onInstallClick, showSusfs = state.showSusfsButton) },
+        topBar = { TopBar(scrollBehavior = scrollBehavior, showSusfs = state.showSusfsButton) },
         contentWindowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal)
     ) { innerPadding ->
         Column(
@@ -143,16 +142,12 @@ internal fun UpdateCard(
 @Composable
 internal fun TopBar(
     scrollBehavior: TopAppBarScrollBehavior? = null,
-    onInstallClick: () -> Unit = {},
     showSusfs: Boolean = false,
 ) {
     val navigator = LocalNavigator.current
     LargeFlexibleTopAppBar(
         title = { Text(stringResource(R.string.app_name)) },
         actions = {
-            IconButton(onClick = onInstallClick) {
-                Icon(Icons.Outlined.Build, stringResource(R.string.install))
-            }
             if (showSusfs) {
                 IconButton(onClick = { navigator?.push(Route.SuFSConfig) }) {
                     Icon(Icons.Outlined.Pets, "SuSFS")
@@ -178,13 +173,13 @@ internal fun StatusCard(
     actions: HomeActions,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        TonalCard(
-            containerColor = if (state.ksuVersion != null) {
-                MaterialTheme.colorScheme.secondaryContainer
-            } else {
-                MaterialTheme.colorScheme.errorContainer
-            }
-        ) {
+        val clickToInstall = state.ksuVersion == null && isGkiDevice()
+        val containerColor = if (state.ksuVersion != null) {
+            MaterialTheme.colorScheme.secondaryContainer
+        } else {
+            MaterialTheme.colorScheme.errorContainer
+        }
+        val cardContent = @Composable {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -295,6 +290,11 @@ internal fun StatusCard(
                     }
                 }
             }
+        }
+        if (clickToInstall) {
+            TonalCard(containerColor = containerColor, onClick = actions.onInstallClick) { cardContent() }
+        } else {
+            TonalCard(containerColor = containerColor) { cardContent() }
         }
     }
 }
