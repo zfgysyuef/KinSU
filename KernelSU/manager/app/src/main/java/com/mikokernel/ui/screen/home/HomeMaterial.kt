@@ -21,19 +21,18 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Block
-import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.Pets
 import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material.icons.outlined.SystemUpdate
 import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.rememberTopAppBarState
@@ -70,7 +69,7 @@ fun HomePagerMaterial(
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
 
     Scaffold(
-        topBar = { TopBar(scrollBehavior = scrollBehavior, onInstallClick = actions.onInstallClick, isKpmActive = state.isKpmActive) },
+        topBar = { TopBar(scrollBehavior = scrollBehavior, showSusfs = state.showSusfsButton) },
         contentWindowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal)
     ) { innerPadding ->
         Column(
@@ -143,24 +142,25 @@ internal fun UpdateCard(
 @Composable
 internal fun TopBar(
     scrollBehavior: TopAppBarScrollBehavior? = null,
-    onInstallClick: () -> Unit = {},
-    isKpmActive: Boolean = false,
+    showSusfs: Boolean = false,
 ) {
     val navigator = LocalNavigator.current
-    LargeFlexibleTopAppBar(
-        title = { Text(stringResource(R.string.app_name)) },
+    TopAppBar(
+        title = {
+            Text(
+                text = stringResource(R.string.app_name),
+                style = MaterialTheme.typography.titleMedium
+            )
+        },
         actions = {
-            IconButton(onClick = onInstallClick) {
-                Icon(Icons.Outlined.SystemUpdate, stringResource(R.string.install))
+            if (showSusfs) {
+                IconButton(onClick = { navigator?.push(Route.SuFSConfig) }) {
+                    Icon(Icons.Outlined.Pets, "SuSFS")
+                }
             }
             RebootListPopup()
             IconButton(onClick = { navigator?.push(Route.Settings) }) {
                 Icon(Icons.Outlined.Settings, stringResource(R.string.settings))
-            }
-            if (isKpmActive) {
-                IconButton(onClick = { navigator?.push(Route.Kpm) }) {
-                    Icon(Icons.Outlined.BugReport, "GKI Debug")
-                }
             }
         },
         colors = TopAppBarDefaults.topAppBarColors(
@@ -178,13 +178,15 @@ internal fun StatusCard(
     actions: HomeActions,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        TonalCard(
-            containerColor = if (state.ksuVersion != null) {
-                MaterialTheme.colorScheme.secondaryContainer
-            } else {
-                MaterialTheme.colorScheme.errorContainer
-            }
-        ) {
+        // GKI 设备无论已安装与否，点击状态卡片都跳转到刷写页面
+        // 已安装时可重新刷入/更新 boot 镜像，未安装时可首次刷入
+        val clickToInstall = isGkiDevice()
+        val containerColor = if (state.ksuVersion != null) {
+            MaterialTheme.colorScheme.secondaryContainer
+        } else {
+            MaterialTheme.colorScheme.errorContainer
+        }
+        val cardContent = @Composable {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -296,6 +298,11 @@ internal fun StatusCard(
                 }
             }
         }
+        if (clickToInstall) {
+            TonalCard(containerColor = containerColor, onClick = actions.onInstallClick) { cardContent() }
+        } else {
+            TonalCard(containerColor = containerColor) { cardContent() }
+        }
     }
 }
 
@@ -346,7 +353,7 @@ internal fun LearnMoreCard(onOpenUrl: (String) -> Unit) {
 
 @Composable
 internal fun DonateCard(onOpenUrl: (String) -> Unit) {
-    TonalCard(onClick = { onOpenUrl("https://patreon.com/weishu") }) {
+    TonalCard(onClick = { onOpenUrl("https://github.com/tiann/KernelSU") }) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()

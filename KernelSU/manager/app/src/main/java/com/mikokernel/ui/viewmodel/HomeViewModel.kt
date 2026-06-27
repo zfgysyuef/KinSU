@@ -24,10 +24,12 @@ import com.mikokernel.ui.util.checkNewVersion
 import com.mikokernel.ui.util.getModuleCount
 import com.mikokernel.ui.util.getSELinuxStatusRaw
 import com.mikokernel.ui.util.getSuperuserCount
+import com.mikokernel.ui.util.getRootShell
 import com.mikokernel.ui.util.kpmGetVersion
 import com.mikokernel.ui.util.module.LatestVersionInfo
 import com.mikokernel.ui.util.resolveDeviceName
 import com.mikokernel.ui.util.rootAvailable
+import com.topjohnwu.superuser.ShellUtils
 
 class HomeViewModel : ViewModel() {
 
@@ -69,6 +71,19 @@ class HomeViewModel : ViewModel() {
         val isRootAvailable = rootAvailable()
         val managerVersion = getManagerVersion(ksuApp)
 
+        // Detect SuSFS integration: only check on GKI devices with kernel active
+        val isSusfsAvailable = if (ksuVersion != null && isGkiDevice()) {
+            try {
+                val shell = getRootShell()
+                val ver = ShellUtils.fastCmd(shell, "ksu_susfs show version 2>/dev/null").trim()
+                ver.isNotBlank() && ver != "unsupport"
+            } catch (_: Exception) {
+                false
+            }
+        } else {
+            false
+        }
+
         return HomeUiState(
             kernelVersion = kernelVersion,
             ksuVersion = ksuVersion,
@@ -84,6 +99,7 @@ class HomeViewModel : ViewModel() {
             isRootAvailable = isRootAvailable,
             isSafeMode = Natives.isSafeMode,
             isLateLoadMode = Natives.isLateLoadMode,
+            isSusfsAvailable = isSusfsAvailable,
             checkUpdateEnabled = prefs.getBoolean("check_update", true),
             latestVersionInfo = LatestVersionInfo(),
             currentManagerVersionCode = managerVersion.versionCode,

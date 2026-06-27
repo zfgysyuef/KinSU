@@ -8,11 +8,9 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import com.mikokernel.ui.screen.flash.FlashIt
 import com.mikokernel.ui.screen.modulerepo.RepoModuleArg
-import com.mikokernel.ui.viewmodel.TemplateViewModel
 
 object FlashItSerializer : BaseParcelableSerializer<FlashIt>(FlashIt::class.java)
 object RepoModuleArgSerializer : BaseParcelableSerializer<RepoModuleArg>(RepoModuleArg::class.java)
-object TemplateInfoSerializer : BaseParcelableSerializer<TemplateViewModel.TemplateInfo>(TemplateViewModel.TemplateInfo::class.java)
 
 open class BaseParcelableSerializer<T : Parcelable>(
     private val clazz: Class<T>

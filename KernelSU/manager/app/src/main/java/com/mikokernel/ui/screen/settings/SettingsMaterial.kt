@@ -17,18 +17,12 @@ import androidx.compose.material.icons.filled.Adb
 import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.ContactPage
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.DeveloperMode
-import androidx.compose.material.icons.filled.ElectricalServices
-import androidx.compose.material.icons.filled.Fence
 import androidx.compose.material.icons.filled.FolderDelete
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Policy
 import androidx.compose.material.icons.filled.RemoveCircle
 import androidx.compose.material.icons.filled.RemoveModerator
-import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Update
-import androidx.compose.material.icons.rounded.Dashboard
-import androidx.compose.material.icons.rounded.Extension
 import androidx.compose.material.icons.rounded.UploadFile
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LargeFlexibleTopAppBar
@@ -142,65 +136,6 @@ fun SettingPagerMaterial(
             )
 
             KsuIsValid {
-                if (isGkiDevice()) {
-                    SegmentedColumn(
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                        content = listOf(
-                            {
-                                SegmentedListItem(
-                                    onClick = actions.onOpenKpm,
-                                    headlineContent = { Text("KPM 模块") },
-                                    supportingContent = { Text("内核补丁模块管理") },
-                                    leadingContent = { Icon(Icons.Rounded.Extension, "KPM") },
-                                    trailingContent = {
-                                        Icon(
-                                            Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                                            null
-                                        )
-                                    }
-                                )
-                            },
-                            {
-                                SegmentedListItem(
-                                    onClick = actions.onOpenSusfs,
-                                    headlineContent = { Text("SUSFS 隐藏") },
-                                    supportingContent = { Text("隐藏内核补丁和用户空间模块") },
-                                    leadingContent = { Icon(Icons.Filled.Security, "SuSFS") },
-                                    trailingContent = {
-                                        Icon(
-                                            Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                                            null
-                                        )
-                                    }
-                                )
-                            }
-                        )
-                    )
-                }
-            }
-
-            val profileTemplate = stringResource(id = R.string.settings_profile_template)
-            KsuIsValid {
-                SegmentedColumn(
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                    content = listOf {
-                        SegmentedListItem(
-                            onClick = actions.onOpenProfileTemplate,
-                            headlineContent = { Text(profileTemplate) },
-                            supportingContent = { Text(stringResource(id = R.string.settings_profile_template_summary)) },
-                            leadingContent = { Icon(Icons.Filled.Fence, profileTemplate) },
-                            trailingContent = {
-                                Icon(
-                                    Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                                    null
-                                )
-                            }
-                        )
-                    }
-                )
-            }
-
-            KsuIsValid {
                 val suCompatModeItems = listOf(
                     stringResource(id = R.string.settings_mode_enable_by_default),
                     stringResource(id = R.string.settings_mode_disable_until_reboot),
@@ -301,25 +236,6 @@ fun SettingPagerMaterial(
                                 onCheckedChange = actions.onSetDefaultUmountModules
                             )
                         },
-                        {
-                            SegmentedSwitchItem(
-                                icon = Icons.Filled.DeveloperMode,
-                                title = stringResource(id = R.string.enable_web_debugging),
-                                summary = stringResource(id = R.string.enable_web_debugging_summary),
-                                checked = uiState.enableWebDebugging,
-                                onCheckedChange = actions.onSetEnableWebDebugging
-                            )
-                        },
-                        {
-                            SegmentedSwitchItem(
-                                icon = Icons.Filled.ElectricalServices,
-                                title = stringResource(id = R.string.settings_auto_jailbreak),
-                                summary = stringResource(id = R.string.settings_auto_jailbreak_summary),
-                                enabled = uiState.isLateLoadMode,
-                                checked = uiState.autoJailbreak,
-                                onCheckedChange = actions.onSetAutoJailbreak
-                            )
-                        }
                     )
                 )
             }

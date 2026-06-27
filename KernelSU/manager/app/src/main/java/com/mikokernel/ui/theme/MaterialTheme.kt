@@ -3,6 +3,7 @@ package com.mikokernel.ui.theme
 import android.app.Activity
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialExpressiveTheme
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MotionScheme
 import androidx.compose.material3.Typography
 import androidx.compose.material3.dynamicDarkColorScheme
@@ -11,33 +12,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowInsetsControllerCompat
 import com.materialkolor.rememberDynamicColorScheme
-
-/**
- * iPhone-style typography: slightly larger sizes, more weight contrast,
- * mimicking San Francisco / SF Pro characteristics.
- */
-private val iPhoneTypography = Typography(
-    displayLarge = Typography().displayLarge.copy(fontSize = 57.sp, fontWeight = FontWeight.Bold),
-    displayMedium = Typography().displayMedium.copy(fontSize = 45.sp, fontWeight = FontWeight.SemiBold),
-    displaySmall = Typography().displaySmall.copy(fontSize = 36.sp, fontWeight = FontWeight.Medium),
-    headlineLarge = Typography().headlineLarge.copy(fontSize = 32.sp, fontWeight = FontWeight.SemiBold),
-    headlineMedium = Typography().headlineMedium.copy(fontSize = 28.sp, fontWeight = FontWeight.SemiBold),
-    headlineSmall = Typography().headlineSmall.copy(fontSize = 24.sp, fontWeight = FontWeight.Medium),
-    titleLarge = Typography().titleLarge.copy(fontSize = 22.sp, fontWeight = FontWeight.SemiBold),
-    titleMedium = Typography().titleMedium.copy(fontSize = 16.sp, fontWeight = FontWeight.SemiBold, letterSpacing = (-0.01).sp),
-    titleSmall = Typography().titleSmall.copy(fontSize = 14.sp, fontWeight = FontWeight.Medium, letterSpacing = (-0.01).sp),
-    bodyLarge = Typography().bodyLarge.copy(fontSize = 16.sp, letterSpacing = (-0.02).sp),
-    bodyMedium = Typography().bodyMedium.copy(fontSize = 14.sp, letterSpacing = (-0.02).sp),
-    bodySmall = Typography().bodySmall.copy(fontSize = 12.sp, letterSpacing = (-0.03).sp),
-    labelLarge = Typography().labelLarge.copy(fontSize = 14.sp, fontWeight = FontWeight.Medium, letterSpacing = (-0.04).sp),
-    labelMedium = Typography().labelMedium.copy(fontSize = 12.sp, fontWeight = FontWeight.Medium, letterSpacing = (-0.05).sp),
-    labelSmall = Typography().labelSmall.copy(fontSize = 11.sp, fontWeight = FontWeight.Medium, letterSpacing = (-0.06).sp),
-)
 
 @Composable
 fun MaterialKernelSUTheme(
@@ -85,15 +64,92 @@ fun MaterialKernelSUTheme(
         }
     }
 
-    val typography = when (appSettings.fontMode) {
-        FontMode.IPHONE -> iPhoneTypography
-        else -> Typography()
+    // 使用 MaterialExpressiveTheme 以获得 MotionScheme.expressive()（Switch 回弹等表现力动画），
+    // 但保持标准 M3 shapes 和 typography，视觉仍是标准 Material 3。
+    MaterialExpressiveTheme(
+        colorScheme = colorScheme,
+        shapes = KinSUShapes,
+        motionScheme = MotionScheme.expressive(),
+        content = content,
+    )
+}
+
+/**
+ * Material 3 Expressive 主题变体。
+ * 在标准 M3 配色基础上使用 MaterialExpressiveTheme，启用 expressive 形状、
+ * 表现力更强的 motion scheme，以及略加重的 typography 字重，呈现更具表现力的视觉风格。
+ */
+@Composable
+fun MaterialExpressiveKernelSUTheme(
+    appSettings: AppSettings,
+    content: @Composable () -> Unit
+) {
+    val context = LocalContext.current
+    val systemDarkTheme = isSystemInDarkTheme()
+    val darkTheme = appSettings.colorMode.isDark || (appSettings.colorMode.isSystem && systemDarkTheme)
+    val amoledMode = appSettings.colorMode.isAmoled
+    val dynamicColor = appSettings.keyColor == 0
+    val colorStyle = appSettings.paletteStyle
+    val colorSpec = appSettings.colorSpec
+
+    val colorScheme = if (dynamicColor) {
+        val baseScheme = if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+        rememberDynamicColorScheme(
+            seedColor = Color.Unspecified,
+            isDark = darkTheme,
+            isAmoled = amoledMode,
+            style = colorStyle,
+            specVersion = colorSpec,
+            primary = baseScheme.primary,
+            secondary = baseScheme.secondary,
+            tertiary = baseScheme.tertiary,
+            neutral = baseScheme.surface,
+            neutralVariant = baseScheme.surfaceVariant,
+            error = baseScheme.error
+        )
+    } else {
+        rememberDynamicColorScheme(
+            seedColor = Color(appSettings.keyColor),
+            isDark = darkTheme,
+            isAmoled = amoledMode,
+            style = colorStyle,
+            specVersion = colorSpec,
+        )
     }
+
+    LaunchedEffect(darkTheme) {
+        val window = (context as? Activity)?.window ?: return@LaunchedEffect
+        WindowInsetsControllerCompat(window, window.decorView).apply {
+            isAppearanceLightStatusBars = !darkTheme
+            isAppearanceLightNavigationBars = !darkTheme
+        }
+    }
+
+    // M3E 专属 typography：在默认 typography 基础上略加重字重、收紧字距，强化表现力
+    val baseTypography = MaterialTheme.typography
+    val expressiveTypography = Typography(
+        displayLarge = baseTypography.displayLarge.copy(fontWeight = FontWeight.Bold),
+        displayMedium = baseTypography.displayMedium.copy(fontWeight = FontWeight.Bold),
+        displaySmall = baseTypography.displaySmall.copy(fontWeight = FontWeight.SemiBold),
+        headlineLarge = baseTypography.headlineLarge.copy(fontWeight = FontWeight.Bold),
+        headlineMedium = baseTypography.headlineMedium.copy(fontWeight = FontWeight.Bold),
+        headlineSmall = baseTypography.headlineSmall.copy(fontWeight = FontWeight.SemiBold),
+        titleLarge = baseTypography.titleLarge.copy(fontWeight = FontWeight.SemiBold),
+        titleMedium = baseTypography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+        titleSmall = baseTypography.titleSmall.copy(fontWeight = FontWeight.Medium),
+        bodyLarge = baseTypography.bodyLarge,
+        bodyMedium = baseTypography.bodyMedium,
+        bodySmall = baseTypography.bodySmall,
+        labelLarge = baseTypography.labelLarge.copy(fontWeight = FontWeight.Medium),
+        labelMedium = baseTypography.labelMedium.copy(fontWeight = FontWeight.Medium),
+        labelSmall = baseTypography.labelSmall.copy(fontWeight = FontWeight.Medium),
+    )
 
     MaterialExpressiveTheme(
         colorScheme = colorScheme,
-        typography = typography,
+        shapes = KinSUExpressiveShapes,
         motionScheme = MotionScheme.expressive(),
+        typography = expressiveTypography,
         content = content,
     )
 }

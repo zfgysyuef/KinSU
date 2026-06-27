@@ -25,7 +25,7 @@ jobs:
           AP=$(openssl rand -hex 32)
           echo "keystore_password=$KP" >> $GITHUB_OUTPUT
           echo "key_password=$AP" >> $GITHUB_OUTPUT
-          keytool -genkeypair -alias follkernel -keyalg RSA -keysize 2048 -validity 10000 -storepass "$KP" -keypass "$AP" -dname "CN=FollKernel" -storetype JKS -keystore follkernel.jks
+          keytool -genkeypair -alias follkernel -keyalg RSA -keysize 2048 -validity 10000 -storepass "$KP" -keypass "$AP" -dname "CN=KinSU" -storetype JKS -keystore follkernel.jks
           echo "keystore=$(base64 -w0 follkernel.jks)" >> $GITHUB_OUTPUT
       - name: Extract cert
         id: extract

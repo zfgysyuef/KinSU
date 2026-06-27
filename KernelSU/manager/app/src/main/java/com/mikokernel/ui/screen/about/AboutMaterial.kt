@@ -39,6 +39,15 @@ import androidx.compose.ui.unit.dp
 import com.mikokernel.R
 import com.mikokernel.ui.component.material.SegmentedColumn
 import com.mikokernel.ui.component.material.SegmentedListItem
+import com.mikokernel.ui.component.material.TonalCard
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.LinkInteractionListener
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.withLink
+import androidx.compose.ui.text.withStyle
 
 @Composable
 fun AboutScreenMaterial(
@@ -120,6 +129,25 @@ fun AboutScreenMaterial(
                         }
                     }
                 )
+            }
+            item {
+                TonalCard(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(20.dp)
+                    ) {
+                        Text(
+                            text = parseHtml(state.copyrightNotice, actions.onOpenLink),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
                 Spacer(
                     Modifier.height(
                         WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() +
@@ -128,5 +156,57 @@ fun AboutScreenMaterial(
                 )
             }
         }
+    }
+}
+
+/**
+ * Minimal HTML parser for the copyright notice card.
+ * Supports: <b>...</b>, <a href="...">...</a>, <br/>
+ *
+ * Original author of the underlying KernelSU project: weishu.
+ * This KinSU derivative is released under GPLv3, preserving the upstream
+ * commit history in accordance with the license.
+ */
+private fun parseHtml(
+    html: String,
+    onOpenLink: (String) -> Unit
+): AnnotatedString = buildAnnotatedString {
+    val tagRegex = Regex("""<(?:b>|a\s+href="([^"]*)">|/a>|/b>|br\s*/?)>""")
+    var idx = 0
+    var bold = false
+    var linkUrl: String? = null
+    for (match in tagRegex.findAll(html)) {
+        if (match.range.first > idx) {
+            val segment = html.substring(idx, match.range.first)
+            if (linkUrl != null) {
+                val url = linkUrl
+                withLink(
+                    LinkAnnotation.Clickable(
+                        tag = url,
+                        linkInteractionListener = LinkInteractionListener { onOpenLink(url) }
+                    )
+                ) {
+                    if (bold) withStyle(SpanStyle(fontWeight = FontWeight.Bold)) { append(segment) }
+                    else append(segment)
+                }
+            } else if (bold) {
+                withStyle(SpanStyle(fontWeight = FontWeight.Bold)) { append(segment) }
+            } else {
+                append(segment)
+            }
+        }
+        when {
+            match.value == "<b>" -> bold = true
+            match.value == "</b>" -> bold = false
+            match.value.startsWith("<a ") -> linkUrl = match.groupValues[1]
+            match.value == "</a>" -> linkUrl = null
+            match.value.startsWith("<br") -> append("\n")
+        }
+        idx = match.range.last + 1
+    }
+    if (idx < html.length) {
+        val tail = html.substring(idx)
+        if (bold) withStyle(SpanStyle(fontWeight = FontWeight.Bold)) { append(tail) }
+        else append(tail)
     }
 }

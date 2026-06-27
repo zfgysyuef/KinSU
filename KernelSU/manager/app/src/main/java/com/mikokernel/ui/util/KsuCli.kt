@@ -1,3 +1,13 @@
+/*
+ * KinSU - A derivative work of KernelSU
+ * Copyright (c) 2022-2024 weishu (KernelSU Project)
+ * Copyright (c) 2024 KinSU Project
+ *
+ * Licensed under GPLv3. See NOTICE at project root for full attribution.
+ * Original source: https://github.com/tiann/KernelSU
+ * Original author: weishu
+ */
+
 package com.mikokernel.ui.util
 
 import android.content.ContentResolver
@@ -225,27 +235,31 @@ fun flashModule(
 
         // Prepend env exports, then installer.sh, then override MAGISK_VER again
         // (installer.sh hardcodes MAGISK_VER=25.2 at line 478, must override AFTER)
+        // 注意：必须显式使用 "\n" 作为行尾，不能用 appendLine() ——
+        // Windows JVM 上 appendLine() 会写入 \r\n，导致 sh 解析失败
+        // （umask illegal mode、for...do syntax error、空行 : not found）
         val scriptWithEnv = buildString {
-            appendLine("export ASH_STANDALONE=1")
-            appendLine("export KSU=true")
-            appendLine("export KSU_KERNEL_VER_CODE=\$(cat /proc/version 2>/dev/null | head -1 || echo unknown)")
-            appendLine("export KSU_VER_CODE=$verCode")
-            appendLine("export KSU_VER=$verName")
-            appendLine("export PATH=/system/bin:/data/adb/ksu/bin:\$PATH")
-            appendLine("export OUTFD=1")
-            appendLine("export ZIPFILE=/data/local/tmp/kmodule_$suffix.zip")
-            appendLine()
+            append("export ASH_STANDALONE=1\n")
+            append("export KSU=true\n")
+            append("export KSU_KERNEL_VER_CODE=\$(cat /proc/version 2>/dev/null | head -1 || echo unknown)\n")
+            append("export KSU_VER_CODE=$verCode\n")
+            append("export KSU_VER=$verName\n")
+            append("export PATH=/system/bin:/data/adb/ksu/bin:\$PATH\n")
+            append("export OUTFD=1\n")
+            append("export ZIPFILE=/data/local/tmp/kmodule_$suffix.zip\n")
+            append("\n")
             append(installerScript)
-            appendLine()
+            append("\n")
             // Override MAGISK_VER after installer.sh (it hardcodes 25.2)
-            appendLine("export MAGISK_VER=KinSu")
-            appendLine("export MAGISK_VER_CODE=$verCode")
-            appendLine("install_module")
-            appendLine("rm -f /data/local/tmp/install_$suffix.sh /data/local/tmp/kmodule_$suffix.zip")
-            appendLine("exit 0")
+            append("export MAGISK_VER=KinSu\n")
+            append("export MAGISK_VER_CODE=$verCode\n")
+            append("install_module\n")
+            append("rm -f /data/local/tmp/install_$suffix.sh /data/local/tmp/kmodule_$suffix.zip\n")
+            append("exit 0\n")
         }
         val installSh = File(ksuApp.cacheDir, "install_$suffix.sh")
-        installSh.writeText(scriptWithEnv, Charsets.UTF_8)
+        // 兜底：清除任何残留的 \r（包括 raw installer.sh 自身可能携带的）
+        installSh.writeText(scriptWithEnv.replace("\r\n", "\n").replace("\r", "\n"), Charsets.UTF_8)
 
         val cmd = "cat ${cacheFile.absolutePath} > /data/local/tmp/kmodule_$suffix.zip && " +
             "cat ${installSh.absolutePath} > /data/local/tmp/install_$suffix.sh && " +

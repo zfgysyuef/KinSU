@@ -1,3 +1,24 @@
+// KinSU - A derivative work of KernelSU
+// Copyright (c) 2022-2024 weishu (KernelSU Project)
+// Copyright (c) 2024 KinSU Project
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
+// Original source: https://github.com/tiann/KernelSU
+// Original author: weishu
+// The full upstream commit history is preserved.
+
 use anyhow::{Context, Ok, Result};
 use clap::Parser;
 use std::path::PathBuf;
@@ -12,7 +33,7 @@ use crate::{
     utils,
 };
 
-/// KernelSU userspace cli
+/// KinSU userspace cli
 #[derive(Parser, Debug)]
 #[command(author, version = defs::VERSION_NAME, about, long_about = None)]
 struct Args {
@@ -22,7 +43,7 @@ struct Args {
 
 #[derive(clap::Subcommand, Debug)]
 enum Commands {
-    /// Manage KernelSU modules
+    /// Manage KinSU modules
     Module {
         #[command(subcommand)]
         command: Module,
@@ -76,16 +97,16 @@ enum Commands {
         params: Vec<String>,
     },
 
-    /// Install KernelSU userspace component to system
+    /// Install KinSU userspace component to system
     Install {
         #[arg(long, default_value = None)]
         libadbroot: Option<PathBuf>,
     },
 
-    /// Unload KernelSU kernel module (LKM Only)
+    /// Unload KinSU kernel module (LKM Only)
     Unload,
 
-    /// Uninstall KernelSU modules and itself(LKM Only)
+    /// Uninstall KinSU modules and itself(LKM Only)
     Uninstall {
         #[arg(long, default_value_t = String::from("me.weishu.kinsu"))]
         package_name: String,
@@ -109,10 +130,10 @@ enum Commands {
         command: Feature,
     },
 
-    /// Patch boot or init_boot images to apply KernelSU
+    /// Patch boot or init_boot images to apply KinSU
     BootPatch(BootPatchArgs),
 
-    /// Restore boot or init_boot images patched by KernelSU
+    /// Restore boot or init_boot images patched by KinSU
     BootRestore(BootRestoreArgs),
 
     /// Show boot information
@@ -541,7 +562,7 @@ pub fn run() -> Result<()> {
     android_logger::init_once(
         Config::default()
             .with_max_level(crate::debug_select!(LevelFilter::Trace, LevelFilter::Info))
-            .with_tag("KernelSU"),
+            .with_tag("KinSU"),
     );
 
     // the kernel executes su with argv[0] = "su" and replace it with us
@@ -704,7 +725,7 @@ pub fn run() -> Result<()> {
         }
         Commands::Services => {
             if ksucalls::get_version() <= 0 {
-                info!("KernelSU not available, exiting services");
+                info!("KinSU not available, exiting services");
                 std::process::exit(0);
             }
             init_event::on_services();

@@ -14,7 +14,7 @@ fun AboutScreen() {
     val uriHandler = LocalUriHandler.current
     val htmlString = stringResource(
         id = R.string.about_source_code,
-        "<b><a href=\"https://github.com/tiann/KernelSU\">GitHub</a></b>",
+        "<b><a href=\"https://github.com/Spring-bulid/KinSU\">GitHub</a></b>",
         "<b><a href=\"https://t.me/KernelSU\">Telegram</a></b>"
     )
     val state = AboutUiState(
@@ -22,6 +22,7 @@ fun AboutScreen() {
         appName = stringResource(R.string.app_name),
         versionName = BuildConfig.VERSION_NAME,
         links = extractLinks(htmlString),
+        copyrightNotice = stringResource(R.string.about_copyright_notice),
     )
     val actions = AboutScreenActions(
         onBack = dropUnlessResumed { navigator.pop() },

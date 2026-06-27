@@ -1,3 +1,13 @@
+/*
+ * KinSU - A derivative work of KernelSU
+ * Copyright (c) 2022-2024 weishu (KernelSU Project)
+ * Copyright (c) 2024 KinSU Project
+ *
+ * Licensed under GPLv3. See NOTICE at project root for full attribution.
+ * Original source: https://github.com/tiann/KernelSU
+ * Original author: weishu
+ */
+
 package com.mikokernel.ui
 
 import android.annotation.SuppressLint
@@ -32,6 +42,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
@@ -69,12 +80,11 @@ import com.mikokernel.ui.screen.about.AboutScreen
 import com.mikokernel.ui.screen.appprofile.AppProfileScreen
 import com.mikokernel.ui.screen.colorpalette.ColorPaletteScreen
 import com.mikokernel.ui.screen.executemoduleaction.ExecuteModuleActionScreen
+import com.mikokernel.ui.screen.flash.AnyKernel3FlashScreen
 import com.mikokernel.ui.screen.flash.FlashIt
 import com.mikokernel.ui.screen.flash.FlashScreen
-import com.mikokernel.ui.screen.flash.AnyKernel3FlashScreen
 import com.mikokernel.ui.screen.home.HomePager
 import com.mikokernel.ui.screen.install.InstallScreen
-import com.mikokernel.ui.screen.kpm.KpmScreen
 import com.mikokernel.ui.screen.module.ModulePager
 import com.mikokernel.ui.screen.modulerepo.ModuleRepoDetailScreen
 import com.mikokernel.ui.screen.modulerepo.ModuleRepoScreen
@@ -82,8 +92,6 @@ import com.mikokernel.ui.screen.settings.SettingPager
 import com.mikokernel.ui.screen.sulog.SulogScreen
 import com.mikokernel.ui.susfs.SuSFSConfigScreen
 import com.mikokernel.ui.screen.superuser.SuperUserPager
-import com.mikokernel.ui.screen.template.AppProfileTemplateScreen
-import com.mikokernel.ui.screen.templateeditor.TemplateEditorScreen
 import com.mikokernel.ui.theme.KernelSUTheme
 import com.mikokernel.ui.theme.LocalColorMode
 
@@ -91,7 +99,12 @@ import com.mikokernel.ui.util.getFileName
 import com.mikokernel.ui.util.install
 
 import com.mikokernel.ui.util.rememberContentReady
+import com.mikokernel.isGkiDevice
+import com.mikokernel.ui.util.getRootShell
 import com.mikokernel.ui.util.rootAvailable
+import com.topjohnwu.superuser.ShellUtils
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import com.mikokernel.ui.viewmodel.MainActivityViewModel
 import com.mikokernel.ui.viewmodel.MainPagerConfig
 import com.mikokernel.ui.webui.WebUIActivity
@@ -162,17 +175,7 @@ class MainActivity : ComponentActivity() {
                                 rememberViewModelStoreNavEntryDecorator()
                             ),
                             onBack = {
-                                when (val top = navigator.current()) {
-                                    is Route.TemplateEditor -> {
-                                        if (!top.readOnly) {
-                                            navigator.setResult("template_edit", true)
-                                        } else {
-                                            navigator.pop()
-                                        }
-                                    }
-
-                                    else -> navigator.pop()
-                                }
+                                navigator.pop()
                             },
                             entryProvider = entryProvider {
                                 entry<Route.Main> { mainScreenEntry() }
@@ -180,13 +183,10 @@ class MainActivity : ComponentActivity() {
                                 entry<Route.Sulog> { SulogScreen() }
                                 entry<Route.SuFSConfig> { SuSFSConfigScreen() }
                                 entry<Route.ColorPalette> { ColorPaletteScreen() }
-                                entry<Route.AppProfileTemplate> { AppProfileTemplateScreen() }
-                                entry<Route.TemplateEditor> { key -> TemplateEditorScreen(key.template, key.readOnly) }
                                 entry<Route.AppProfile> { key -> AppProfileScreen(key.uid) }
                                 entry<Route.ModuleRepo> { ModuleRepoScreen() }
                                 entry<Route.ModuleRepoDetail> { key -> ModuleRepoDetailScreen(key.module) }
                                 entry<Route.Install> { InstallScreen() }
-                                entry<Route.Kpm> { KpmScreen() }
                                 entry<Route.Flash> { key -> FlashScreen(key.flashIt) }
                                 entry<Route.AnyKernel3Flash> { key -> AnyKernel3FlashScreen(key.kernelUri, key.slot) }
                                 entry<Route.ExecuteModuleAction> { key -> ExecuteModuleActionScreen(key.moduleId, key.fromShortcut) }
@@ -221,7 +221,27 @@ fun MainScreen(
     onPageChanged: (Int) -> Unit = {},
 ) {
     val navController = LocalNavigator.current
-    val pagerState = rememberPagerState(initialPage = initialPage, pageCount = { MainPagerConfig.PAGE_COUNT })
+    // 异步检测：GKI 设备 + 内核集成 SuSFS，两者缺一不可
+    val isGki by remember { mutableStateOf(isGkiDevice()) }
+    val susfsSupported by produceState(initialValue = false, isGki) {
+        if (!isGki) {
+            value = false
+        } else {
+            value = withContext(Dispatchers.IO) {
+                try {
+                    val shell = getRootShell()
+                    val ver = ShellUtils.fastCmd(shell, "ksu_susfs show version 2>/dev/null").trim()
+                    ver.isNotBlank() && ver != "unsupport"
+                } catch (_: Exception) {
+                    false
+                }
+            }
+        }
+    }
+    val showSusfsButton = isGki && susfsSupported
+    val pageCount = if (showSusfsButton) 4 else 3
+    LaunchedEffect(pageCount) { MainPagerConfig.setPageCount(pageCount) }
+    val pagerState = rememberPagerState(initialPage = initialPage.coerceAtMost(pageCount - 1), pageCount = { pageCount })
     val mainPagerState = rememberMainPagerState(pagerState)
     val isManager = Natives.isManager
     val isFullFeatured = isManager && !Natives.requireNewKernel() && rootAvailable()
@@ -242,6 +262,11 @@ fun MainScreen(
     val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
     val useNavigationRail = isLandscape
 
+    // 导航栏顺序：首页, [SuSFS], 超级用户, 模块
+    val susfsIndex = if (showSusfsButton) 1 else -1
+    val superUserIndex = if (showSusfsButton) 2 else 1
+    val moduleIndex = if (showSusfsButton) 3 else 2
+
     CompositionLocalProvider(
         LocalMainPagerState provides mainPagerState
     ) {
@@ -256,8 +281,9 @@ fun MainScreen(
                     val isCurrentPage = page == settledPage
                     when (page) {
                         0 -> if (isCurrentPage || contentReady) HomePager(navController, bottomInnerPadding, isCurrentPage)
-                        1 -> if (isCurrentPage || contentReady) SuperUserPager(navController, bottomInnerPadding, isCurrentPage)
-                        2 -> if (isCurrentPage || contentReady) ModulePager(bottomInnerPadding, isCurrentPage)
+                        susfsIndex -> if (isCurrentPage || contentReady) SuSFSConfigScreen()
+                        superUserIndex -> if (isCurrentPage || contentReady) SuperUserPager(navController, bottomInnerPadding, isCurrentPage)
+                        moduleIndex -> if (isCurrentPage || contentReady) ModulePager(bottomInnerPadding, isCurrentPage)
                     }
                 }
             }
@@ -271,6 +297,7 @@ fun MainScreen(
             androidx.compose.material3.Scaffold {
                 Row {
                     SideRail(
+                        showSusfs = showSusfsButton,
                     )
                     Box(
                         modifier = Modifier
@@ -288,6 +315,7 @@ fun MainScreen(
                 ) {
                     BottomBar(
                         modifier = Modifier.align(Alignment.BottomCenter),
+                        showSusfs = showSusfsButton,
                     )
                 }
             }

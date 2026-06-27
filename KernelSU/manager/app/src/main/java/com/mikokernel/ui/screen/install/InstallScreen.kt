@@ -70,10 +70,8 @@ fun InstallScreen() {
             if (rootAvailable) {
                 add(InstallMethod.DirectInstall)
                 if (isAbDevice) add(InstallMethod.DirectInstallToInactiveSlot)
-                add(InstallMethod.HorizonKernel())
             }
-            // PatchKernel is always available - it can patch without root (select file mode)
-            add(InstallMethod.PatchKernel())
+            add(InstallMethod.HorizonKernel())
         }
     }
 
@@ -104,46 +102,50 @@ fun InstallScreen() {
 
     val onInstall = {
         installMethod?.let { method ->
-            if (method is InstallMethod.HorizonKernel) {
-                val zipp = (method as InstallMethod.HorizonKernel)
-                if (zipp.uri != null) {
-                    navigator.push(Route.AnyKernel3Flash(zipp.uri.toString(), zipp.slot))
-                }
-            } else if (method is InstallMethod.PatchKernel) {
-                // Patch kernel: if no root, require boot image selection first
-                val bootUri = if (!rootAvailable) {
-                    // In non-root mode, user must select a boot image file
-                    (installMethod as? InstallMethod.SelectFile)?.uri
-                } else {
-                    null // In root mode, use direct install
-                }
-                navigator.push(
-                    Route.Flash(
-                        FlashIt.FlashBoot(
-                            boot = bootUri,
-                            lkm = lkmSelection,
-                            ota = false,
-                            partition = partitions.getOrNull(partitionSelectionIndex),
-                            allowShell = allowShell,
-                            enableAdb = enableAdb,
-                            enableKpm = patchEnableKpm,
-                            enableSusfs = patchEnableSusfs,
+            when (method) {
+                is InstallMethod.PatchKernel -> {
+                    val bootUri = if (!rootAvailable) {
+                        (installMethod as? InstallMethod.SelectFile)?.uri
+                    } else {
+                        null
+                    }
+                    navigator.push(
+                        Route.Flash(
+                            FlashIt.FlashBoot(
+                                boot = bootUri,
+                                lkm = lkmSelection,
+                                ota = false,
+                                partition = partitions.getOrNull(partitionSelectionIndex),
+                                allowShell = allowShell,
+                                enableAdb = enableAdb,
+                                enableKpm = patchEnableKpm,
+                                enableSusfs = patchEnableSusfs,
+                            )
                         )
                     )
-                )
-            } else {
-                navigator.push(
-                    Route.Flash(
-                        FlashIt.FlashBoot(
-                            boot = if (method is InstallMethod.SelectFile) method.uri else null,
-                            lkm = lkmSelection,
-                            ota = method is InstallMethod.DirectInstallToInactiveSlot,
-                            partition = partitions.getOrNull(partitionSelectionIndex),
-                            allowShell = allowShell,
-                            enableAdb = enableAdb,
+                }
+                is InstallMethod.HorizonKernel -> {
+                    navigator.push(
+                        Route.AnyKernel3Flash(
+                            kernelUri = method.uri.toString(),
+                            slot = method.slot
                         )
                     )
-                )
+                }
+                else -> {
+                    navigator.push(
+                        Route.Flash(
+                            FlashIt.FlashBoot(
+                                boot = if (method is InstallMethod.SelectFile) method.uri else null,
+                                lkm = lkmSelection,
+                                ota = method is InstallMethod.DirectInstallToInactiveSlot,
+                                partition = partitions.getOrNull(partitionSelectionIndex),
+                                allowShell = allowShell,
+                                enableAdb = enableAdb,
+                            )
+                        )
+                    )
+                }
             }
         }
     }
@@ -234,7 +236,11 @@ fun InstallScreen() {
             val isLkmSelected = lkmSelection != LkmSelection.KmiNone
             val isKmiUnknown = currentKmi.isBlank()
             val isSelectFileMode = installMethod is InstallMethod.SelectFile
-            if (!isLkmSelected && (isKmiUnknown || isSelectFileMode)) {
+            val isHorizonKernelNoUri = installMethod is InstallMethod.HorizonKernel && (installMethod as InstallMethod.HorizonKernel).uri == null
+            if (isHorizonKernelNoUri) {
+                // AnyKernel3 selected from radio but no ZIP chosen yet - open file picker
+                selectAnyKernel3Launcher.launch(Intent(Intent.ACTION_GET_CONTENT).apply { type = "application/zip" })
+            } else if (!isLkmSelected && (isKmiUnknown || isSelectFileMode)) {
                 showChooseKmiDialog.value = true
             } else {
                 onInstall()

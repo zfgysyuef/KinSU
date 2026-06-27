@@ -1,9 +1,10 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="home_susfs_version">SuSFS Version</string>
     <string name="hide_susfs_status">Hide SuSFS status</string>
     <string name="hide_susfs_status_summary">Hide SuSFS status information on the home page</string>
     <string name="susfs_config_title">SuSFS Configuration</string>
+    <string name="susfs_nav_title">SuSFS</string>
     <string name="susfs_config_description">Configuration Description</string>
     <string name="susfs_config_description_text">Customize SuSFS uname value and build time spoofing. Enter the values you want and click Apply.</string>
     <string name="susfs_uname_label">Uname Value</string>

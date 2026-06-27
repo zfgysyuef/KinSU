@@ -1,5 +1,15 @@
 #ifdef __aarch64__
 
+/*
+ * KinSU - A derivative work of KernelSU
+ * Copyright (c) 2022-2024 weishu (KernelSU Project)
+ * Copyright (c) 2024 KinSU Project
+ *
+ * Licensed under GPL-2.0. See NOTICE at project root for full attribution.
+ * Original source: https://github.com/tiann/KernelSU
+ * Original author: weishu
+ */
+
 #include "../syscall_hook.h"
 
 #include <linux/kallsyms.h>

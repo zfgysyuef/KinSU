@@ -1,4 +1,4 @@
-"""Extract APK v2 signing cert hash for KernelSU manager recognition."""
+"""Extract APK v2 signing cert hash for KinSU manager recognition."""
 import struct, hashlib, sys, os
 
 def main(apk_path):
@@ -31,28 +31,22 @@ def main(apk_path):
         value_len = seq_len - 4
 
         if seq_id == 0x7109871a:  # v2 signing
-            # signer-sequence: length(4) + signers...
             signer_seq_len = struct.unpack_from('<I', data, inner_off)[0]
-            # signer: length(4) + signed-data-length(4) + digests + certs + attrs
             signer_start = inner_off + 4
             signer_len = struct.unpack_from('<I', data, signer_start)[0]
             signer_data = signer_start + 4
-            # signed data length
             signed_data_len = struct.unpack_from('<I', data, signer_data)[0]
-            # digests starts after 3 fields: signer-len(4), signed-data-len(4)
             digests_start = signer_data + 4 + 4
             digests_len = struct.unpack_from('<I', data, digests_start)[0]
-            # certs start after digests
             certs_start = digests_start + 4 + digests_len
             certs_seq_len = struct.unpack_from('<I', data, certs_start)[0]
-            # individual cert
             cert_len = struct.unpack_from('<I', data, certs_start + 4)[0]
             cert_data = data[certs_start + 8:certs_start + 8 + cert_len]
 
             if 0 < cert_len < 8192:
                 h = hashlib.sha256(cert_data).hexdigest()
                 print(f"\nPACKAGE: com.mikokernel")
-                print(f"EXPECTED_SIZE: {cert_len}")
+                print(f"EXPECTED_SIZE: 0x{cert_len:x}")
                 print(f"EXPECTED_HASH: {h}")
 
                 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -60,10 +54,41 @@ def main(apk_path):
                 os.makedirs(os.path.dirname(out), exist_ok=True)
                 with open(out, 'w') as fp:
                     fp.write(
-                        f'/* Auto-generated manager signature */\n'
-                        f'#define KSU_MANAGER_PACKAGE "com.mikokernel"\n'
+                        '/* Auto-generated manager signature for KinSU\n'
+                        ' *\n'
+                        ' * These values identify the KinSU manager APK.\n'
+                        ' * The kernel module uses these to verify the manager app\n'
+                        ' * when searching /data/app for the correct APK.\n'
+                        ' *\n'
+                        ' * Regenerate with: python scripts/extract_sig.py\n'
+                        ' */\n'
+                        '\n'
+                        '#ifndef __KSU_MANAGER_SIGNATURE_H\n'
+                        '#define __KSU_MANAGER_SIGNATURE_H\n'
+                        '\n'
+                        '/* Manager package name */\n'
+                        '#ifndef KSU_MANAGER_PACKAGE\n'
+                        '#define KSU_MANAGER_PACKAGE "com.mikokernel"\n'
+                        '#endif\n'
+                        '\n'
+                        f'/* APK v2 signing certificate size in bytes ({cert_len} = 0x{cert_len:x}) */\n'
+                        '#ifndef EXPECTED_SIZE\n'
                         f'#define EXPECTED_SIZE 0x{cert_len:x}\n'
+                        '#endif\n'
+                        '\n'
+                        '/* SHA256 hash of the APK v2 signing certificate */\n'
+                        '#ifndef EXPECTED_HASH\n'
                         f'#define EXPECTED_HASH "{h}"\n'
+                        '#endif\n'
+                        '\n'
+                        '/*\n'
+                        ' * To add a fallback signature (e.g., for debug builds or re-signed APKs),\n'
+                        ' * define EXPECTED_SIZE2 and EXPECTED_HASH2 before including this file,\n'
+                        ' * or pass them as compiler flags:\n'
+                        ' *   KSU_EXPECTED_SIZE2=... KSU_EXPECTED_HASH2=...\n'
+                        ' */\n'
+                        '\n'
+                        '#endif /* __KSU_MANAGER_SIGNATURE_H */\n'
                     )
                 print(f"\nWritten: {out}")
                 return 0
@@ -75,6 +100,9 @@ def main(apk_path):
     print("ERROR: v2 signature not found"); return 1
 
 if __name__ == '__main__':
-    apk = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'manager.apk')
+    if len(sys.argv) > 1:
+        apk = sys.argv[1]
+    else:
+        apk = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'manager.apk')
     print(f"Analyzing: {apk}")
     sys.exit(main(apk))

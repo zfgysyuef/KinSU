@@ -16,9 +16,9 @@ import com.mikokernel.R
 import com.mikokernel.data.repository.SettingsRepository
 import com.mikokernel.data.repository.SettingsRepositoryImpl
 import com.mikokernel.ksuApp
+import com.mikokernel.ui.UiMode
 import com.mikokernel.ui.screen.settings.SettingsUiState
 import com.mikokernel.ui.theme.ColorMode
-import com.mikokernel.ui.theme.FontMode
 
 class SettingsViewModel(
     private val repo: SettingsRepository = SettingsRepositoryImpl()
@@ -39,10 +39,9 @@ class SettingsViewModel(
             val keyColor = repo.keyColor
             val enablePredictiveBack = repo.enablePredictiveBack
             val pageScale = repo.pageScale
-            val enableWebDebugging = repo.enableWebDebugging
             val colorStyle = repo.colorStyle
             val colorSpec = repo.colorSpec
-            val fontMode = repo.fontMode
+            val uiMode = UiMode.fromValue(repo.uiMode)
             val isLkmMode = repo.isLkmMode()
 
             // Async loading for natives/features
@@ -61,7 +60,6 @@ class SettingsViewModel(
             val adbRootStatus = repo.getAdbRootStatus()
             val isAdbRootEnabled = repo.getAdbRootPersistValue() == 1L
             val isDefaultUmountModules = repo.isDefaultUmountModules()
-            val autoJailbreak = repo.autoJailbreak
             val isLateLoadMode = Natives.isLateLoadMode
 
             _uiState.update {
@@ -72,10 +70,9 @@ class SettingsViewModel(
                     keyColor = keyColor,
                     enablePredictiveBack = enablePredictiveBack,
                     pageScale = pageScale,
-                    enableWebDebugging = enableWebDebugging,
                     colorStyle = colorStyle,
                     colorSpec = colorSpec,
-                    fontMode = fontMode,
+                    uiMode = uiMode,
                     suCompatStatus = suCompatStatus,
                     suCompatMode = suCompatMode,
                     isSuEnabled = isSuEnabled,
@@ -89,7 +86,6 @@ class SettingsViewModel(
                     isSulogEnabled = isSulogEnabled,
                     isDefaultUmountModules = isDefaultUmountModules,
                     isLkmMode = isLkmMode,
-                    autoJailbreak = autoJailbreak,
                     isLateLoadMode = isLateLoadMode,
                 )
             }
@@ -136,19 +132,14 @@ class SettingsViewModel(
         _uiState.update { it.copy(colorSpec = spec) }
     }
 
+    fun setUiMode(mode: UiMode) {
+        repo.uiMode = mode.value
+        _uiState.update { it.copy(uiMode = mode) }
+    }
+
     fun setPageScale(scale: Float) {
         repo.pageScale = scale
         _uiState.update { it.copy(pageScale = scale) }
-    }
-
-    fun setEnableWebDebugging(enabled: Boolean) {
-        repo.enableWebDebugging = enabled
-        _uiState.update { it.copy(enableWebDebugging = enabled) }
-    }
-
-    fun setFontMode(mode: FontMode) {
-        repo.fontMode = mode.value
-        _uiState.update { it.copy(fontMode = mode.value) }
     }
 
     fun setSuCompatMode(mode: Int) {
@@ -209,11 +200,6 @@ class SettingsViewModel(
                 }
             }
         }
-    }
-
-    fun setAutoJailbreak(enabled: Boolean) {
-        repo.autoJailbreak = enabled
-        _uiState.update { it.copy(autoJailbreak = enabled) }
     }
 
     fun setSulogEnabled(enabled: Boolean) {

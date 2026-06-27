@@ -10,15 +10,15 @@ KERNEL_DIR="$PROJECT_ROOT/KernelSU/kernel"
 MANAGER_DIR="$PROJECT_ROOT/KernelSU/manager"
 
 echo "=========================================="
-echo "FollKernel Manager Recognition Fix"
+echo "KinSU Manager Recognition Fix"
 echo "=========================================="
 echo ""
 
 # Step 1: Find or download APK
 APK_PATH="$PROJECT_ROOT/manager.apk"
 if [ ! -f "$APK_PATH" ]; then
-    echo "Downloading latest FollKernel manager APK..."
-    curl -L "https://github.com/Spring-bulid/FollKernel/releases/latest/download/FollKernel_v30022_30022-release.apk" -o "$APK_PATH"
+    echo "Downloading latest KinSU manager APK..."
+    curl -L "https://github.com/Spring-bulid/KinSU/releases/latest/download/KinSU_v30022_30022-release.apk" -o "$APK_PATH"
 fi
 echo "APK: $APK_PATH"
 
@@ -57,10 +57,10 @@ echo "FIX COMPLETE"
 echo "=========================================="
 echo ""
 echo "Root cause: Kbuild default EXPECTED_SIZE/HASH were from original"
-echo "KernelSU, not FollKernel's signing key."
+echo "KernelSU, not KinSU's signing key."
 echo ""
 echo "Fixed:"
-echo "  1. Kbuild defaults updated to FollKernel's actual signature"
+echo "  1. Kbuild defaults updated to KinSU's actual signature"
 echo "  2. manager_signature.h created for safety fallback"
 echo "  3. apk_sign.c includes signature header"
 echo ""

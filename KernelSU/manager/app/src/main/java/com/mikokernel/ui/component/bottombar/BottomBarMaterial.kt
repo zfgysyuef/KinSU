@@ -9,8 +9,10 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.union
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Apps
+import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.outlined.Apps
+import androidx.compose.material.icons.outlined.Build
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material3.FlexibleBottomAppBar
 import androidx.compose.material3.Icon
@@ -28,18 +30,21 @@ import com.mikokernel.ui.LocalMainPagerState
 import com.mikokernel.ui.util.rootAvailable
 
 @Composable
-fun BottomBarMaterial() {
+fun BottomBarMaterial(showSusfs: Boolean = false) {
     val isManager = Natives.isManager
     val fullFeatured = isManager && !Natives.requireNewKernel() && rootAvailable()
     val mainPagerState = LocalMainPagerState.current
 
     if (!fullFeatured) return
 
-    val items = listOf(
-        Triple(R.string.home, Icons.Filled.Home, Icons.Outlined.Home),
-        Triple(R.string.superuser, Icons.Filled.Apps, Icons.Outlined.Apps),
-        Triple(R.string.module, Icons.Filled.Apps, Icons.Outlined.Apps)
-    )
+    val items = buildList {
+        add(Triple(R.string.home, Icons.Filled.Home, Icons.Outlined.Home))
+        if (showSusfs) {
+            add(Triple(R.string.susfs_nav_title, Icons.Filled.Build, Icons.Outlined.Build))
+        }
+        add(Triple(R.string.superuser, Icons.Filled.Apps, Icons.Outlined.Apps))
+        add(Triple(R.string.module, Icons.Filled.Apps, Icons.Outlined.Apps))
+    }
 
     FlexibleBottomAppBar(
         windowInsets = WindowInsets.systemBars.union(WindowInsets.displayCutout).only(
@@ -48,6 +53,7 @@ fun BottomBarMaterial() {
     ) {
         items.forEachIndexed { index, (label, selectedIcon, unselectedIcon) ->
             val selected = mainPagerState.selectedPage == index
+            val isSuperuser = label == R.string.superuser
             NavigationBarItem(
                 selected = selected,
                 onClick = {
@@ -56,7 +62,7 @@ fun BottomBarMaterial() {
                     }
                 },
                 icon = {
-                    if (index == 1) {
+                    if (isSuperuser) {
                         Icon(
                             painter = painterResource(R.drawable.ic_superuser),
                             contentDescription = stringResource(label),

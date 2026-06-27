@@ -113,7 +113,6 @@ import com.mikokernel.ui.component.material.SegmentedListItem
 import com.mikokernel.ui.component.material.SegmentedSwitchItem
 import com.mikokernel.ui.component.material.TonalCard
 import com.mikokernel.ui.theme.ColorMode
-import com.mikokernel.ui.theme.FontMode
 import com.mikokernel.ui.theme.keyColorOptions
 
 @Composable
@@ -168,6 +167,31 @@ fun ColorPaletteScreenMaterial(
                 isDark = isDark,
                 paletteStyle = colorStyle,
                 colorSpec = colorSpec,
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // UI 模式切换：Material 3 / Material 3 Expressive
+            SegmentedColumn(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                content = listOf(
+                    {
+                        SegmentedDropdownItem(
+                            icon = Icons.Rounded.Dashboard,
+                            title = stringResource(R.string.settings_ui_mode),
+                            items = listOf(
+                                "Material 3",
+                                "Material 3 Expressive",
+                            ),
+                            selectedIndex = if (state.currentUiMode == com.mikokernel.ui.UiMode.MaterialExpressive) 1 else 0,
+                            onItemSelected = { index ->
+                                val mode = if (index == 1) com.mikokernel.ui.UiMode.MaterialExpressive
+                                else com.mikokernel.ui.UiMode.Material
+                                actions.onSetUiMode(mode)
+                            }
+                        )
+                    }
+                )
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -321,24 +345,6 @@ fun ColorPaletteScreenMaterial(
                         )
                     )
                 }
-
-                SegmentedColumn(
-                    modifier = Modifier.padding(top = 4.dp),
-                    content = listOf(
-                        {
-                            val fonts = FontMode.entries
-                            SegmentedDropdownItem(
-                                icon = Icons.Rounded.Dashboard,
-                                title = "字体",
-                                items = fonts.map { it.displayName },
-                                selectedIndex = fonts.indexOf(state.currentFontMode).coerceAtLeast(0),
-                                onItemSelected = { index ->
-                                    actions.onSetFontMode(fonts[index])
-                                }
-                            )
-                        }
-                    )
-                )
 
                 TonalCard(modifier = Modifier.padding(top = 4.dp)) {
                     var sliderValue by remember(uiState.pageScale) { mutableFloatStateOf(uiState.pageScale) }

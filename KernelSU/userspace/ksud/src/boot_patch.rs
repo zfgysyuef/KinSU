@@ -1,5 +1,13 @@
 #![allow(clippy::ref_option, clippy::needless_pass_by_value)]
 
+// KinSU - A derivative work of KernelSU
+// Copyright (c) 2022-2024 weishu (KernelSU Project)
+// Copyright (c) 2024 KinSU Project
+//
+// Licensed under GPLv3. See NOTICE at project root for full attribution.
+// Original source: https://github.com/tiann/KernelSU
+// Original author: weishu
+
 use std::fs::File;
 use std::io::{Cursor, Seek, SeekFrom};
 use std::path::Path;
@@ -704,7 +712,7 @@ pub fn patch(args: BootPatchArgs) -> Result<()> {
 
                     match kpm::patch_kernel_with_kpm(&kernel_buf, &kpimg_data, &kptools_data) {
                         Ok(patched_kernel) => {
-                            patcher.replace_kernel(Box::new(Cursor::new(patched_kernel)), true);
+                            patcher.replace_kernel(Box::new(Cursor::new(patched_kernel)), false);
                             println!("- 内核已成功嵌入 KernelPatch (KPM)");
                         }
                         Err(e) => {
@@ -752,7 +760,7 @@ pub fn patch(args: BootPatchArgs) -> Result<()> {
                 "Cannot work with Magisk patched image"
             );
 
-            println!("- Adding KernelSU LKM");
+            println!("- Adding KinSU LKM");
             let is_kernelsu_patched = cpio.exists("kinsu.ko");
 
             if !is_kernelsu_patched && cpio.exists("init") {
@@ -984,7 +992,7 @@ pub fn restore(args: BootRestoreArgs) -> Result<()> {
 
     ensure!(
         cpio.exists("kinsu.ko"),
-        "boot image is not patched by KernelSU"
+        "boot image is not patched by KinSU"
     );
 
     #[cfg(target_os = "android")]
@@ -1070,7 +1078,7 @@ fn rebuild_without_ksu(
     cpio: &mut Cpio,
     vendor_ramdisk_idx: Option<usize>,
 ) -> Result<Vec<u8>> {
-    println!("- Removing KernelSU from boot image");
+    println!("- Removing KinSU from boot image");
     cpio.rm("kinsu.ko", false);
     if cpio.exists("init.real") {
         cpio.mv("init.real", "init")?;

@@ -1,6 +1,6 @@
 #!/system/bin/sh
 ############################################
-# KernelSU installer script
+# KinSU installer script
 # mostly from module_installer.sh
 # and util_functions.sh in Magisk
 ############################################

@@ -1,6 +1,6 @@
 import struct, hashlib, sys
 
-apk = sys.argv[1] if len(sys.argv) > 1 else 'FollKernel_v30022.apk'
+apk = sys.argv[1] if len(sys.argv) > 1 else 'KinSU_v30022.apk'
 with open(apk, 'rb') as f:
     data = f.read()
 
@@ -29,8 +29,8 @@ while off < cd_offset - 24:
         print(f'APK cert size: {cl}')
         print(f'APK cert hash: {h}')
         print(f'Expected size: 724 (0x2d4)')
-        print(f'Expected hash: a23fe337cb870393959384b66050ae8e9d717701cf681ef21f741afa5469919f')
-        print(f'MATCH: {cl == 724 and h == "a23fe337cb870393959384b66050ae8e9d717701cf681ef21f741afa5469919f"}')
+        print(f'Expected hash: e9088669f6a03650990b4435533167a2a3d8e79d3d462744959c56d75c02173f')
+        print(f'MATCH: {cl == 724 and h == "e9088669f6a03650990b4435533167a2a3d8e79d3d462744959c56d75c02173f"}')
         found = True
         break
     off += seq_len + 8

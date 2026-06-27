@@ -116,12 +116,12 @@ class TemplateRepositoryImpl : TemplateRepository {
             }
         }.onFailure { Log.e(TAG, "fetchRemoteTemplates: $it", it) }
     }
+}
 
-    private fun getTemplateInfoById(id: String): TemplateInfo? {
-        return runCatching {
-            TemplateInfo.fromJSON(JSONObject(getAppProfileTemplate(id)))
-        }.onFailure {
-            Log.e(TAG, "ignore invalid template: $it", it)
-        }.getOrNull()
-    }
+fun getTemplateInfoById(id: String): TemplateInfo? {
+    return runCatching {
+        TemplateInfo.fromJSON(JSONObject(getAppProfileTemplate(id)))
+    }.onFailure {
+        Log.e("TemplateRepository", "ignore invalid template: $it", it)
+    }.getOrNull()
 }

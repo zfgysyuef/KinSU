@@ -20,6 +20,7 @@ data class HomeUiState(
     val isRootAvailable: Boolean,
     val isSafeMode: Boolean,
     val isLateLoadMode: Boolean,
+    val isSusfsAvailable: Boolean = false,
     val checkUpdateEnabled: Boolean,
     val latestVersionInfo: LatestVersionInfo,
     val currentManagerVersionCode: Long,
@@ -59,6 +60,9 @@ data class HomeUiState(
 
     val hasUpdate: Boolean
         get() = latestVersionInfo.versionCode > currentManagerVersionCode
+
+    val showSusfsButton: Boolean
+        get() = isSusfsAvailable
 }
 
 @Immutable

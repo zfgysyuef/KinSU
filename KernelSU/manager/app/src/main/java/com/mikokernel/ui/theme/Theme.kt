@@ -44,21 +44,12 @@ enum class ColorMode(val value: Int) {
     }
 }
 
-enum class FontMode(val value: Int, val displayName: String) {
-    DEFAULT(0, "默认"),
-    IPHONE(1, "iPhone");
-
-    companion object {
-        fun fromValue(value: Int) = entries.find { it.value == value } ?: DEFAULT
-    }
-}
-
 data class AppSettings(
     val colorMode: ColorMode,
     val keyColor: Int,
     val paletteStyle: PaletteStyle,
     val colorSpec: ColorSpec.SpecVersion,
-    val fontMode: FontMode = FontMode.DEFAULT,
+    val uiMode: UiMode = UiMode.Material,
 )
 
 object ThemeController {
@@ -80,10 +71,10 @@ object ThemeController {
         } catch (_: Exception) {
             ColorSpec.SpecVersion.Default
         }
-        val fontModeValue = prefs.getInt("font_mode", FontMode.DEFAULT.value)
-        val fontMode = FontMode.fromValue(fontModeValue)
+        val uiModeStr = prefs.getString("ui_mode", UiMode.DEFAULT_VALUE)
+        val uiMode = UiMode.fromValue(uiModeStr ?: UiMode.DEFAULT_VALUE)
 
-        return AppSettings(colorMode, keyColor, paletteStyle, colorSpec, fontMode)
+        return AppSettings(colorMode, keyColor, paletteStyle, colorSpec, uiMode)
     }
 }
 
@@ -98,6 +89,10 @@ fun KernelSUTheme(
 
     when (uiMode) {
         UiMode.Material -> MaterialKernelSUTheme(
+            appSettings = currentAppSettings,
+            content = content
+        )
+        UiMode.MaterialExpressive -> MaterialExpressiveKernelSUTheme(
             appSettings = currentAppSettings,
             content = content
         )

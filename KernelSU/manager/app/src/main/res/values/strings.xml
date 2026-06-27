@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name" translatable="false">KinSU</string>
     <string name="home">Home</string>
@@ -97,12 +97,13 @@
     <string name="reboot_to_apply">Reboot to take effect</string>
     <string name="module_magisk_conflict">Modules are unavailable due to a conflict with Magisk!</string>
     <string name="home_learn_kernelsu">Learn KinSU</string>
-    <string name="home_learn_kernelsu_url">https://kernelsu.org/guide/what-is-kernelsu.html</string>
+    <string name="home_learn_kernelsu_url">https://spring-bulid.github.io/</string>
     <string name="home_click_to_learn_kernelsu">Learn how to install KinSU and use modules.</string>
     <string name="home_support_title">Support Us</string>
-    <string name="home_support_content">KinSU is, and always will be, free, and open source. However, you can show us that you care by making a donation.</string>
+    <string name="home_support_content">This software is built on the KernelSU source code, with the full commit history preserved. Thanks to contributor weishu. Open source support belongs to the KernelSU project.</string>
     <string name="home_gki_warning">Starting from v3.0.0, the GKI work mode will be used only in testing environments. We do not recommend it for daily use, and image files will no longer be provided.</string>
     <string name="about_source_code"><![CDATA[View source code at %1$s<br/>Join our %2$s channel]]></string>
+    <string name="about_copyright_notice"><![CDATA[<b>Copyright Notice</b><br/><br/>This software is a derivative work of <b><a href="https://github.com/tiann/KernelSU">KernelSU</a></b>, licensed under the GNU GPL v3.<br/>Original author: <b>weishu</b> (KernelSU Project)<br/>Original source: https://github.com/tiann/KernelSU<br/>Contributors: weishu and all KernelSU contributors<br/>KinSU preserves the complete original commit history without any tampering.<br/><br/>本软件为 KernelSU 的衍生作品，遵循 GNU GPL v3 协议。<br/>原作者：weishu（KernelSU 项目）<br/>原项目：https://github.com/tiann/KernelSU]]></string>
     <string name="profile" translatable="false">App Profile</string>
     <string name="profile_default">Default</string>
     <string name="profile_template">Template</string>

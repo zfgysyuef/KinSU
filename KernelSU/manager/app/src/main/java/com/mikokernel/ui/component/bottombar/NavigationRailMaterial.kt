@@ -11,8 +11,10 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.union
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Apps
+import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.outlined.Apps
+import androidx.compose.material.icons.outlined.Build
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationRail
@@ -31,6 +33,7 @@ import com.mikokernel.ui.util.rootAvailable
 @Composable
 fun NavigationRailMaterial(
     modifier: Modifier = Modifier,
+    showSusfs: Boolean = false,
 ) {
     val isManager = Natives.isManager
     val fullFeatured = isManager && !Natives.requireNewKernel() && rootAvailable()
@@ -38,11 +41,14 @@ fun NavigationRailMaterial(
 
     if (!fullFeatured) return
 
-    val items = listOf(
-        Triple(R.string.home, Icons.Filled.Home, Icons.Outlined.Home),
-        Triple(R.string.superuser, Icons.Filled.Apps, Icons.Outlined.Apps),
-        Triple(R.string.module, Icons.Filled.Apps, Icons.Outlined.Apps)
-    )
+    val items = buildList {
+        add(Triple(R.string.home, Icons.Filled.Home, Icons.Outlined.Home))
+        if (showSusfs) {
+            add(Triple(R.string.susfs_nav_title, Icons.Filled.Build, Icons.Outlined.Build))
+        }
+        add(Triple(R.string.superuser, Icons.Filled.Apps, Icons.Outlined.Apps))
+        add(Triple(R.string.module, Icons.Filled.Apps, Icons.Outlined.Apps))
+    }
 
     NavigationRail(
         modifier = modifier.fillMaxHeight(),
@@ -53,6 +59,7 @@ fun NavigationRailMaterial(
         Spacer(Modifier.weight(1f))
         items.forEachIndexed { index, (label, selectedIcon, unselectedIcon) ->
             val selected = mainPagerState.selectedPage == index
+            val isSuperuser = label == R.string.superuser
             NavigationRailItem(
                 selected = selected,
                 onClick = {
@@ -61,7 +68,7 @@ fun NavigationRailMaterial(
                     }
                 },
                 icon = {
-                    if (index == 1) {
+                    if (isSuperuser) {
                         Icon(
                             painter = painterResource(R.drawable.ic_superuser),
                             contentDescription = stringResource(label),
