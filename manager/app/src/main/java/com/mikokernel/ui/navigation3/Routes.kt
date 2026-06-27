@@ -73,4 +73,8 @@ sealed interface Route : NavKey, Parcelable {
     @Parcelize
     @Serializable
     data class ExecuteModuleAction(val moduleId: String, val fromShortcut: Boolean = false) : Route
+
+    @Parcelize
+    @Serializable
+    data class AnyKernel3Flash(val kernelUri: String, val slot: String? = null) : Route
 }

@@ -69,6 +69,7 @@ import com.mikokernel.ui.screen.about.AboutScreen
 import com.mikokernel.ui.screen.appprofile.AppProfileScreen
 import com.mikokernel.ui.screen.colorpalette.ColorPaletteScreen
 import com.mikokernel.ui.screen.executemoduleaction.ExecuteModuleActionScreen
+import com.mikokernel.ui.screen.flash.AnyKernel3FlashScreen
 import com.mikokernel.ui.screen.flash.FlashIt
 import com.mikokernel.ui.screen.flash.FlashScreen
 import com.mikokernel.ui.screen.home.HomePager
@@ -171,6 +172,7 @@ class MainActivity : ComponentActivity() {
                                 entry<Route.ModuleRepoDetail> { key -> ModuleRepoDetailScreen(key.module) }
                                 entry<Route.Install> { InstallScreen() }
                                 entry<Route.Flash> { key -> FlashScreen(key.flashIt) }
+                                entry<Route.AnyKernel3Flash> { key -> AnyKernel3FlashScreen(key.kernelUri, key.slot) }
                                 entry<Route.ExecuteModuleAction> { key -> ExecuteModuleActionScreen(key.moduleId, key.fromShortcut) }
                                 entry<Route.Home> { mainScreenEntry() }
                                 entry<Route.SuperUser> { mainScreenEntry() }
