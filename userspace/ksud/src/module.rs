@@ -258,12 +258,12 @@ pub fn exec_script<T: AsRef<Path>>(path: T, wait: bool) -> Result<()> {
                 Ok(Some(_)) => break Ok(()),
                 Ok(None) => {
                     if start.elapsed() >= timeout {
-                        // 杀掉超时进程及其子进程
+                        // 杀掉超时进程的整个进程组，防止孙进程残留导致后续 boot 阶段卡死
                         unsafe {
-                            libc::kill(child.id() as i32, libc::SIGKILL);
+                            libc::kill(-(child.id() as i32), libc::SIGKILL);
                         }
                         warn!(
-                            "exec {} timed out after 30s, killed",
+                            "exec {} timed out after 30s, killed process group",
                             path.as_ref().display()
                         );
                         break Ok(());

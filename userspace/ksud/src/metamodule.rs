@@ -224,6 +224,48 @@ fn check_metamodule_script(script_name: &str) -> Option<PathBuf> {
     Some(script_path)
 }
 
+/// Run a script command with a 30-second timeout. Kills the whole process
+/// group on timeout to prevent boot blocking and lingering child processes.
+fn run_script_with_timeout(mut command: Command, label: &str) -> Result<()> {
+    use std::os::unix::process::CommandExt;
+
+    let mut child = unsafe {
+        command.pre_exec(|| {
+            crate::utils::detach_process_group(true);
+            crate::utils::switch_cgroups();
+            Ok(())
+        })
+    }
+    .spawn()
+    .with_context(|| format!("Failed to exec {label}"))?;
+
+    let timeout = std::time::Duration::from_secs(30);
+    let start = std::time::Instant::now();
+    loop {
+        match child.try_wait() {
+            Ok(Some(status)) => {
+                ensure!(status.success(), "{label} failed with status: {status:?}");
+                return Ok(());
+            }
+            Ok(None) => {
+                if start.elapsed() >= timeout {
+                    // 超时后杀整个进程组，防止子/孙进程残留导致后续 boot 阶段卡死
+                    unsafe {
+                        libc::kill(-(child.id() as i32), libc::SIGKILL);
+                    }
+                    warn!("{label} timed out after 30s, killed process group");
+                    return Ok(());
+                }
+                std::thread::sleep(std::time::Duration::from_millis(200));
+            }
+            Err(e) => {
+                warn!("{label} wait failed: {e}");
+                return Ok(());
+            }
+        }
+    }
+}
+
 /// Execute metamodule's metauninstall.sh for a specific module
 pub fn exec_metauninstall_script(module_id: &str) -> Result<()> {
     let Some(metauninstall_path) = check_metamodule_script(defs::METAMODULE_METAUNINSTALL_SCRIPT)
@@ -233,19 +275,18 @@ pub fn exec_metauninstall_script(module_id: &str) -> Result<()> {
 
     info!("Executing metamodule metauninstall.sh for module: {module_id}");
 
-    let result = Command::new(assets::BUSYBOX_PATH)
+    let command = Command::new(assets::BUSYBOX_PATH)
         .args(["sh", metauninstall_path.to_str().unwrap()])
         .current_dir(metauninstall_path.parent().unwrap())
         .envs(crate::module::get_common_script_envs(
             get_metamodule_id().as_deref(),
         ))
-        .env("MODULE_ID", module_id)
-        .status()?;
+        .env("MODULE_ID", module_id);
 
-    ensure!(
-        result.success(),
-        "Metamodule metauninstall.sh failed for module {module_id}: {result:?}"
-    );
+    run_script_with_timeout(
+        command,
+        &format!("metamodule metauninstall.sh for {module_id}"),
+    )?;
 
     info!("Metamodule metauninstall.sh executed successfully for {module_id}");
     Ok(())
@@ -259,18 +300,14 @@ pub fn exec_mount_script(module_dir: &str) -> Result<()> {
 
     info!("Executing mount script for metamodule");
 
-    let result = Command::new(assets::BUSYBOX_PATH)
+    let command = Command::new(assets::BUSYBOX_PATH)
         .args(["sh", mount_script.to_str().unwrap()])
         .envs(crate::module::get_common_script_envs(
             get_metamodule_id().as_deref(),
         ))
-        .env("MODULE_DIR", module_dir)
-        .status()?;
+        .env("MODULE_DIR", module_dir);
 
-    ensure!(
-        result.success(),
-        "Metamodule mount script failed with status: {result:?}"
-    );
+    run_script_with_timeout(command, "metamodule mount script")?;
 
     info!("Metamodule mount script executed successfully");
     Ok(())
