@@ -42,6 +42,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
@@ -98,7 +99,12 @@ import com.mikokernel.ui.util.getFileName
 import com.mikokernel.ui.util.install
 
 import com.mikokernel.ui.util.rememberContentReady
+import com.mikokernel.isGkiDevice
+import com.mikokernel.ui.util.getRootShell
 import com.mikokernel.ui.util.rootAvailable
+import com.topjohnwu.superuser.ShellUtils
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import com.mikokernel.ui.viewmodel.MainActivityViewModel
 import com.mikokernel.ui.viewmodel.MainPagerConfig
 import com.mikokernel.ui.webui.WebUIActivity
@@ -215,7 +221,27 @@ fun MainScreen(
     onPageChanged: (Int) -> Unit = {},
 ) {
     val navController = LocalNavigator.current
-    val pagerState = rememberPagerState(initialPage = initialPage, pageCount = { MainPagerConfig.PAGE_COUNT })
+    // 异步检测：GKI 设备 + 内核集成 SuSFS，两者缺一不可
+    val isGki by remember { mutableStateOf(isGkiDevice()) }
+    val susfsSupported by produceState(initialValue = false, isGki) {
+        if (!isGki) {
+            value = false
+        } else {
+            value = withContext(Dispatchers.IO) {
+                try {
+                    val shell = getRootShell()
+                    val ver = ShellUtils.fastCmd(shell, "ksu_susfs show version 2>/dev/null").trim()
+                    ver.isNotBlank() && ver != "unsupport"
+                } catch (_: Exception) {
+                    false
+                }
+            }
+        }
+    }
+    val showSusfsButton = isGki && susfsSupported
+    val pageCount = if (showSusfsButton) 4 else 3
+    LaunchedEffect(pageCount) { MainPagerConfig.setPageCount(pageCount) }
+    val pagerState = rememberPagerState(initialPage = initialPage.coerceAtMost(pageCount - 1), pageCount = { pageCount })
     val mainPagerState = rememberMainPagerState(pagerState)
     val isManager = Natives.isManager
     val isFullFeatured = isManager && !Natives.requireNewKernel() && rootAvailable()
@@ -236,6 +262,11 @@ fun MainScreen(
     val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
     val useNavigationRail = isLandscape
 
+    // 导航栏顺序：首页, [SuSFS], 超级用户, 模块
+    val susfsIndex = if (showSusfsButton) 1 else -1
+    val superUserIndex = if (showSusfsButton) 2 else 1
+    val moduleIndex = if (showSusfsButton) 3 else 2
+
     CompositionLocalProvider(
         LocalMainPagerState provides mainPagerState
     ) {
@@ -250,8 +281,9 @@ fun MainScreen(
                     val isCurrentPage = page == settledPage
                     when (page) {
                         0 -> if (isCurrentPage || contentReady) HomePager(navController, bottomInnerPadding, isCurrentPage)
-                        1 -> if (isCurrentPage || contentReady) SuperUserPager(navController, bottomInnerPadding, isCurrentPage)
-                        2 -> if (isCurrentPage || contentReady) ModulePager(bottomInnerPadding, isCurrentPage)
+                        susfsIndex -> if (isCurrentPage || contentReady) SuSFSConfigScreen()
+                        superUserIndex -> if (isCurrentPage || contentReady) SuperUserPager(navController, bottomInnerPadding, isCurrentPage)
+                        moduleIndex -> if (isCurrentPage || contentReady) ModulePager(bottomInnerPadding, isCurrentPage)
                     }
                 }
             }
@@ -265,6 +297,7 @@ fun MainScreen(
             androidx.compose.material3.Scaffold {
                 Row {
                     SideRail(
+                        showSusfs = showSusfsButton,
                     )
                     Box(
                         modifier = Modifier
@@ -282,6 +315,7 @@ fun MainScreen(
                 ) {
                     BottomBar(
                         modifier = Modifier.align(Alignment.BottomCenter),
+                        showSusfs = showSusfsButton,
                     )
                 }
             }

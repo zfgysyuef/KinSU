@@ -9,6 +9,7 @@ interface SettingsRepository {
     var colorSpec: String
     var enablePredictiveBack: Boolean
     var pageScale: Float
+    var uiMode: String
 
     suspend fun getSuCompatStatus(): String
     suspend fun getSuCompatPersistValue(): Long?

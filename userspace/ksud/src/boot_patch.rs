@@ -763,8 +763,23 @@ pub fn patch(args: BootPatchArgs) -> Result<()> {
             println!("- Adding KinSU LKM");
             let is_kernelsu_patched = cpio.exists("kinsu.ko");
 
-            if !is_kernelsu_patched && cpio.exists("init") {
-                cpio.mv("init", "init.real")?;
+            // 清理原版 KernelSU 残留组件，避免双 root 冲突导致 boot loop
+            // 原版 KernelSU 在 ramdisk 中使用 ksu.ko，与 KinSU 的 kinsu.ko 不兼容
+            if !is_kernelsu_patched {
+                // 清理原版 KernelSU 的内核模块
+                if cpio.exists("ksu.ko") {
+                    println!("- Removing legacy KernelSU ksu.ko to avoid conflict");
+                    cpio.rm("ksu.ko", false);
+                }
+                // 清理原版 KernelSU 的 init.real（如果存在，说明之前被 KernelSU patch 过）
+                // KinSU 会重新建立 init -> init.real 的链接，旧的 init.real 必须先清除
+                if cpio.exists("init.real") {
+                    println!("- Removing stale init.real from previous root solution");
+                    cpio.rm("init.real", false);
+                }
+                if cpio.exists("init") {
+                    cpio.mv("init", "init.real")?;
+                }
             }
 
             cpio.add("init", CpioEntry::regular(0o755, ksu_init))?;

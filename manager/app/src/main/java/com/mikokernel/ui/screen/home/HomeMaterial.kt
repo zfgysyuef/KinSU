@@ -22,17 +22,16 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Block
 import androidx.compose.material.icons.outlined.CheckCircle
-import androidx.compose.material.icons.outlined.Pets
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.rememberTopAppBarState
@@ -69,7 +68,7 @@ fun HomePagerMaterial(
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
 
     Scaffold(
-        topBar = { TopBar(scrollBehavior = scrollBehavior, showSusfs = state.showSusfsButton) },
+        topBar = { TopBar(scrollBehavior = scrollBehavior) },
         contentWindowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal)
     ) { innerPadding ->
         Column(
@@ -142,17 +141,16 @@ internal fun UpdateCard(
 @Composable
 internal fun TopBar(
     scrollBehavior: TopAppBarScrollBehavior? = null,
-    showSusfs: Boolean = false,
 ) {
     val navigator = LocalNavigator.current
-    LargeFlexibleTopAppBar(
-        title = { Text(stringResource(R.string.app_name)) },
+    TopAppBar(
+        title = {
+            Text(
+                text = stringResource(R.string.app_name),
+                style = MaterialTheme.typography.titleMedium
+            )
+        },
         actions = {
-            if (showSusfs) {
-                IconButton(onClick = { navigator?.push(Route.SuFSConfig) }) {
-                    Icon(Icons.Outlined.Pets, "SuSFS")
-                }
-            }
             RebootListPopup()
             IconButton(onClick = { navigator?.push(Route.Settings) }) {
                 Icon(Icons.Outlined.Settings, stringResource(R.string.settings))
@@ -173,7 +171,9 @@ internal fun StatusCard(
     actions: HomeActions,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        val clickToInstall = state.ksuVersion == null && isGkiDevice()
+        // GKI 设备无论已安装与否，点击状态卡片都跳转到刷写页面
+        // 已安装时可重新刷入/更新 boot 镜像，未安装时可首次刷入
+        val clickToInstall = isGkiDevice()
         val containerColor = if (state.ksuVersion != null) {
             MaterialTheme.colorScheme.secondaryContainer
         } else {

@@ -8,6 +8,7 @@ import com.materialkolor.dynamiccolor.ColorSpec
 import com.topjohnwu.superuser.ShellUtils
 import com.mikokernel.Natives
 import com.mikokernel.ksuApp
+import com.mikokernel.ui.UiMode
 import com.mikokernel.ui.util.execKsud
 import com.mikokernel.ui.util.getFeaturePersistValue
 import com.mikokernel.ui.util.getFeatureStatus
@@ -43,12 +44,16 @@ class SettingsRepositoryImpl : SettingsRepository {
         set(value) = prefs.edit { putString("color_spec", value) }
 
     override var enablePredictiveBack: Boolean
-        get() = prefs.getBoolean("enable_predictive_back", false)
+        get() = prefs.getBoolean("enable_predictive_back", true)
         set(value) = prefs.edit { putBoolean("enable_predictive_back", value) }
 
     override var pageScale: Float
         get() = prefs.getFloat("page_scale", 1.0f)
         set(value) = prefs.edit { putFloat("page_scale", value) }
+
+    override var uiMode: String
+        get() = prefs.getString("ui_mode", UiMode.DEFAULT_VALUE) ?: UiMode.DEFAULT_VALUE
+        set(value) = prefs.edit { putString("ui_mode", value) }
 
     override suspend fun getSuCompatStatus(): String = getFeatureStatus("su_compat")
 

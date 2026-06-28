@@ -4,8 +4,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -20,14 +18,12 @@ import com.topjohnwu.superuser.ShellUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import com.mikokernel.ui.navigation3.LocalNavigator
 import com.mikokernel.ui.util.getRootShell
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SuSFSConfigScreen() {
     val context = LocalContext.current
-    val navigator = LocalNavigator.current
     val coroutineScope = rememberCoroutineScope()
     val snackbarHost = remember { SnackbarHostState() }
 
@@ -111,16 +107,7 @@ fun SuSFSConfigScreen() {
         topBar = {
             TopAppBar(
                 title = {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Filled.Pets, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(22.dp))
-                        Spacer(Modifier.width(8.dp))
-                        Text("SuSFS", fontWeight = FontWeight.Bold)
-                    }
-                },
-                navigationIcon = {
-                    IconButton(onClick = { navigator.pop() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "返回")
-                    }
+                    Text("SuSFS", fontWeight = FontWeight.Bold)
                 }
             )
         },
@@ -177,6 +164,7 @@ fun SuSFSConfigScreen() {
                             unameRelease = "default"
                             unameVersion = "default"
                         },
+                        shape = MaterialTheme.shapes.large,
                         modifier = Modifier.weight(1f)
                     ) { Text("重置") }
                     Button(
@@ -187,6 +175,11 @@ fun SuSFSConfigScreen() {
                             )
                         },
                         enabled = !isLoading,
+                        shape = MaterialTheme.shapes.large,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                        ),
                         modifier = Modifier.weight(1f)
                     ) { Text("应用") }
                 }
@@ -217,6 +210,11 @@ fun SuSFSConfigScreen() {
                             susPathInput = ""
                         },
                         enabled = !isLoading && susPathInput.isNotBlank(),
+                        shape = MaterialTheme.shapes.large,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                        ),
                         modifier = Modifier.weight(1f)
                     ) { Text("添加") }
                     OutlinedButton(
@@ -228,6 +226,7 @@ fun SuSFSConfigScreen() {
                             susPathInput = ""
                         },
                         enabled = !isLoading && susPathInput.isNotBlank(),
+                        shape = MaterialTheme.shapes.large,
                         modifier = Modifier.weight(1f)
                     ) { Text("Loop 模式") }
                 }
@@ -263,6 +262,11 @@ fun SuSFSConfigScreen() {
                         susMountInput = ""
                     },
                     enabled = !isLoading && susMountInput.isNotBlank(),
+                    shape = MaterialTheme.shapes.large,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    ),
                     modifier = Modifier.fillMaxWidth()
                 ) { Text("添加隐藏") }
                 if (susMounts.isNotEmpty()) {
@@ -310,6 +314,11 @@ fun SuSFSConfigScreen() {
                         tryUmountPath = ""
                     },
                     enabled = !isLoading && tryUmountPath.isNotBlank(),
+                    shape = MaterialTheme.shapes.large,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    ),
                     modifier = Modifier.fillMaxWidth()
                 ) { Text("添加") }
             }
@@ -337,6 +346,11 @@ fun SuSFSConfigScreen() {
                         susMapInput = ""
                     },
                     enabled = !isLoading && susMapInput.isNotBlank(),
+                    shape = MaterialTheme.shapes.large,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    ),
                     modifier = Modifier.fillMaxWidth()
                 ) { Text("添加") }
             }
@@ -364,6 +378,11 @@ fun SuSFSConfigScreen() {
                             )
                         },
                         enabled = !isLoading && kstatPath.isNotBlank(),
+                        shape = MaterialTheme.shapes.large,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                        ),
                         modifier = Modifier.weight(1f)
                     ) { Text("注册") }
                     OutlinedButton(
@@ -374,6 +393,7 @@ fun SuSFSConfigScreen() {
                             )
                         },
                         enabled = !isLoading && kstatPath.isNotBlank(),
+                        shape = MaterialTheme.shapes.large,
                         modifier = Modifier.weight(1f)
                     ) { Text("更新") }
                     OutlinedButton(
@@ -384,6 +404,7 @@ fun SuSFSConfigScreen() {
                             )
                         },
                         enabled = !isLoading && kstatPath.isNotBlank(),
+                        shape = MaterialTheme.shapes.large,
                         modifier = Modifier.weight(1f)
                     ) { Text("克隆") }
                 }
@@ -421,6 +442,11 @@ fun SuSFSConfigScreen() {
                         susProcFdSpoofed = ""
                     },
                     enabled = !isLoading && susProcFdOriginal.isNotBlank() && susProcFdSpoofed.isNotBlank(),
+                    shape = MaterialTheme.shapes.large,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    ),
                     modifier = Modifier.fillMaxWidth()
                 ) { Text("添加") }
             }
@@ -448,6 +474,11 @@ fun SuSFSConfigScreen() {
                         susMemfdInput = ""
                     },
                     enabled = !isLoading && susMemfdInput.isNotBlank(),
+                    shape = MaterialTheme.shapes.large,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    ),
                     modifier = Modifier.fillMaxWidth()
                 ) { Text("添加") }
             }
@@ -494,6 +525,11 @@ fun SuSFSConfigScreen() {
                         openRedirectDest = ""
                     },
                     enabled = !isLoading && openRedirectTarget.isNotBlank() && openRedirectDest.isNotBlank(),
+                    shape = MaterialTheme.shapes.large,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    ),
                     modifier = Modifier.fillMaxWidth()
                 ) { Text("添加") }
             }
@@ -522,6 +558,11 @@ fun SuSFSConfigScreen() {
                         cmdlineInput = ""
                     },
                     enabled = !isLoading && cmdlineInput.isNotBlank(),
+                    shape = MaterialTheme.shapes.large,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    ),
                     modifier = Modifier.fillMaxWidth()
                 ) { Text("应用") }
             }

@@ -49,6 +49,7 @@ data class AppSettings(
     val keyColor: Int,
     val paletteStyle: PaletteStyle,
     val colorSpec: ColorSpec.SpecVersion,
+    val uiMode: UiMode = UiMode.Material,
 )
 
 object ThemeController {
@@ -70,8 +71,10 @@ object ThemeController {
         } catch (_: Exception) {
             ColorSpec.SpecVersion.Default
         }
+        val uiModeStr = prefs.getString("ui_mode", UiMode.DEFAULT_VALUE)
+        val uiMode = UiMode.fromValue(uiModeStr ?: UiMode.DEFAULT_VALUE)
 
-        return AppSettings(colorMode, keyColor, paletteStyle, colorSpec)
+        return AppSettings(colorMode, keyColor, paletteStyle, colorSpec, uiMode)
     }
 }
 
@@ -86,6 +89,10 @@ fun KernelSUTheme(
 
     when (uiMode) {
         UiMode.Material -> MaterialKernelSUTheme(
+            appSettings = currentAppSettings,
+            content = content
+        )
+        UiMode.MaterialExpressive -> MaterialExpressiveKernelSUTheme(
             appSettings = currentAppSettings,
             content = content
         )

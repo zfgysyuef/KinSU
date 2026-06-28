@@ -53,12 +53,13 @@ suspend fun checkNewVersion(): LatestVersionInfo {
             conn.inputStream.bufferedReader().use { reader ->
                 val json = JSONObject(reader.readText())
                 val tagName = json.optString("tag_name", "")
-                // Parse version code from tag like "v30021" -> 30021
-                val versionCode = tagName.removePrefix("v").toIntOrNull() ?: 0
-                val versionName = tagName.ifEmpty { "v$versionCode" }
                 val body = json.optString("body", "")
-                // Find first .apk asset download URL
+
+                // Find first .apk asset: extract download URL and parse versionCode from filename
+                // APK filename format: KinSU_<versionName>_<versionCode>-release.apk
+                // e.g. KinSU_3.0.2_30020-release.apk -> versionCode = 30020
                 var downloadUrl = ""
+                var apkAssetName = ""
                 val assets = json.optJSONArray("assets")
                 if (assets != null) {
                     for (i in 0 until assets.length()) {
@@ -66,10 +67,30 @@ suspend fun checkNewVersion(): LatestVersionInfo {
                         val name = asset.optString("name", "")
                         if (name.endsWith(".apk", ignoreCase = true)) {
                             downloadUrl = asset.optString("browser_download_url", "")
+                            apkAssetName = name
                             break
                         }
                     }
                 }
+
+                // Parse versionCode: prefer APK filename, fallback to tag_name (legacy v30021 format)
+                val versionCodeFromApk = Regex("_(\\d+)-release\\.apk$").find(apkAssetName)?.let {
+                    it.groupValues[1].toIntOrNull()
+                }
+                val versionCodeFromTag = tagName.removePrefix("v").toIntOrNull()
+                val versionCode = versionCodeFromApk ?: versionCodeFromTag ?: 0
+
+                // versionName: prefer tag (without v prefix), fallback to APK filename segment
+                val versionNameFromTag = tagName.removePrefix("v")
+                val versionNameFromApk = Regex("^([\\d.]+)_").find(apkAssetName)?.let {
+                    it.groupValues[1]
+                }
+                val versionName = when {
+                    versionNameFromTag.isNotEmpty() -> versionNameFromTag
+                    !versionNameFromApk.isNullOrEmpty() -> versionNameFromApk
+                    else -> "v$versionCode"
+                }
+
                 LatestVersionInfo(
                     versionCode = versionCode,
                     versionName = versionName,

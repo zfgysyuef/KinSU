@@ -47,7 +47,7 @@ class MainActivityViewModel(
         return MainActivityUiState(
             appSettings = ThemeController.getAppSettings(ksuApp),
             pageScale = settingRepo.pageScale,
-            uiMode = UiMode.Material,
+            uiMode = UiMode.fromValue(settingRepo.uiMode),
         )
     }
 
@@ -58,6 +58,7 @@ class MainActivityViewModel(
             "color_style",
             "color_spec",
             "page_scale",
+            "ui_mode",
         )
     }
 }
@@ -75,8 +76,15 @@ private class MainPageState(
 }
 
 object MainPagerConfig {
-    const val PAGE_COUNT = 3
-    const val LAST_PAGE_INDEX = PAGE_COUNT - 1
+    var PAGE_COUNT = 3
+        private set
+    var LAST_PAGE_INDEX = PAGE_COUNT - 1
+        private set
+
+    fun setPageCount(count: Int) {
+        PAGE_COUNT = count
+        LAST_PAGE_INDEX = count - 1
+    }
 
     fun coercePage(page: Int): Int = page.coerceIn(0, LAST_PAGE_INDEX)
 }

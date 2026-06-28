@@ -16,6 +16,7 @@ import com.mikokernel.R
 import com.mikokernel.data.repository.SettingsRepository
 import com.mikokernel.data.repository.SettingsRepositoryImpl
 import com.mikokernel.ksuApp
+import com.mikokernel.ui.UiMode
 import com.mikokernel.ui.screen.settings.SettingsUiState
 import com.mikokernel.ui.theme.ColorMode
 
@@ -40,6 +41,7 @@ class SettingsViewModel(
             val pageScale = repo.pageScale
             val colorStyle = repo.colorStyle
             val colorSpec = repo.colorSpec
+            val uiMode = UiMode.fromValue(repo.uiMode)
             val isLkmMode = repo.isLkmMode()
 
             // Async loading for natives/features
@@ -70,6 +72,7 @@ class SettingsViewModel(
                     pageScale = pageScale,
                     colorStyle = colorStyle,
                     colorSpec = colorSpec,
+                    uiMode = uiMode,
                     suCompatStatus = suCompatStatus,
                     suCompatMode = suCompatMode,
                     isSuEnabled = isSuEnabled,
@@ -127,6 +130,11 @@ class SettingsViewModel(
     fun setColorSpec(spec: String) {
         repo.colorSpec = spec
         _uiState.update { it.copy(colorSpec = spec) }
+    }
+
+    fun setUiMode(mode: UiMode) {
+        repo.uiMode = mode.value
+        _uiState.update { it.copy(uiMode = mode) }
     }
 
     fun setPageScale(scale: Float) {

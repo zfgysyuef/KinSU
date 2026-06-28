@@ -41,7 +41,7 @@ pub fn run(package_name: &String, kmi: Option<String>, allow_shell: bool) -> Res
     dump_process_info("late-load start");
 
     // 1. Check if KinSU is already loaded
-    if ksu_is_loaded() {
+    if crate::ksucalls::ksu_is_loaded() {
         info!("KinSU already loaded, skip loading ko");
     } else {
         // 2. Detect current KMI version

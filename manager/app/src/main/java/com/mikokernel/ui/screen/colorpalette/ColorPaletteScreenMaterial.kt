@@ -171,6 +171,31 @@ fun ColorPaletteScreenMaterial(
 
             Spacer(modifier = Modifier.height(8.dp))
 
+            // UI 模式切换：Material 3 / Material 3 Expressive
+            SegmentedColumn(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                content = listOf(
+                    {
+                        SegmentedDropdownItem(
+                            icon = Icons.Rounded.Dashboard,
+                            title = stringResource(R.string.settings_ui_mode),
+                            items = listOf(
+                                "Material 3",
+                                "Material 3 Expressive",
+                            ),
+                            selectedIndex = if (state.currentUiMode == com.mikokernel.ui.UiMode.MaterialExpressive) 1 else 0,
+                            onItemSelected = { index ->
+                                val mode = if (index == 1) com.mikokernel.ui.UiMode.MaterialExpressive
+                                else com.mikokernel.ui.UiMode.Material
+                                actions.onSetUiMode(mode)
+                            }
+                        )
+                    }
+                )
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
             LazyRow(
                 modifier = Modifier.fillMaxWidth(),
                 contentPadding = PaddingValues(horizontal = 16.dp),

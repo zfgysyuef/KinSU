@@ -3,6 +3,7 @@ package com.mikokernel.ui.screen.settings
 import androidx.compose.runtime.Immutable
 import com.materialkolor.PaletteStyle
 import com.materialkolor.dynamiccolor.ColorSpec
+import com.mikokernel.ui.UiMode
 
 @Immutable
 data class SettingsUiState(
@@ -12,8 +13,9 @@ data class SettingsUiState(
     val keyColor: Int = 0,
     val colorStyle: String = PaletteStyle.TonalSpot.name,
     val colorSpec: String = ColorSpec.SpecVersion.Default.name,
-    val enablePredictiveBack: Boolean = false,
+    val enablePredictiveBack: Boolean = true,
     val pageScale: Float = 1.0f,
+    val uiMode: UiMode = UiMode.Material,
 
     // Su Compat
     val suCompatStatus: String = "",

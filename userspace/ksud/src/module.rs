@@ -277,7 +277,7 @@ pub fn exec_script<T: AsRef<Path>>(path: T, wait: bool) -> Result<()> {
             }
         }
     } else {
-        command.spawn().map(|_| ())
+        command.spawn().map_err(Into::into).map(|_| ())
     };
     result
 }

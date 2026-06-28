@@ -226,7 +226,7 @@ fn check_metamodule_script(script_name: &str) -> Option<PathBuf> {
 
 /// Run a script command with a 30-second timeout. Kills the whole process
 /// group on timeout to prevent boot blocking and lingering child processes.
-fn run_script_with_timeout(mut command: Command, label: &str) -> Result<()> {
+fn run_script_with_timeout(command: &mut Command, label: &str) -> Result<()> {
     use std::os::unix::process::CommandExt;
 
     let mut child = unsafe {
@@ -275,7 +275,8 @@ pub fn exec_metauninstall_script(module_id: &str) -> Result<()> {
 
     info!("Executing metamodule metauninstall.sh for module: {module_id}");
 
-    let command = Command::new(assets::BUSYBOX_PATH)
+    let mut command = Command::new(assets::BUSYBOX_PATH);
+    command
         .args(["sh", metauninstall_path.to_str().unwrap()])
         .current_dir(metauninstall_path.parent().unwrap())
         .envs(crate::module::get_common_script_envs(
@@ -284,7 +285,7 @@ pub fn exec_metauninstall_script(module_id: &str) -> Result<()> {
         .env("MODULE_ID", module_id);
 
     run_script_with_timeout(
-        command,
+        &mut command,
         &format!("metamodule metauninstall.sh for {module_id}"),
     )?;
 
@@ -300,14 +301,15 @@ pub fn exec_mount_script(module_dir: &str) -> Result<()> {
 
     info!("Executing mount script for metamodule");
 
-    let command = Command::new(assets::BUSYBOX_PATH)
+    let mut command = Command::new(assets::BUSYBOX_PATH);
+    command
         .args(["sh", mount_script.to_str().unwrap()])
         .envs(crate::module::get_common_script_envs(
             get_metamodule_id().as_deref(),
         ))
         .env("MODULE_DIR", module_dir);
 
-    run_script_with_timeout(command, "metamodule mount script")?;
+    run_script_with_timeout(&mut command, "metamodule mount script")?;
 
     info!("Metamodule mount script executed successfully");
     Ok(())

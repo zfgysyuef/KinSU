@@ -6,6 +6,11 @@ use log::{info, error};
 
 use crate::ksucalls::ksuctl;
 
+// 负 errno 常量，用于 match 模式
+// （Rust 模式中不允许出现 -libc::EEXIST 这样的表达式，只能使用常量路径）
+const NEG_EEXIST: i32 = -libc::EEXIST;
+const NEG_ENOENT: i32 = -libc::ENOENT;
+
 // KPM ioctl command codes (must match kernel uapi/supercall.h)
 // _IOWR('K', nr, sizeof(struct)) = 0xC0000000 | (size<<16) | (0x4B<<8) | nr
 const KSU_IOCTL_KPM_LOAD: u32 = 0xC018_4B30;    // nr=0x30, size=24
@@ -175,7 +180,7 @@ pub fn kpm_load(path: &str, args: Option<&str>) -> Result<()> {
             info!("KPM: loaded successfully: {}", path);
             Ok(())
         }
-        Ok(-libc::EEXIST) => {
+        Ok(NEG_EEXIST) => {
             info!("KPM: module already loaded (EEXIST)");
             Ok(())
         }
@@ -202,7 +207,7 @@ pub fn kpm_unload(name: &str) -> Result<()> {
             info!("KPM: unloaded successfully: {}", name);
             Ok(())
         }
-        Ok(-libc::ENOENT) => {
+        Ok(NEG_ENOENT) => {
             bail!("KPM unload failed: module not found: {}", name);
         }
         _ => {

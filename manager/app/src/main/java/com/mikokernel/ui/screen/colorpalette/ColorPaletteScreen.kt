@@ -10,6 +10,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.materialkolor.PaletteStyle
 import com.materialkolor.dynamiccolor.ColorSpec
 import com.mikokernel.KernelSUApplication
+import com.mikokernel.ui.UiMode
 import com.mikokernel.ui.navigation3.LocalNavigator
 import com.mikokernel.ui.theme.ColorMode
 import com.mikokernel.ui.viewmodel.SettingsViewModel
@@ -36,6 +37,7 @@ fun ColorPaletteScreen() {
         currentColorMode = ColorMode.fromValue(uiState.themeMode),
         currentPaletteStyle = currentPaletteStyle,
         currentColorSpec = currentColorSpec,
+        currentUiMode = uiState.uiMode,
     )
     val actions = ColorPaletteScreenActions(
         onBack = dropUnlessResumed { navigator.pop() },
@@ -50,6 +52,11 @@ fun ColorPaletteScreen() {
             activity?.recreate()
         },
         onSetPageScale = viewModel::setPageScale,
+        onSetUiMode = { mode ->
+            viewModel.setUiMode(mode)
+            // 主题类型切换需要重建 Activity 才能让新的 MaterialExpressiveTheme 生效
+            activity?.recreate()
+        },
     )
 
     ColorPaletteScreenMaterial(state, actions)

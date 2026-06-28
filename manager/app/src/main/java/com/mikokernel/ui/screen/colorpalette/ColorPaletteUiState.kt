@@ -3,6 +3,7 @@ package com.mikokernel.ui.screen.colorpalette
 import androidx.compose.runtime.Immutable
 import com.materialkolor.PaletteStyle
 import com.materialkolor.dynamiccolor.ColorSpec
+import com.mikokernel.ui.UiMode
 import com.mikokernel.ui.screen.settings.SettingsUiState
 import com.mikokernel.ui.theme.ColorMode
 
@@ -12,6 +13,7 @@ data class ColorPaletteUiState(
     val currentColorMode: ColorMode,
     val currentPaletteStyle: PaletteStyle,
     val currentColorSpec: ColorSpec.SpecVersion,
+    val currentUiMode: UiMode,
 )
 
 @Immutable
@@ -24,4 +26,5 @@ data class ColorPaletteScreenActions(
     val onSetColorSpec: (String) -> Unit,
     val onSetEnablePredictiveBack: (Boolean) -> Unit,
     val onSetPageScale: (Float) -> Unit,
+    val onSetUiMode: (UiMode) -> Unit,
 )

@@ -19,7 +19,7 @@
 // Original author: weishu
 // The full upstream commit history is preserved.
 
-use anyhow::{Context, Ok, Result};
+use anyhow::{Context, Result};
 use clap::Parser;
 use std::path::PathBuf;
 

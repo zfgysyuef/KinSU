@@ -83,13 +83,15 @@ fun rememberMainPagerState(
 @Composable
 fun BottomBar(
     modifier: Modifier = Modifier,
+    showSusfs: Boolean = false,
 ) {
-    BottomBarMaterial()
+    BottomBarMaterial(showSusfs = showSusfs)
 }
 
 @Composable
 fun SideRail(
     modifier: Modifier = Modifier,
+    showSusfs: Boolean = false,
 ) {
-    NavigationRailMaterial(modifier)
+    NavigationRailMaterial(modifier, showSusfs = showSusfs)
 }
