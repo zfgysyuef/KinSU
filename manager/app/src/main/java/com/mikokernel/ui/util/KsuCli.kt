@@ -369,7 +369,15 @@ fun installBoot(
 
     val bootFile = bootUri?.let { uri ->
         with(resolver.openInputStream(uri)) {
-            val bootFile = File(ksuApp.cacheDir, "boot.img")
+            // 根据传入文件名判断是 boot 还是 init_boot，避免临时文件命名混淆
+            // 用户传入 init_boot.img 时，临时文件应命名为 init_boot.img 而非 boot.img
+            val originName = uri.getFileName(ksuApp).orEmpty()
+            val tempName = if (originName.contains("init_boot", ignoreCase = true)) {
+                "init_boot.img"
+            } else {
+                "boot.img"
+            }
+            val bootFile = File(ksuApp.cacheDir, tempName)
             bootFile.outputStream().use { output ->
                 this?.copyTo(output)
             }
