@@ -761,7 +761,7 @@ pub fn patch(args: BootPatchArgs) -> Result<()> {
             );
 
             println!("- Adding KinSU LKM");
-            let is_kernelsu_patched = cpio.exists("kinsu.ko");
+            let is_kernelsu_patched = cpio.exists("KinSU.ko");
 
             // 清理原版 KernelSU 残留，避免双 root 冲突导致 boot loop
             // 原版 KSU patch 后的 ramdisk 结构: init=KSU init, init.real=原厂 init, ksu.ko=KSU 模块
@@ -787,7 +787,7 @@ pub fn patch(args: BootPatchArgs) -> Result<()> {
             }
 
             cpio.add("init", CpioEntry::regular(0o755, ksu_init))?;
-            cpio.add("kinsu.ko", CpioEntry::regular(0o755, kernelsu_ko))?;
+            cpio.add("KinSU.ko", CpioEntry::regular(0o755, kernelsu_ko))?;
 
             #[cfg(target_os = "android")]
             if !is_kernelsu_patched
@@ -1019,7 +1019,7 @@ pub fn restore(args: BootRestoreArgs) -> Result<()> {
         };
 
     ensure!(
-        cpio.exists("kinsu.ko"),
+        cpio.exists("KinSU.ko"),
         "boot image is not patched by KinSU"
     );
 
@@ -1107,7 +1107,7 @@ fn rebuild_without_ksu(
     vendor_ramdisk_idx: Option<usize>,
 ) -> Result<Vec<u8>> {
     println!("- Removing KinSU from boot image");
-    cpio.rm("kinsu.ko", false);
+    cpio.rm("KinSU.ko", false);
     if cpio.exists("init.real") {
         cpio.mv("init.real", "init")?;
     }

@@ -41,6 +41,7 @@ private const val TAG = "KsuCli"
 /**
  * 返回 KinSU daemon 路径 (libkinsud.so)。
  * 始终不变 — root 授权和常规模块管理使用此 daemon。
+ * 注意: 文件名必须与 repack_apk.py 中的 libkinsud.so 一致
  */
 private fun getKsuDaemonPath(): String {
     return ksuApp.applicationInfo.nativeLibraryDir + File.separator + "libkinsud.so"
