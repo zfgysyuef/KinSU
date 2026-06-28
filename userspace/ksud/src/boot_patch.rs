@@ -763,23 +763,27 @@ pub fn patch(args: BootPatchArgs) -> Result<()> {
             println!("- Adding KinSU LKM");
             let is_kernelsu_patched = cpio.exists("kinsu.ko");
 
-            // 清理原版 KernelSU 残留组件，避免双 root 冲突导致 boot loop
-            // 原版 KernelSU 在 ramdisk 中使用 ksu.ko，与 KinSU 的 kinsu.ko 不兼容
-            if !is_kernelsu_patched {
-                // 清理原版 KernelSU 的内核模块
-                if cpio.exists("ksu.ko") {
-                    println!("- Removing legacy KernelSU ksu.ko to avoid conflict");
-                    cpio.rm("ksu.ko", false);
-                }
-                // 清理原版 KernelSU 的 init.real（如果存在，说明之前被 KernelSU patch 过）
-                // KinSU 会重新建立 init -> init.real 的链接，旧的 init.real 必须先清除
-                if cpio.exists("init.real") {
-                    println!("- Removing stale init.real from previous root solution");
-                    cpio.rm("init.real", false);
-                }
+            // 清理原版 KernelSU 残留，避免双 root 冲突导致 boot loop
+            // 原版 KSU patch 后的 ramdisk 结构: init=KSU init, init.real=原厂 init, ksu.ko=KSU 模块
+            // 必须先恢复原厂 init，再执行 KinSU patch，否则 init.real 会变成 KSU init
+            if !is_kernelsu_patched && cpio.exists("ksu.ko") {
+                println!("- Detected legacy KernelSU, cleaning up to avoid conflict");
+                // 删除原版 KSU 的内核模块
+                cpio.rm("ksu.ko", false);
+                // 删除 KSU 的 init（不是原厂 init）
                 if cpio.exists("init") {
-                    cpio.mv("init", "init.real")?;
+                    cpio.rm("init", false);
                 }
+                // 恢复原厂 init：init.real -> init
+                if cpio.exists("init.real") {
+                    println!("- Restoring stock init from init.real");
+                    cpio.mv("init.real", "init")?;
+                }
+            }
+
+            // 正常 KinSU patch 流程：备份原厂 init，注入 KinSU init
+            if !is_kernelsu_patched && cpio.exists("init") {
+                cpio.mv("init", "init.real")?;
             }
 
             cpio.add("init", CpioEntry::regular(0o755, ksu_init))?;
