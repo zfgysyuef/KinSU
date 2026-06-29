@@ -38,9 +38,9 @@ fun getGitDescribe(): String {
 }
 
 fun getVersionCode(): Int {
-    return 30038
+    return 30039
 }
 
 fun getVersionName(): String {
-    return "3.1.10"
+    return "3.1.11"
 }
