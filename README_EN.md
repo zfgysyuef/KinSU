@@ -2,9 +2,9 @@
 
 <img src="icon.png" width="128" height="128" alt="KinSU" style="border-radius: 28px; box-shadow: 0 12px 40px rgba(236, 64, 122, 0.25);">
 
-# KinSU · Gold Kernel
+# KinSU 路 Gold Kernel
 
-> *"Give root access to the one who knows your device best — yourself."*
+> *"Give root access to the one who knows your device best 鈥?yourself."*
 
 **Advanced kernel-based root solution for Android GKI devices, built on KernelSU**
 
@@ -12,7 +12,7 @@
 [![License](https://img.shields.io/badge/License-GPL--3.0-ff80ab?style=for-the-badge)](LICENSE)
 [![API](https://img.shields.io/badge/API-31%2B-e040fb?style=for-the-badge)](https://android-arsenal.com/api?level=31)
 
-**[简体中文](README.md) | English**
+**[绠€浣撲腑鏂嘳(README.md) | English**
 
 </div>
 
@@ -38,7 +38,7 @@ KinSU was created from a new vision of what a root manager should be: keep Kerne
 | Module Management | Install, enable, disable, and uninstall ZIP modules, supporting both KernelSU and Magisk-style modules |
 | KPM Kernel Patches | Load `.kpm` patches, embeddable in GKI mode, with boot-time auto-load and manual debugging |
 | AnyKernel3 Flashing | Patch `boot` / `init_boot` from within the app, with automatic backup of the original image |
-| Theming & Appearance | Dynamic theming, multiple accent colors, dark / light mode — make the manager yours |
+| Theming & Appearance | Dynamic theming, multiple accent colors, dark / light mode 鈥?make the manager yours |
 | In-App Updates | Automatically check for new versions from GitHub Releases and jump to download with one tap |
 | Logs & Auditing | View root authorization records, module loading logs, and kernel patch runtime status |
 
@@ -61,9 +61,9 @@ There are many root solutions on Android, but KinSU tries to do a few things bet
 ## Quick Start
 
 ```text
-① Install the KinSU APK
-② Make sure your kernel already integrates KernelSU / KernelPatch
-③ Grant root, manage modules, flash, and theme your device
+鈶?Install the KinSU APK
+鈶?Make sure your kernel already integrates KernelSU / KernelPatch
+鈶?Grant root, manage modules, flash, and theme your device
 ```
 
 For more detailed installation and usage instructions, visit the [official documentation](https://spring-bulid.github.io/KinSU/).
@@ -101,11 +101,11 @@ Note: On Windows, use `gradlew.bat` instead.
 
 ```text
 KinSU/
-├── KernelSU/          # Manager and kernel module source code
-├── kernel/            # KinSU kernel patch source code
-├── kinsu-site/        # Official documentation site
-├── README.md          # Simplified Chinese README
-└── README_EN.md       # English README
+鈹溾攢鈹€ KernelSU/          # Manager and kernel module source code
+鈹溾攢鈹€ kernel/            # KinSU kernel patch source code
+鈹溾攢鈹€ kinsu-site/        # Official documentation site
+鈹溾攢鈹€ README.md          # Simplified Chinese README
+鈹斺攢鈹€ README_EN.md       # English README
 ```
 
 ---
@@ -129,7 +129,7 @@ Special thanks to **Matsuzaka Yuki**, **mrbeer1960**, and everyone who supports 
 
 ### License
 
-**GPL-3.0** — Free, open source, and built with passion.
+**GPL-3.0** 鈥?Free, open source, and built with passion.
 
 *"May your flashing succeed, root never fail, modules stay compatible, and themes always look good."*
 
