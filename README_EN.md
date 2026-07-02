@@ -4,11 +4,11 @@
 
 # FollKernel · 福尔内核
 
-> *“Give root access to the one who knows your device best — yourself.”*
+> *“Give root access to the one who knows your device best �?yourself.�?
 
 **Advanced kernel-based root solution for Android GKI devices, built on KernelSU**
 
-[![Release](https://img.shields.io/github/v/release/Spring-bulid/FollKernel?label=Latest&color=ec407a&style=for-the-badge)](https://github.com/Spring-bulid/FollKernel/releases/latest)
+[![Release](https://img.shields.io/github/v/release/Spring-bulid/KinSU?label=Latest&color=ec407a&style=for-the-badge)](https://github.com/Spring-bulid/KinSU/releases/latest)
 [![License](https://img.shields.io/badge/License-GPL--3.0-ff80ab?style=for-the-badge)](LICENSE)
 [![API](https://img.shields.io/badge/API-31%2B-e040fb?style=for-the-badge)](https://android-arsenal.com/api?level=31)
 
@@ -38,7 +38,7 @@ FollKernel was created from a new vision of what a root manager should be: keep 
 | Module Management | Install, enable, disable, and uninstall ZIP modules, supporting both KernelSU and Magisk-style modules |
 | KPM Kernel Patches | Load `.kpm` patches, embeddable in GKI mode, with boot-time auto-load and manual debugging |
 | AnyKernel3 Flashing | Patch `boot` / `init_boot` from within the app, with automatic backup of the original image |
-| Theming & Appearance | Dynamic theming, multiple accent colors, dark / light mode — make the manager yours |
+| Theming & Appearance | Dynamic theming, multiple accent colors, dark / light mode �?make the manager yours |
 | In-App Updates | Automatically check for new versions from GitHub Releases and jump to download with one tap |
 | Logs & Auditing | View root authorization records, module loading logs, and kernel patch runtime status |
 
@@ -61,12 +61,12 @@ There are many root solutions on Android, but FollKernel tries to do a few thing
 ## Quick Start
 
 ```text
-① Install the FollKernel APK
-② Make sure your kernel already integrates KernelSU / KernelPatch
-③ Grant root, manage modules, flash, and theme your device
+�?Install the FollKernel APK
+�?Make sure your kernel already integrates KernelSU / KernelPatch
+�?Grant root, manage modules, flash, and theme your device
 ```
 
-For more detailed installation and usage instructions, visit the [official documentation](https://spring-bulid.github.io/FollKernel/).
+For more detailed installation and usage instructions, visit the [official documentation](https://spring-bulid.github.io/KinSU/).
 
 ---
 
@@ -74,8 +74,8 @@ For more detailed installation and usage instructions, visit the [official docum
 
 <div align="center">
 
-[![Download APK](https://img.shields.io/badge/Download%20APK-ec407a?style=for-the-badge&logo=android&logoColor=white)](https://github.com/Spring-bulid/FollKernel/releases/latest)
-[![Official Docs](https://img.shields.io/badge/Official%20Docs-7c4dff?style=for-the-badge)](https://spring-bulid.github.io/FollKernel/)
+[![Download APK](https://img.shields.io/badge/Download%20APK-ec407a?style=for-the-badge&logo=android&logoColor=white)](https://github.com/Spring-bulid/KinSU/releases/latest)
+[![Official Docs](https://img.shields.io/badge/Official%20Docs-7c4dff?style=for-the-badge)](https://spring-bulid.github.io/KinSU/)
 
 </div>
 
@@ -129,8 +129,8 @@ Special thanks to **Matsuzaka Yuki**, **mrbeer1960**, and everyone who supports 
 
 ### License
 
-**GPL-3.0** — Free, open source, and built with passion.
+**GPL-3.0** �?Free, open source, and built with passion.
 
-*“May your flashing succeed, root never fail, modules stay compatible, and themes always look good.”*
+*“May your flashing succeed, root never fail, modules stay compatible, and themes always look good.�?
 
 </div>
