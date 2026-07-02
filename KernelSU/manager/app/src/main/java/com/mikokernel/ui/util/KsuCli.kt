@@ -466,6 +466,31 @@ fun installBoot(
         cmd += " --partition '$escapedPart'"
     }
 
+
+    // Clean up stale state from ALL root managers before flashing to prevent boot conflicts.
+    // Old daemon, Magisk binary, init scripts, and preinit rc from a different root version
+    // can cause boot failures (e.g. has_magisk() skips all ksud init stages).
+    onStdout("- Cleaning up old root manager state...")
+    try {
+        withNewRootShell(true) {
+            newJob().add(
+                "rm -f /data/adb/ksud /data/adb/ksu/bin/ksud " +
+                "/data/adb/ksu/.allowlist " +
+                "/metadata/ksu/modules.rc /metadata/ksu/.modules.rc.tmp " +
+                "/metadata/watchdog/ksu/modules.rc /metadata/watchdog/ksu/.modules.rc.tmp " +
+                "&& rm -rf /data/adb/ksu/profile/selinux " +
+                "&& rm -f /data/adb/sepolicy.rules " +
+                "&& rm -rf /data/adb/post-fs-data.d /data/adb/service.d /data/adb/post-mount.d " +
+                "&& rm -f /data/adb/magisk /data/adb/magisk.db /data/adb/magisk.apk " +
+                "&& rm -rf /data/adb/ap " +
+                "&& rm -f /data/adb/resetprop /data/adb/busybox " +
+                "2>/dev/null; true"
+            ).exec()
+        }
+    } catch (e: Exception) {
+        Log.w(TAG, "cleanup old state failed (non-fatal): ${e.message}")
+    }
+
     val result = flashWithIO("${getKsuDaemonPath()} $cmd", onStdout, onStderr)
     Log.i("KinSU", "install boot result: ${result.isSuccess}")
 

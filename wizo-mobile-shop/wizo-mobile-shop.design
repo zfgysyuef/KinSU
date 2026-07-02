@@ -1,0 +1,95 @@
+{
+  "data": [
+    {
+      "id": "page-home",
+      "title": "首页",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1782609895000,
+      "devMetadata": {
+        "htmlSrc": "pages/home.html",
+        "interactions": []
+      },
+      "canvasData": {
+        "x": 0,
+        "y": 0,
+        "group": 0
+      }
+    },
+    {
+      "id": "image-001",
+      "title": "促销横幅",
+      "type": "image",
+      "version": 1,
+      "createdAt": 1782609920000,
+      "devMetadata": {
+        "imageSrc": "assets/promo-banner.jpg"
+      },
+      "canvasData": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "id": "image-002",
+      "title": "运动鞋产品图",
+      "type": "image",
+      "version": 1,
+      "createdAt": 1782609921000,
+      "devMetadata": {
+        "imageSrc": "assets/product-sneaker.jpg"
+      },
+      "canvasData": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "id": "image-003",
+      "title": "智能手表产品图",
+      "type": "image",
+      "version": 1,
+      "createdAt": 1782609922000,
+      "devMetadata": {
+        "imageSrc": "assets/product-smartwatch.jpg"
+      },
+      "canvasData": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "id": "image-004",
+      "title": "智能手机产品图",
+      "type": "image",
+      "version": 1,
+      "createdAt": 1782609923000,
+      "devMetadata": {
+        "imageSrc": "assets/product-smartphone.jpg"
+      },
+      "canvasData": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "id": "image-005",
+      "title": "耳机产品图",
+      "type": "image",
+      "version": 1,
+      "createdAt": 1782609924000,
+      "devMetadata": {
+        "imageSrc": "assets/product-headphone.jpg"
+      },
+      "canvasData": {
+        "x": 0,
+        "y": 0
+      }
+    }
+  ],
+  "config": {
+    "autoLayout": true,
+    "deviceType": "mobile",
+    "projectName": "Wizo 移动端电商首页"
+  }
+}

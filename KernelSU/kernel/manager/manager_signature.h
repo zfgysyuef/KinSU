@@ -1,4 +1,4 @@
-/* Auto-generated manager signature for KinSU
+﻿/* Auto-generated manager signature for FollKernel
  *
  * These values identify the KinSU manager APK.
  * The kernel module uses these to verify the manager app

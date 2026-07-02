@@ -1,4 +1,4 @@
-package com.mikokernel.ui.screen.settings
+﻿package com.mikokernel.ui.screen.settings
 
 import androidx.compose.runtime.Immutable
 import com.materialkolor.PaletteStyle
@@ -57,4 +57,5 @@ data class SettingsScreenActions(
     val onSetAdbRootEnabled: (Boolean) -> Unit,
     val onSetDefaultUmountModules: (Boolean) -> Unit,
     val onOpenAbout: () -> Unit,
+    val onOpenMigrate: () -> Unit = {},
 )

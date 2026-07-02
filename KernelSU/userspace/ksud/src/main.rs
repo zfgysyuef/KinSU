@@ -1,4 +1,4 @@
-#![deny(clippy::all, clippy::pedantic)]
+﻿#![deny(clippy::all, clippy::pedantic)]
 #![warn(clippy::nursery)]
 #![allow(
     clippy::module_name_repetitions,
@@ -34,6 +34,8 @@ mod late_load;
 mod magica;
 #[cfg(target_os = "android")]
 mod metamodule;
+#[cfg(target_os = "android")]
+mod migrate;
 #[cfg(target_os = "android")]
 mod module;
 #[cfg(target_os = "android")]

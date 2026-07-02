@@ -1,4 +1,4 @@
-// KinSU - A derivative work of KernelSU
+﻿// KinSU - A derivative work of KernelSU
 // Copyright (c) 2022-2024 weishu (KernelSU Project)
 // Copyright (c) 2024 KinSU Project
 //
@@ -19,7 +19,7 @@
 // Original author: weishu
 // The full upstream commit history is preserved.
 
-use anyhow::{Context, Ok, Result};
+use anyhow::{Context, Result};
 use clap::Parser;
 use std::path::PathBuf;
 
@@ -850,11 +850,11 @@ pub fn run() -> Result<()> {
                         }
                         Ok(code) => {
                             let errno_desc = match -code {
-                                2 => "文件不存在 (ENOENT)",
-                                8 => "不是有效的 KPM 模块 (ENOEXEC)",
-                                12 => "内存不足 (ENOMEM)",
-                                17 => "模块已加载 (EEXIST)",
-                                22 => "参数无效 (EINVAL)",
+                                2 => "鏂囦欢涓嶅瓨鍦?(ENOENT)",
+                                8 => "涓嶆槸鏈夋晥鐨?KPM 妯″潡 (ENOEXEC)",
+                                12 => "鍐呭瓨涓嶈冻 (ENOMEM)",
+                                17 => "妯″潡宸插姞杞?(EEXIST)",
+                                22 => "鍙傛暟鏃犳晥 (EINVAL)",
                                 _ => ""
                             };
                             println!("Error: {} {}", code, errno_desc);
@@ -969,6 +969,82 @@ pub fn run() -> Result<()> {
                 Ok(())
             }
         },
+        Commands::Migrate { command } => match command {
+            MigrateCmd::Detect { mask, json } => {
+                let conflicts = super::migrate::detect::detect_conflicts_ioctl(mask)?;
+                if *json {
+                    println!("{}", serde_json::to_string_pretty(&conflicts)?);
+                } else {
+                    if conflicts.is_empty() {
+                        println!("No conflicts detected.");
+                    } else {
+                        println!("Detected {} conflict(s):", conflicts.len());
+                        for c in &conflicts {
+                            println!("  [{:>8}] {:<10} {}", c.source, c.conflict_type, c.path);
+                        }
+                    }
+                }
+                Ok(())
+            }
+            MigrateCmd::Clean { mask, backup, yes, json } => {
+                if !*yes {
+                    // Print what will be cleaned
+                    let conflicts = super::migrate::detect::detect_conflicts_ioctl(*mask)?;
+                    if conflicts.is_empty() {
+                        println!("No conflicts to clean.");
+                        return Ok(());
+                    }
+                    println!("The following conflicts will be cleaned:");
+                    for c in &conflicts {
+                        println!("  [{:>8}] {:<10} {}", c.source, c.conflict_type, c.path);
+                    }
+                    if *backup {
+                        println!("A backup will be created before cleaning.");
+                    }
+                    // In non-interactive mode, skip confirmation
+                }
+                let result = super::migrate::clean::clean_conflicts_ioctl(*mask, *backup)?;
+                if *json {
+                    println!("{}", serde_json::to_string_pretty(&result)?);
+                } else {
+                    println!("Clean result: {}", if result.success { "SUCCESS" } else { "PARTIAL" });
+                    println!("  Cleaned: {}, Failed: {}", result.cleaned_count, result.failed_count);
+                    if let Some(ref bp) = result.backup_path {
+                        println!("  Backup: {}", bp);
+                    }
+                    for detail in &result.details {
+                        println!("  {} -> {} {}", detail.path, detail.action,
+                            if detail.success { "OK" } else { "FAILED" });
+                    }
+                    for err in &result.errors {
+                        log::error!("Clean error: {}", err);
+                    }
+                }
+                Ok(())
+            }
+            MigrateCmd::FromMagisk { preserve_data, json } => {
+                migrate_from_manager(super::migrate::migrate::SRC_MAGISK, *preserve_data, *json)
+            }
+            MigrateCmd::FromApatch { preserve_data, json } => {
+                migrate_from_manager(super::migrate::migrate::SRC_APATCH, *preserve_data, *json)
+            }
+            MigrateCmd::FromOldKsu { preserve_data, json } => {
+                migrate_from_manager(super::migrate::migrate::SRC_OLDKSU, *preserve_data, *json)
+            }
+            MigrateCmd::Backups => {
+                let mgr = super::migrate::BackupManager::new();
+                let backups = mgr.list_backups()?;
+                if backups.is_empty() {
+                    println!("No backups found.");
+                } else {
+                    println!("Backups:");
+                    for b in &backups {
+                        println!("  {}", b.display());
+                    }
+                }
+                Ok(())
+            }
+        },
         Commands::Initrc { command } => match command {
             Initrc::Refresh => regenerate_preinit_rc(),
         },
@@ -978,4 +1054,35 @@ pub fn run() -> Result<()> {
         log::error!("Error: {e:?}");
     }
     result
+
+/// Helper: migrate modules from a specific manager source
+fn migrate_from_manager(source: u32, preserve_data: bool, json: bool) -> anyhow::Result<()> {
+    use super::migrate::{ManagerMigrator, FsManagerMigrator};
+    let migrator = FsManagerMigrator::new();
+    let result = migrator.migrate_from(source, preserve_data)?;
+    if json {
+        println!("{}", serde_json::to_string_pretty(&result)?);
+    } else {
+        println!("Migration result: {}", if result.success { "SUCCESS" } else { "PARTIAL" });
+        println!("  Source: {}", result.source);
+        println!("  Detected: {}, Migrated: {}, Skipped: {}, Failed: {}",
+            result.detected_count, result.migrated_count, result.skipped_count, result.failed_count);
+        for detail in &result.details {
+            println!("  [{:>8}] {} -> {}",
+                detail.status, detail.module_id,
+                detail.dest_path.as_deref().unwrap_or("(none)"));
+            if let Some(ref reason) = detail.reason {
+                println!("           Reason: {}", reason);
+            }
+        }
+        if let Some(ref clean) = result.clean_result {
+            println!("  Post-migration clean: cleaned={}, failed={}",
+                clean.cleaned_count, clean.failed_count);
+        }
+        for err in &result.errors {
+            log::error!("Migration error: {}", err);
+        }
+    }
+    Ok(())
+}
 }

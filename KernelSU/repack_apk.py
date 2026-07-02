@@ -220,7 +220,7 @@ def collect_existing_ksud_arches(apk_path: Path) -> List[str]:
     seen = set()
     with ZipFile(apk_path, "r") as zin:
         for name in zin.namelist():
-            if not (name.startswith("lib/") and name.endswith("/libKinSUd.so")):
+            if not (name.startswith("lib/") and name.endswith("/libkinsud.so")):
                 continue
             parts = name.split("/")
             if len(parts) >= 3 and parts[1] and parts[1] not in seen:
@@ -260,8 +260,8 @@ def repack_apk(
                     if len(parts) >= 3 and parts[1] not in arch_filters:
                         continue
 
-                # Drop original libKinSUd.so only for arches that have a replacement binary.
-                if name.startswith("lib/") and name.endswith("/libKinSUd.so"):
+                # Drop original libkinsud.so only for arches that have a replacement binary.
+                if name.startswith("lib/") and name.endswith("/libkinsud.so"):
                     parts = name.split("/")
                     if len(parts) >= 3 and parts[1] in ksud_bytes_by_arch:
                         continue
@@ -282,7 +282,7 @@ def repack_apk(
                 ksud_bytes = ksud_bytes_by_arch.get(arch)
                 if ksud_bytes is None:
                     continue
-                lib_path = f"lib/{arch}/libKinSUd.so"
+                lib_path = f"lib/{arch}/libkinsud.so"
                 entry = ZipInfo(filename=lib_path)
                 entry.compress_type = ZIP_DEFLATED
                 zout.writestr(entry, ksud_bytes)
@@ -291,10 +291,10 @@ def repack_apk(
 def assert_required_libs(apk_path: Path, arch_filters: List[str]) -> None:
     with ZipFile(apk_path, "r") as zf:
         names = set(zf.namelist())
-    missing = [arch for arch in arch_filters if f"lib/{arch}/libKinSUd.so" not in names]
+    missing = [arch for arch in arch_filters if f"lib/{arch}/libkinsud.so" not in names]
     if missing:
         raise RuntimeError(
-            "Missing libKinSUd.so in APK for architecture(s): " + ", ".join(missing)
+            "Missing libkinsud.so in APK for architecture(s): " + ", ".join(missing)
         )
 
 
@@ -459,7 +459,7 @@ def build_parser() -> argparse.ArgumentParser:
         dest="strip",
         action="store_true",
         default=None,
-        help="Strip libKinSUd.so before packing (uses NDK llvm-strip)",
+        help="Strip libkinsud.so before packing (uses NDK llvm-strip)",
     )
     strip_group.add_argument(
         "--no-strip",

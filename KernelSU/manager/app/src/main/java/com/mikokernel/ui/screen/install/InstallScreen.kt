@@ -70,8 +70,8 @@ fun InstallScreen() {
             if (rootAvailable) {
                 add(InstallMethod.DirectInstall)
                 if (isAbDevice) add(InstallMethod.DirectInstallToInactiveSlot)
+                add(InstallMethod.HorizonKernel())
             }
-            add(InstallMethod.HorizonKernel())
         }
     }
 

@@ -1,0 +1,197 @@
+name: Build KinSU MT6989 Kernel
+
+on:
+  workflow_dispatch:
+    inputs:
+      CUSTOM_SUFFIX:
+        description: '自定义内核后缀'
+        required: false
+        default: 'kinsu-mt6989-6.1.115'
+      APPLY_SUSFS:
+        description: '启用 SuSFS (y/n)'
+        required: false
+        default: 'y'
+      APPLY_LZ4:
+        description: '启用 lz4&zstd 补丁 (y/n)'
+        required: false
+        default: 'y'
+  push:
+    branches: [main]
+    paths:
+      - 'builder_kinsu_mt6989.sh'
+      - '.github/workflows/build-kinsu-mt6989.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set environment variables
+        run: |
+          echo "CUSTOM_SUFFIX=${{ github.event.inputs.CUSTOM_SUFFIX || 'kinsu-mt6989-6.1.115' }}" >> $GITHUB_ENV
+          echo "APPLY_SUSFS=${{ github.event.inputs.APPLY_SUSFS || 'y' }}" >> $GITHUB_ENV
+          echo "APPLY_LZ4=${{ github.event.inputs.APPLY_LZ4 || 'y' }}" >> $GITHUB_ENV
+
+      - name: Install dependencies
+        run: |
+          sudo apt-mark hold firefox man-db libc-bin
+          sudo rm -rf /var/lib/man-db/auto-update
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y curl bison flex clang binutils dwarves git lld pahole zip perl make gcc python3 python-is-python3 bc libssl-dev libelf-dev cpio xz-utils tar unzip
+
+      - name: Install LLVM/Clang 20
+        run: |
+          wget https://apt.llvm.org/llvm.sh
+          chmod +x llvm.sh
+          sudo ./llvm.sh 20 all
+
+      - name: Cache ccache
+        uses: actions/cache@v4
+        with:
+          path: ~/.ccache
+          key: kinsu-mt6989-${{ github.run_id }}
+          restore-keys: |
+            kinsu-mt6989-
+
+      - name: Clone kernel source
+        run: |
+          mkdir kernel_workspace && cd kernel_workspace
+          git clone --depth=1 https://github.com/cctv18/android_kernel_oneplus_mt6989 -b oneplus/mt6989_v_15.0.2_ace5_race common
+
+      - name: Clean ABI and remove dirty suffix
+        run: |
+          cd kernel_workspace/common
+          rm -f android/abi_gki_protected_exports_*
+          sed -i 's/ -dirty//g' scripts/setlocalversion
+
+      - name: Set kernel version suffix
+        run: |
+          cd kernel_workspace/common
+          sed -i "\$s|echo \"\\\$res\"|echo \"-${CUSTOM_SUFFIX}\"|" scripts/setlocalversion
+
+      - name: Clone and integrate KinSU
+        run: |
+          cd kernel_workspace
+          git clone https://github.com/Spring-bulid/KinSU
+          cd common/drivers
+          ln -sf ../../KinSU/kernel kernelsu
+          cd ../..
+          echo 'obj-$(CONFIG_KSU) += kernelsu/' >> common/drivers/Makefile
+          sed -i '/endmenu/i\source "drivers/kernelsu/Kconfig"' common/drivers/Kconfig
+
+      - name: Fix KinSU uapi symlink
+        run: |
+          cd kernel_workspace/KinSU/kernel
+          # Ensure kernel/uapi/app_profile.h exists
+          if [ ! -f uapi/app_profile.h ]; then
+            echo "ERROR: uapi/app_profile.h not found in KinSU kernel!"
+            exit 1
+          fi
+          # Fix include/uapi symlink — Git may store it as a plain file on some systems
+          if [ -f include/uapi ] && [ ! -L include/uapi ]; then
+            rm -f include/uapi
+            ln -s ../../uapi include/uapi
+          fi
+          echo ">>> uapi symlink verified: $(readlink include/uapi)"
+
+      - name: Apply SuSFS patches
+        if: env.APPLY_SUSFS == 'y'
+        run: |
+          cd kernel_workspace
+          git clone --depth=1 https://github.com/cctv18/susfs4oki.git susfs4ksu -b oki-android14-6.1
+          wget https://github.com/cctv18/oppo_oplus_realme_sm8650/raw/refs/heads/main/other_patch/69_hide_stuff.patch -O common/69_hide_stuff.patch
+          cp susfs4ksu/kernel_patches/50_add_susfs_in_gki-android14-6.1.patch common/
+          cp susfs4ksu/kernel_patches/fs/* common/fs/
+          cp susfs4ksu/kernel_patches/include/linux/* common/include/linux/
+          cd common
+          patch -p1 < 50_add_susfs_in_gki-android14-6.1.patch || true
+          patch -p1 -F 3 < 69_hide_stuff.patch || true
+
+      - name: Apply lz4 & zstd patches
+        if: env.APPLY_LZ4 == 'y'
+        run: |
+          cd kernel_workspace
+          git clone --depth=1 https://github.com/cctv18/oppo_oplus_realme_sm8650.git patches_repo
+          cp patches_repo/zram_patch/001-lz4.patch common/
+          cp patches_repo/zram_patch/lz4armv8.S common/lib
+          cp patches_repo/zram_patch/002-zstd.patch common/
+          cd common
+          git apply -p1 < 001-lz4.patch || true
+          patch -p1 < 002-zstd.patch || true
+
+      - name: Configure defconfig
+        run: |
+          cd kernel_workspace/common
+          DEFCONFIG=arch/arm64/configs/gki_defconfig
+          echo "CONFIG_KSU=y" >> $DEFCONFIG
+          if [ "${{ env.APPLY_SUSFS }}" = "y" ]; then
+            echo "CONFIG_KSU_SUSFS=y" >> $DEFCONFIG
+            echo "CONFIG_KSU_SUSFS_HAS_MAGIC_MOUNT=y" >> $DEFCONFIG
+            echo "CONFIG_KSU_SUSFS_SUS_PATH=y" >> $DEFCONFIG
+            echo "CONFIG_KSU_SUSFS_SUS_MOUNT=y" >> $DEFCONFIG
+            echo "CONFIG_KSU_SUSFS_AUTO_ADD_SUS_KSU_DEFAULT_MOUNT=y" >> $DEFCONFIG
+            echo "CONFIG_KSU_SUSFS_AUTO_ADD_SUS_BIND_MOUNT=y" >> $DEFCONFIG
+            echo "CONFIG_KSU_SUSFS_SUS_KSTAT=y" >> $DEFCONFIG
+            echo "CONFIG_KSU_SUSFS_TRY_UMOUNT=y" >> $DEFCONFIG
+            echo "CONFIG_KSU_SUSFS_AUTO_ADD_TRY_UMOUNT_FOR_BIND_MOUNT=y" >> $DEFCONFIG
+            echo "CONFIG_KSU_SUSFS_SPOOF_UNAME=y" >> $DEFCONFIG
+            echo "CONFIG_KSU_SUSFS_ENABLE_LOG=y" >> $DEFCONFIG
+            echo "CONFIG_KSU_SUSFS_HIDE_KSU_SUSFS_SYMBOLS=y" >> $DEFCONFIG
+            echo "CONFIG_KSU_SUSFS_SPOOF_CMDLINE_OR_BOOTCONFIG=y" >> $DEFCONFIG
+            echo "CONFIG_KSU_SUSFS_OPEN_REDIRECT=y" >> $DEFCONFIG
+            echo "CONFIG_KSU_SUSFS_SUS_MAP=y" >> $DEFCONFIG
+          fi
+          echo "CONFIG_KSU_MANAGER_PACKAGE=com.mikokernel" >> $DEFCONFIG
+          sed -i 's/check_defconfig//' build.config.gki
+
+      - name: Build kernel
+        run: |
+          cd kernel_workspace/common
+          KSU_SUSFS_VAL=$(if [ "${{ env.APPLY_SUSFS }}" = "y" ]; then echo 1; else echo 0; fi)
+          make -j$(nproc --all) \
+            LLVM=-20 \
+            ARCH=arm64 \
+            CROSS_COMPILE=aarch64-linux-gnu- \
+            CC=clang \
+            LD=ld.lld \
+            HOSTCC=clang \
+            HOSTLD=ld.lld \
+            O=out \
+            KCFLAGS+=-O2 \
+            KCFLAGS+=-Wno-error \
+            KSU_SUSFS=$KSU_SUSFS_VAL \
+            gki_defconfig \
+            all
+
+      - name: Package kernel
+        run: |
+          cd kernel_workspace
+          git clone --depth=1 https://github.com/osm0sis/AnyKernel3
+          cp common/out/arch/arm64/boot/Image.gz AnyKernel3/
+          cp common/out/arch/arm64/boot/dtbo.img AnyKernel3/ 2>/dev/null || true
+          cd AnyKernel3
+          DATE=$(date +%Y%m%d)
+          SUSFS_SUFFIX=$(if [ "${{ env.APPLY_SUSFS }}" = "y" ]; then echo "-susfs"; else echo ""; fi)
+          ZIP_NAME="KinSU-MT6989-6.1.115${SUSFS_SUFFIX}-${DATE}"
+          sed -i "s/kernel.name=.*/kernel.name=KinSU MT6989/" anykernel.sh
+          sed -i "s/kernel.string=.*/kernel.string=KinSU for MT6989 (Dimensity 9400e)/" anykernel.sh
+          sed -i "s/kernel.author=.*/kernel.author=Spring-bulid/" anykernel.sh
+          zip -r9 "${ZIP_NAME}.zip" . -x .git README.md .gitignore anykernel.sh patching.sh
+          echo "ZIP_NAME=${ZIP_NAME}" >> $GITHUB_ENV
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ZIP_NAME }}
+          path: kernel_workspace/AnyKernel3/${{ env.ZIP_NAME }}.zip
+
+      - name: Upload to release
+        if: github.ref == 'refs/heads/main'
+        run: |
+          gh release upload v1.12 kernel_workspace/AnyKernel3/${{ env.ZIP_NAME }}.zip --clobber --repo Spring-bulid/KinSU || true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

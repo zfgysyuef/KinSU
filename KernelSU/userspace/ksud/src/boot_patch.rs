@@ -761,14 +761,33 @@ pub fn patch(args: BootPatchArgs) -> Result<()> {
             );
 
             println!("- Adding KinSU LKM");
-            let is_kernelsu_patched = cpio.exists("kinsu.ko");
+            let is_kernelsu_patched = cpio.exists("KinSU.ko");
 
+            // 清理原版 KernelSU 残留，避免双 root 冲突导致 boot loop
+            // 原版 KSU patch 后的 ramdisk 结构: init=KSU init, init.real=原厂 init, ksu.ko=KSU 模块
+            // 必须先恢复原厂 init，再执行 KinSU patch，否则 init.real 会变成 KSU init
+            if !is_kernelsu_patched && cpio.exists("ksu.ko") {
+                println!("- Detected legacy KernelSU, cleaning up to avoid conflict");
+                // 删除原版 KSU 的内核模块
+                cpio.rm("ksu.ko", false);
+                // 删除 KSU 的 init（不是原厂 init）
+                if cpio.exists("init") {
+                    cpio.rm("init", false);
+                }
+                // 恢复原厂 init：init.real -> init
+                if cpio.exists("init.real") {
+                    println!("- Restoring stock init from init.real");
+                    cpio.mv("init.real", "init")?;
+                }
+            }
+
+            // 正常 KinSU patch 流程：备份原厂 init，注入 KinSU init
             if !is_kernelsu_patched && cpio.exists("init") {
                 cpio.mv("init", "init.real")?;
             }
 
             cpio.add("init", CpioEntry::regular(0o755, ksu_init))?;
-            cpio.add("kinsu.ko", CpioEntry::regular(0o755, kernelsu_ko))?;
+            cpio.add("KinSU.ko", CpioEntry::regular(0o755, kernelsu_ko))?;
 
             #[cfg(target_os = "android")]
             if !is_kernelsu_patched
@@ -892,7 +911,16 @@ pub fn patch(args: BootPatchArgs) -> Result<()> {
             let output_dir = out.unwrap_or(std::env::current_dir()?);
             let name = out_name.unwrap_or_else(|| {
                 let now = chrono::Utc::now();
-                format!("kernelsu_patched_{}.img", now.format("%Y%m%d_%H%M%S"))
+                // 根据输入镜像路径判断输出文件名，区分 boot 和 init_boot
+                let prefix = if boot_image_file
+                    .to_string_lossy()
+                    .contains("init_boot")
+                {
+                    "init_boot"
+                } else {
+                    "boot"
+                };
+                format!("kernelsu_patched_{prefix}_{}.img", now.format("%Y%m%d_%H%M%S"))
             });
             let output_image = output_dir.join(name);
             std::fs::write(&output_image, &new_boot_bytes).context("write out new boot failed")?;
@@ -991,7 +1019,7 @@ pub fn restore(args: BootRestoreArgs) -> Result<()> {
         };
 
     ensure!(
-        cpio.exists("kinsu.ko"),
+        cpio.exists("KinSU.ko"),
         "boot image is not patched by KinSU"
     );
 
@@ -1079,7 +1107,7 @@ fn rebuild_without_ksu(
     vendor_ramdisk_idx: Option<usize>,
 ) -> Result<Vec<u8>> {
     println!("- Removing KinSU from boot image");
-    cpio.rm("kinsu.ko", false);
+    cpio.rm("KinSU.ko", false);
     if cpio.exists("init.real") {
         cpio.mv("init.real", "init")?;
     }

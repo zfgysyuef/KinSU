@@ -1,0 +1,889 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KinSU - 穿越内核的异世界 Root 冒险</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--primary:#3370ff;--primary-light:#e8f0ff;--primary-dark:#245bdb;--bg:#fff;--bg-gray:#f5f6f7;--bg-dark:#1a1a2e;--text-primary:#1f2329;--text-secondary:#3b3f46;--text-tertiary:#8f959e;--border:#e4e7ed;--border-light:#eff0f1;--code-bg:#f2f4f7;--code-dark-bg:#1e1e2e;--code-dark-text:#cdd6f4;--sidebar-w:260px;--toc-w:200px;--navbar-h:56px;--shadow-sm:0 1px 2px rgba(0,0,0,.06);--shadow-md:0 4px 12px rgba(0,0,0,.08);--shadow-lg:0 8px 24px rgba(0,0,0,.12);--radius-sm:6px;--radius-md:8px;--radius-lg:12px;--tr:.25s cubic-bezier(.4,0,.2,1)}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Sans SC','Inter',system-ui,-apple-system,sans-serif;color:var(--text-primary);background:var(--bg);line-height:1.6;overflow-x:hidden}
+a{text-decoration:none;color:var(--primary)}
+a:hover{color:var(--primary-dark)}
+button{cursor:pointer;border:none;font-family:inherit}
+
+.navbar{position:fixed;top:0;left:0;right:0;height:var(--navbar-h);background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border-light);z-index:1000;display:flex;align-items:center;padding:0 24px;transition:background var(--tr)}
+.navbar.dark{background:rgba(26,26,46,.92);border-bottom-color:rgba(255,255,255,.08)}
+.nav-logo{font-size:20px;font-weight:700;color:var(--primary);display:flex;align-items:center;gap:8px;cursor:pointer}
+.nav-logo svg{width:28px;height:28px}
+.nav-tabs{display:flex;gap:4px;margin-left:32px}
+.nav-tab{padding:6px 16px;border-radius:var(--radius-sm);font-size:14px;font-weight:500;color:var(--text-secondary);background:0 0;transition:all var(--tr)}
+.nav-tab:hover{background:var(--bg-gray);color:var(--text-primary)}
+.nav-tab.active{background:var(--primary-light);color:var(--primary)}
+.nav-right{margin-left:auto;display:flex;align-items:center;gap:12px}
+.nav-github{width:36px;height:36px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;background:0 0;transition:background var(--tr)}
+.nav-github:hover{background:var(--bg-gray)}
+.nav-github svg{width:22px;height:22px;fill:var(--text-secondary)}
+
+#landing{display:block;padding-top:var(--navbar-h)}
+.hero{position:relative;min-height:92vh;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.hero-bg{position:absolute;inset:0;z-index:0;background:url('https://acg.yaohud.cn/dm/adaptive.php') center/cover no-repeat}
+.hero-bg::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(26,26,46,.85),rgba(51,112,255,.4))}
+.hero-content{position:relative;z-index:1;text-align:center;padding:40px 24px;max-width:720px}
+.hero-title{font-size:clamp(48px,8vw,80px);font-weight:700;color:#fff;letter-spacing:-1px;margin-bottom:12px;text-shadow:0 2px 20px rgba(0,0,0,.3)}
+.hero-subtitle{font-size:clamp(18px,3vw,24px);color:rgba(255,255,255,.9);font-weight:400;margin-bottom:8px}
+.hero-desc{font-size:16px;color:rgba(255,255,255,.7);margin-bottom:32px}
+.hero-buttons{display:flex;gap:16px;justify-content:center;flex-wrap:wrap}
+.btn-primary{padding:12px 32px;border-radius:var(--radius-md);background:var(--primary);color:#fff;font-size:15px;font-weight:600;transition:all var(--tr);box-shadow:0 4px 16px rgba(51,112,255,.4)}
+.btn-primary:hover{background:var(--primary-dark);transform:translateY(-1px);box-shadow:0 6px 20px rgba(51,112,255,.5);color:#fff}
+.btn-secondary{padding:12px 32px;border-radius:var(--radius-md);background:rgba(255,255,255,.15);color:#fff;font-size:15px;font-weight:600;border:1px solid rgba(255,255,255,.3);transition:all var(--tr);backdrop-filter:blur(4px)}
+.btn-secondary:hover{background:rgba(255,255,255,.25);color:#fff}
+
+.features{padding:80px 24px;max-width:1200px;margin:0 auto}
+.section-title{font-size:32px;font-weight:700;text-align:center;margin-bottom:12px;color:var(--text-primary)}
+.section-desc{font-size:16px;color:var(--text-tertiary);text-align:center;margin-bottom:48px}
+.features-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:24px}
+.feature-card{padding:28px;border-radius:var(--radius-lg);background:var(--bg);border:1px solid var(--border-light);transition:all var(--tr)}
+.feature-card:hover{border-color:var(--primary);box-shadow:var(--shadow-md);transform:translateY(-2px)}
+.feature-icon{width:44px;height:44px;border-radius:var(--radius-md);background:var(--primary-light);display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:16px}
+.feature-name{font-size:17px;font-weight:600;color:var(--text-primary);margin-bottom:8px}
+.feature-desc{font-size:14px;color:var(--text-secondary);line-height:1.7}
+
+.getting-started{padding:80px 24px;background:var(--bg-gray)}
+.getting-started-inner{max-width:960px;margin:0 auto}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:32px;margin-top:48px}
+.step{text-align:center}
+.step-num{width:48px;height:48px;border-radius:50%;background:var(--primary);color:#fff;font-size:20px;font-weight:700;display:flex;align-items:center;justify-content:center;margin:0 auto 16px}
+.step-title{font-size:16px;font-weight:600;margin-bottom:8px}
+.step-desc{font-size:14px;color:var(--text-secondary)}
+
+.comparison{padding:80px 24px;max-width:960px;margin:0 auto}
+.comparison-table{width:100%;border-collapse:collapse;margin-top:48px;border-radius:var(--radius-lg);overflow:hidden;border:1px solid var(--border)}
+.comparison-table th{background:var(--bg-gray);padding:14px 20px;font-size:14px;font-weight:600;text-align:left;border-bottom:2px solid var(--border)}
+.comparison-table td{padding:12px 20px;font-size:14px;border-bottom:1px solid var(--border-light)}
+.comparison-table tr:last-child td{border-bottom:none}
+.comparison-table tr:hover td{background:var(--primary-light)}
+.check{color:#52c41a;font-weight:700}
+.cross{color:#ff4d4f;font-weight:700}
+
+.contributors{padding:80px 24px;background:var(--bg-gray)}
+.contributors-inner{max-width:960px;margin:0 auto}
+.avatar-grid{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:48px}
+.avatar{width:48px;height:48px;border-radius:50%;border:2px solid var(--bg);box-shadow:var(--shadow-sm);transition:transform var(--tr)}
+.avatar:hover{transform:scale(1.2);z-index:1}
+
+.footer{padding:32px 24px;text-align:center;border-top:1px solid var(--border-light);color:var(--text-tertiary);font-size:14px}
+
+#docs{display:none;padding-top:var(--navbar-h);height:100vh}
+.docs-layout{display:flex;height:calc(100vh - var(--navbar-h))}
+
+.docs-sidebar{width:var(--sidebar-w);min-width:var(--sidebar-w);background:var(--bg-gray);border-right:1px solid var(--border-light);overflow-y:auto;padding:16px 0;transition:transform var(--tr)}
+.docs-sidebar::-webkit-scrollbar{width:4px}
+.docs-sidebar::-webkit-scrollbar-thumb{background:#d0d3d8;border-radius:2px}
+.sidebar-header{padding:12px 20px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border-light);margin-bottom:8px}
+.sidebar-logo{width:28px;height:28px;display:flex;align-items:center;justify-content:center}
+.sidebar-title{font-size:15px;font-weight:600;color:var(--text-primary)}
+
+.sidebar-section{margin-bottom:4px}
+.sidebar-section-header{display:flex;align-items:center;gap:8px;padding:8px 20px;cursor:pointer;font-size:14px;font-weight:500;color:var(--text-primary);transition:background var(--tr);user-select:none}
+.sidebar-section-header:hover{background:rgba(0,0,0,.04)}
+.sidebar-arrow{font-size:10px;transition:transform var(--tr);color:var(--text-tertiary);margin-left:auto}
+.sidebar-section.expanded .sidebar-arrow{transform:rotate(90deg)}
+.sidebar-items{max-height:0;overflow:hidden;transition:max-height .3s ease}
+.sidebar-section.expanded .sidebar-items{max-height:500px}
+.sidebar-item{display:block;padding:6px 20px 6px 48px;font-size:13px;color:var(--text-secondary);cursor:pointer;transition:all var(--tr);position:relative}
+.sidebar-item::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--primary);opacity:0;transition:opacity var(--tr)}
+.sidebar-item:hover{background:rgba(51,112,255,.06);color:var(--primary)}
+.sidebar-item.active{background:var(--primary-light);color:var(--primary);font-weight:500}
+.sidebar-item.active::before{opacity:1}
+
+.docs-main{flex:1;overflow-y:auto;position:relative;background:var(--bg)}
+.docs-main::-webkit-scrollbar{width:6px}
+.docs-main::-webkit-scrollbar-thumb{background:#d0d3d8;border-radius:3px}
+.docs-content-wrapper{max-width:800px;margin:0 auto;padding:32px 40px 80px;position:relative}
+
+.breadcrumb{font-size:13px;color:var(--text-tertiary);margin-bottom:24px;display:flex;align-items:center;gap:6px}
+.breadcrumb-sep{margin:0 2px}
+
+.doc-title{font-size:28px;font-weight:700;color:var(--text-primary);margin-bottom:8px;padding-bottom:16px;border-bottom:1px solid var(--border-light)}
+.doc-meta{font-size:13px;color:var(--text-tertiary);margin-bottom:32px;display:flex;gap:16px}
+.doc-body h1{font-size:26px;font-weight:600;color:#1f2329;margin-top:32px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border-light)}
+.doc-body h2{font-size:22px;font-weight:600;color:#1f2329;margin-top:28px;margin-bottom:10px}
+.doc-body h3{font-size:18px;font-weight:600;color:#1f2329;margin-top:24px;margin-bottom:8px}
+.doc-body p{font-size:15px;line-height:1.74;color:#3b3f46;margin-bottom:12px}
+.doc-body ul,.doc-body ol{margin:8px 0 12px 24px;font-size:15px;line-height:1.74;color:#3b3f46}
+.doc-body li{margin-bottom:4px}
+.doc-body code{background:#f2f4f7;padding:2px 6px;border-radius:4px;font-size:14px;font-family:'Fira Code',Consolas,monospace;color:#d63384}
+.doc-body pre{background:#1e1e2e;color:#cdd6f4;border-radius:8px;padding:16px;margin:12px 0 16px;overflow-x:auto;font-size:14px;line-height:1.6;font-family:'Fira Code',Consolas,monospace}
+.doc-body pre code{background:none;padding:0;color:inherit;font-size:inherit}
+.doc-body blockquote{border-left:3px solid var(--primary);background:#f2f4f7;padding:12px 16px;margin:12px 0;border-radius:0 var(--radius-sm) var(--radius-sm) 0;color:var(--text-secondary);font-size:14px}
+.doc-body table{width:100%;border-collapse:collapse;margin:12px 0 16px;font-size:14px}
+.doc-body th{background:var(--bg-gray);padding:10px 14px;text-align:left;font-weight:600;border:1px solid var(--border)}
+.doc-body td{padding:10px 14px;border:1px solid var(--border)}
+.doc-body tr:nth-child(even) td{background:#fafbfc}
+
+.callout{padding:12px 16px;border-radius:var(--radius-md);margin:12px 0 16px;font-size:14px;line-height:1.6;display:flex;gap:10px;align-items:flex-start}
+.callout-icon{font-size:18px;flex-shrink:0;margin-top:1px}
+.callout-info{background:#e8f0ff;border:1px solid #b8d0ff;color:#1a56db}
+.callout-warning{background:#fff7e6;border:1px solid #ffe0a0;color:#ad6800}
+.callout-tip{background:#e6f9e6;border:1px solid #a8e6a8;color:#1a7a1a}
+
+.docs-toc{width:var(--toc-w);min-width:var(--toc-w);padding:32px 16px;overflow-y:auto;border-left:1px solid var(--border-light)}
+.docs-toc::-webkit-scrollbar{width:3px}
+.docs-toc::-webkit-scrollbar-thumb{background:#e0e0e0;border-radius:2px}
+.toc-title{font-size:12px;font-weight:600;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;padding-left:12px}
+.toc-item{display:block;padding:4px 12px;font-size:13px;color:var(--text-tertiary);cursor:pointer;border-left:2px solid transparent;transition:all var(--tr);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.toc-item:hover{color:var(--primary)}
+.toc-item.active{color:var(--primary);border-left-color:var(--primary);font-weight:500}
+.toc-item.h3{padding-left:24px;font-size:12px}
+
+.mobile-menu-btn{display:none;width:36px;height:36px;border-radius:var(--radius-sm);background:0 0;align-items:center;justify-content:center;margin-right:8px}
+.mobile-menu-btn svg{width:20px;height:20px;fill:var(--text-secondary)}
+
+@media(max-width:1024px){.docs-toc{display:none}}
+@media(max-width:768px){
+  .mobile-menu-btn{display:flex}
+  .docs-sidebar{position:fixed;top:var(--navbar-h);left:0;bottom:0;z-index:999;transform:translateX(-100%)}
+  .docs-sidebar.open{transform:translateX(0)}
+  .sidebar-overlay{display:none;position:fixed;inset:0;top:var(--navbar-h);background:rgba(0,0,0,.3);z-index:998}
+  .sidebar-overlay.show{display:block}
+  .features-grid{grid-template-columns:1fr}
+  .steps{grid-template-columns:1fr 1fr}
+  .hero-title{font-size:40px}
+  .docs-content-wrapper{padding:24px 20px 60px}
+  .comparison-table{font-size:12px}
+  .comparison-table th,.comparison-table td{padding:8px 10px}
+}
+@media(max-width:480px){.steps{grid-template-columns:1fr}.hero-buttons{flex-direction:column;align-items:center}}
+
+@keyframes fadeInUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.animate-in{animation:fadeInUp .6s ease forwards}
+.animate-delay-1{animation-delay:.1s;opacity:0}
+.animate-delay-2{animation-delay:.2s;opacity:0}
+.animate-delay-3{animation-delay:.3s;opacity:0}
+</style>
+</head>
+<body>
+
+<nav class="navbar" id="navbar">
+  <button class="mobile-menu-btn" id="mobileMenuBtn">
+    <svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+  </button>
+  <div class="nav-logo" id="navLogo">
+    <svg viewBox="0 0 800 800" width="28" height="28"><rect x="259" y="259" width="282" height="282" fill="none" stroke="#3370ff" stroke-width="18"/><rect x="257" y="257" width="150" height="150" fill="#3370ff"/><rect x="393" y="393" width="150" height="150" fill="#3370ff"/></svg>
+    <span>KinSU</span>
+  </div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" id="tabHome" data-tab="home"></button>
+    <button class="nav-tab" id="tabDocs" data-tab="docs"></button>
+  </div>
+  <div class="nav-right">
+    <a href="https://github.com/Spring-bulid/KinSU" target="_blank" class="nav-github" title="GitHub">
+      <svg viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+    </a>
+  </div>
+</nav>
+
+<div id="landing">
+  <section class="hero" id="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-content">
+      <h1 class="hero-title animate-in" id="heroTitle"></h1>
+      <p class="hero-subtitle animate-in animate-delay-1" id="heroSubtitle"></p>
+      <p class="hero-desc animate-in animate-delay-2" id="heroDesc"></p>
+      <div class="hero-buttons animate-in animate-delay-3" id="heroButtons"></div>
+    </div>
+  </section>
+  <section class="features" id="featuresSection">
+    <h2 class="section-title" id="featuresTitle"></h2>
+    <p class="section-desc" id="featuresDesc"></p>
+    <div class="features-grid" id="featuresGrid"></div>
+  </section>
+  <section class="getting-started" id="gettingStartedSection">
+    <div class="getting-started-inner">
+      <h2 class="section-title" id="gsTitle"></h2>
+      <p class="section-desc" id="gsDesc"></p>
+      <div class="steps" id="stepsContainer"></div>
+    </div>
+  </section>
+  <section class="comparison" id="comparisonSection">
+    <h2 class="section-title" id="compTitle"></h2>
+    <p class="section-desc" id="compDesc"></p>
+    <div id="comparisonTable"></div>
+  </section>
+  <section class="contributors" id="contributorsSection">
+    <div class="contributors-inner">
+      <h2 class="section-title" id="contribTitle"></h2>
+      <p class="section-desc" id="contribDesc"></p>
+      <div class="avatar-grid" id="avatarGrid"></div>
+    </div>
+  </section>
+  <footer class="footer" id="footer"></footer>
+</div>
+
+<div id="docs">
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+  <div class="docs-layout">
+    <aside class="docs-sidebar" id="docsSidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo"><svg viewBox="0 0 800 800" width="22" height="22"><rect x="259" y="259" width="282" height="282" fill="none" stroke="#3370ff" stroke-width="18"/><rect x="257" y="257" width="150" height="150" fill="#3370ff"/><rect x="393" y="393" width="150" height="150" fill="#3370ff"/></svg></div>
+        <div class="sidebar-title" id="sidebarTitleText"></div>
+      </div>
+      <div id="sidebarTree"></div>
+    </aside>
+    <main class="docs-main" id="docsMain">
+      <div class="docs-content-wrapper">
+        <div class="breadcrumb" id="breadcrumb"></div>
+        <h1 class="doc-title" id="docTitle"></h1>
+        <div class="doc-meta" id="docMeta"></div>
+        <div class="doc-body" id="docBody"></div>
+      </div>
+    </main>
+    <aside class="docs-toc" id="docsToc">
+      <div class="toc-title" id="tocTitle"></div>
+      <div id="tocItems"></div>
+    </aside>
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+// ====== All Chinese text in JS to avoid encoding issues ======
+var T={
+  navHome:'\u9996\u9875',navDocs:'\u6587\u6863',
+  heroTitle:'KinSU',
+  heroSubtitle:'\u7a7f\u8d8a\u5185\u6838\u7684\u5f02\u4e16\u754c Root \u5192\u9669',
+  heroDesc:'\u4ee5 LKM \u4e3a\u5251\uff0c\u65a9\u65ad\u6743\u9650\u7684\u67b7\u9501',
+  btnAdventure:'\u5f00\u542f\u5192\u9669',btnGuide:'\u9605\u8bfb\u653b\u7565',
+  featuresTitle:'\u5192\u9669\u8005\u7684\u529b\u91cf',
+  featuresDesc:'\u638c\u63e1\u8fd9\u4e9b\u6838\u5fc3\u80fd\u529b\uff0c\u5f00\u542f\u4f60\u7684\u5185\u6838\u4e4b\u65c5',
+  gsTitle:'\u5f00\u59cb\u5192\u9669',gsDesc:'\u53ea\u9700\u56db\u6b65\uff0c\u5373\u53ef\u8e0f\u4e0a\u5185\u6838\u4e4b\u65c5',
+  compTitle:'\u5192\u9669\u8005\u5bf9\u6bd4',compDesc:'\u4e0e\u5176\u4ed6 Root \u65b9\u6848\u7684\u5168\u9762\u5bf9\u6bd4',
+  contribTitle:'\u5192\u9669\u8005\u540d\u518c',contribDesc:'\u611f\u8c22\u6bcf\u4e00\u4f4d\u4e3a KinSU \u8d21\u732e\u529b\u91cf\u7684\u5192\u9669\u8005',
+  footer:'\u00a9 2024 KinSU \u9879\u76ee\u7ec4 \u00b7 \u4ee5\u5f00\u6e90\u4e4b\u540d\uff0c\u884c\u81ea\u7531\u4e4b\u5f92',
+  tocLabel:'\u76ee\u5f55',sidebarTitle:'KinSU \u6587\u6863',
+  updatedLabel:'\u66f4\u65b0\u4e8e',readingTime:'\u9884\u8ba1\u9605\u8bfb',minute:'\u5206\u949f'
+};
+
+var features=[
+  {icon:'\u2694\ufe0f',name:'LKM \u57fa\u51c6\u6a21\u5f0f',desc:'\u4ee5\u53ef\u52a0\u8f7d\u5185\u6838\u6a21\u5757\u4e3a\u5192\u9669\u7684\u57fa\u77f3\uff0c\u65e0\u9700\u91cd\u7f16\u8bd1\u5185\u6838\u5373\u53ef\u83b7\u5f97 Root \u529b\u91cf'},
+  {icon:'\ud83c\udfb2',name:'GKI \u5f02\u4e16\u754c\u9002\u914d',desc:'\u5b8c\u7f8e\u9002\u914d Android GKI \u8bbe\u5907\u7684\u5185\u6838\u7ea7 Root'},
+  {icon:'\ud83d\udcd3',name:'\u6a21\u5757\u9b54\u6cd5\u4e66',desc:'\u5f3a\u5927\u7684\u6a21\u5757\u7ba1\u7406\u7cfb\u7edf\uff0c\u652f\u6301 WebUI \u53ef\u89c6\u5316\u64cd\u4f5c'},
+  {icon:'\ud83d\udee1\ufe0f',name:'\u8d85\u7ea7\u7528\u6237\u6743\u9650',desc:'\u7cbe\u7ec6\u7684\u5e94\u7528\u914d\u7f6e\u6587\u4ef6\u7cfb\u7edf\uff0c\u4e3a\u6bcf\u4e00\u4f4d\u5192\u9669\u8005\u91cf\u8eab\u5b9a\u5236 Root \u6743\u9650'},
+  {icon:'\ud83c\udfa8',name:'\u4e3b\u9898\u5e7b\u5316\u672f',desc:'\u52a8\u6001\u53d6\u8272\u4e3b\u9898\u5f15\u64ce\uff0c\u652f\u6301 iPhone \u98ce\u683c\u5b57\u4f53\u5e7b\u5316'},
+  {icon:'\ud83c\udf0d',name:'\u591a\u8bed\u8a00\u7ed3\u754c',desc:'\u8de8\u8d8a\u8bed\u8a00\u4e4b\u58c1\uff0c\u652f\u6301\u4e2d\u6587\u3001\u82f1\u8bed\u3001\u4fc4\u8bed\u3001\u65e5\u8bed\u7b49\u591a\u79cd\u8bed\u8a00'}
+];
+
+var steps=[
+  {num:'1',title:'\u89e3\u9501 Bootloader',desc:'\u89e3\u9501\u8bbe\u5907\u7684 Bootloader\uff0c\u4e3a\u5192\u9669\u94fa\u5e73\u9053\u8def'},
+  {num:'2',title:'\u5237\u5165 KinSU \u5185\u6838',desc:'\u901a\u8fc7 fastboot \u5237\u5165 KinSU \u5185\u6838\u955c\u50cf'},
+  {num:'3',title:'\u5b89\u88c5\u7ba1\u7406\u5668',desc:'\u5b89\u88c5 KinSU Manager \u5e94\u7528\uff0c\u638c\u63e1\u5192\u9669\u6307\u6325\u6743'},
+  {num:'4',title:'\u5f00\u542f Root \u4e4b\u65c5',desc:'\u914d\u7f6e\u8d85\u7ea7\u7528\u6237\u3001\u5b89\u88c5\u6a21\u5757\uff0c\u5c3d\u60c5\u63a2\u7d22'}
+];
+
+var compRows=[
+  ['LKM \u5185\u6838\u6a21\u5757\u6a21\u5f0f',true,false,false],
+  ['GKI \u8bbe\u5907\u9002\u914d',true,true,false],
+  ['\u6a21\u5757 WebUI \u652f\u6301',true,false,false],
+  ['\u5e94\u7528\u914d\u7f6e\u6587\u4ef6\u7cfb\u7edf',true,false,false],
+  ['\u52a8\u6001\u4e3b\u9898\u5f15\u64ce',true,false,false],
+  ['SuSFS \u9690\u8eab\u529f\u80fd',true,true,false],
+  ['KPM \u5185\u6838\u8865\u4e01',true,false,false],
+  ['\u5b89\u5168\u4fee\u590d\u6570\u91cf','21+','5+','0'],
+  ['\u5f00\u6e90\u534f\u8bae','GPL-2.0','GPL-2.0','GPL-3.0']
+];
+
+var contribIds=['wS4l1wejYl','Y9hl1wejYl','knnt1wejYl','7I4f1wejYl','F7I21wejYl','fxUa1wejYl','h7tO1wejYl','6blU1wejYl','BSXa1wejYl','jGwH1wejYl','2iME1wejYl','yf7U1wejYl','uDmW1wejYl','MORu1wejYl','acZs1wejYl','LBsU1wejYl','D0mk1wejYl','Woy91wejYl','Hxv41wejYl','romq1wejYl','4D2E1wejYl','XeJl1wejYl','be1p1wejYl','HdYu1wejYl','93CE1wejYl','5Xpw1wejYl','Io5J1wejYl','ksm51wejYl','PFd71wejYl','V4D21wejYl','pgQp1wejYl','8YR71wejYl','ZNVY1wejYl','qrJV1wejYl','Q1jU1wejYl','UrBU1wejYl'];
+
+// ====== Document Tree ======
+var docTree=[
+  {id:'quickstart',icon:'\ud83d\udcd6',title:'\u5feb\u901f\u5f00\u59cb',children:[
+    {id:'install',title:'\u5b89\u88c5\u6307\u5357'},
+    {id:'flash-kernel',title:'\u5237\u5165\u5185\u6838'},
+    {id:'first-setup',title:'\u9996\u6b21\u914d\u7f6e'}
+  ]},
+  {id:'core',icon:'\ud83d\udee1\ufe0f',title:'\u6838\u5fc3\u529f\u80fd',children:[
+    {id:'lkm-mode',title:'LKM \u6a21\u5f0f\u8be6\u89e3'},
+    {id:'gki-adapt',title:'GKI \u8bbe\u5907\u9002\u914d'},
+    {id:'superuser',title:'\u8d85\u7ea7\u7528\u6237\u7ba1\u7406'},
+    {id:'module-system',title:'\u6a21\u5757\u7cfb\u7edf'}
+  ]},
+  {id:'advanced',icon:'\u26a1',title:'\u9ad8\u7ea7\u529f\u80fd',children:[
+    {id:'susfs',title:'SuSFS \u9690\u8eab\u672f'},
+    {id:'kpm',title:'KPM \u5185\u6838\u8865\u4e01'},
+    {id:'theme',title:'\u4e3b\u9898\u5e7b\u5316\u672f'}
+  ]},
+  {id:'security',icon:'\ud83d\udd12',title:'\u5b89\u5168\u52a0\u56fa',children:[
+    {id:'security-fixes',title:'\u5b89\u5168\u4fee\u590d\u6e05\u5355'},
+    {id:'cmd-injection',title:'\u547d\u4ee4\u6ce8\u5165\u9632\u62a4'},
+    {id:'path-traversal',title:'\u8def\u5f84\u7a7f\u8d8a\u9632\u62a4'}
+  ]},
+  {id:'dev',icon:'\ud83d\udcdd',title:'\u5f00\u53d1\u6307\u5357',children:[
+    {id:'module-dev',title:'\u6a21\u5757\u5f00\u53d1'},
+    {id:'webui-dev',title:'WebUI \u5f00\u53d1'},
+    {id:'contribute',title:'\u8d21\u732e\u4ee3\u7801'}
+  ]}
+];
+
+// ====== Document Content ======
+var D={};
+
+D['install']={title:'\u5b89\u88c5\u6307\u5357',cat:'\u5feb\u901f\u5f00\u59cb',updated:'2024-12-15',html:function(){
+return h2('\u524d\u7f6e\u8981\u6c42')+
+p('\u5728\u5f00\u59cb\u5b89\u88c5 KinSU \u4e4b\u524d\uff0c\u8bf7\u786e\u4fdd\u4f60\u7684\u8bbe\u5907\u548c\u73af\u5883\u6ee1\u8db3\u4ee5\u4e0b\u8981\u6c42\uff1a')+
+ul(['\u4e00\u53f0\u5df2\u89e3\u9501 Bootloader \u7684 Android \u8bbe\u5907','\u5df2\u5b89\u88c5 ADB \u548c Fastboot \u5de5\u5177\uff08Android SDK Platform Tools\uff09','\u8bbe\u5907\u5df2\u5f00\u542f USB \u8c03\u8bd5\u6a21\u5f0f','\u5df2\u5907\u4efd\u91cd\u8981\u6570\u636e\uff08\u5237\u5165\u5185\u6838\u53ef\u80fd\u5bfc\u81f4\u6570\u636e\u4e22\u5931\uff09','\u7535\u91cf\u5145\u8db3\uff08\u5efa\u8bae 50% \u4ee5\u4e0a\uff09'])+
+callout('warning','\u26a0\ufe0f \u5237\u5165\u5185\u6838\u5b58\u5728\u4e00\u5b9a\u98ce\u9669\uff0c\u8bf7\u786e\u4fdd\u4f60\u4e86\u89e3\u76f8\u5173\u64cd\u4f5c\u5e76\u5df2\u505a\u597d\u6570\u636e\u5907\u4efd\u3002\u5982\u679c\u8bbe\u5907\u51fa\u73b0\u95ee\u9898\uff0c\u8bf7\u901a\u8fc7\u5237\u5165\u539f\u59cb\u5185\u6838\u955c\u50cf\u6062\u590d\u3002')+
+h2('\u4e0b\u8f7d KinSU')+
+p('\u524d\u5f80 GitHub Releases \u9875\u9762\u4e0b\u8f7d\u9002\u5408\u4f60\u8bbe\u5907\u7684 KinSU \u7248\u672c\uff1a')+
+pre('# \u4e0b\u8f7d\u6700\u65b0\u7248\u672c\n# \u8bf7\u524d\u5f80 https://github.com/Spring-bulid/KinSU/releases/latest\n\n# GKI \u8bbe\u5907\u4e0b\u8f7d\u5bf9\u5e94\u5185\u6838\u7248\u672c\u7684\u955c\u50cf\n# \u975e GKI \u8bbe\u5907\u9700\u8981\u81ea\u884c\u7f16\u8bd1\u5185\u6838')+
+p('\u4e0b\u8f7d\u65f6\u8bf7\u6ce8\u610f\u9009\u62e9\u4e0e\u4f60\u8bbe\u5907\u5185\u6838\u7248\u672c\u5339\u914d\u7684\u955c\u50cf\u6587\u4ef6\u3002GKI \u8bbe\u5907\u7684\u955c\u50cf\u6587\u4ef6\u540d\u901a\u5e38\u5305\u542b\u5185\u6838\u7248\u672c\u53f7\uff0c\u4f8b\u5982 KinSU-5.10.xxx.zip\u3002')+
+h2('\u68c0\u67e5\u8bbe\u5907\u4fe1\u606f')+
+p('\u5728\u5b89\u88c5\u524d\uff0c\u5efa\u8bae\u5148\u786e\u8ba4\u4f60\u7684\u8bbe\u5907\u4fe1\u606f\uff1a')+
+pre('# \u67e5\u770b\u8bbe\u5907\u578b\u53f7\nadb shell getprop ro.product.model\n\n# \u67e5\u770b\u5185\u6838\u7248\u672c\nadb shell uname -r\n\n# \u67e5\u770b\u662f\u5426\u4e3a GKI \u8bbe\u5907\nadb shell getprop ro.boot.vbmeta.device_state\n\n# \u67e5\u770b\u5f53\u524d\u5206\u533a\nadb shell getprop ro.boot.slot_suffix')+
+callout('info','\u2139\ufe0f GKI\uff08Generic Kernel Image\uff09\u662f Android 12 \u53ca\u4ee5\u4e0a\u7248\u672c\u5f15\u5165\u7684\u901a\u7528\u5185\u6838\u955c\u50cf\u6807\u51c6\u3002\u5982\u679c\u4f60\u7684\u8bbe\u5907\u8fd0\u884c Android 12+ \u4e14\u652f\u6301 GKI\uff0c\u5219\u53ef\u4ee5\u76f4\u63a5\u4f7f\u7528\u9884\u7f16\u8bd1\u7684 KinSU \u5185\u6838\u955c\u50cf\u3002')+
+h2('\u5b89\u88c5\u6b65\u9aa4')+
+h3('1. \u89e3\u9501 Bootloader')+
+p('\u5982\u679c\u4f60\u8fd8\u6ca1\u6709\u89e3\u9501 Bootloader\uff0c\u8bf7\u5148\u5b8c\u6210\u8fd9\u4e00\u6b65\uff1a')+
+pre('# \u8fdb\u5165 Bootloader \u6a21\u5f0f\nadb reboot bootloader\n\n# \u89e3\u9501 Bootloader\uff08\u4e0d\u540c\u5382\u5546\u547d\u4ee4\u53ef\u80fd\u4e0d\u540c\uff09\nfastboot flashing unlock\n# \u6216\nfastboot oem unlock')+
+h3('2. \u5237\u5165 KinSU \u5185\u6838')+
+p('\u6839\u636e\u4f60\u7684\u8bbe\u5907\u7c7b\u578b\uff0c\u9009\u62e9\u5bf9\u5e94\u7684\u5237\u5165\u65b9\u5f0f\uff08\u8be6\u89c1\u300c\u5237\u5165\u5185\u6838\u300d\u6587\u6863\uff09\u3002')+
+h3('3. \u5b89\u88c5 KinSU Manager')+
+p('\u5237\u5165\u5185\u6838\u540e\u91cd\u542f\u8bbe\u5907\uff0c\u5b89\u88c5 KinSU Manager \u5e94\u7528\u3002\u4f60\u53ef\u4ee5\u4ece GitHub Releases \u4e0b\u8f7d\u6700\u65b0\u7248\u672c\u7684 Manager APK\u3002')+
+h3('4. \u9a8c\u8bc1\u5b89\u88c5')+
+p('\u6253\u5f00 KinSU Manager\uff0c\u5982\u679c\u663e\u793a\u5185\u6838\u7248\u672c\u4fe1\u606f\u4e14\u8d85\u7ea7\u7528\u6237\u529f\u80fd\u53ef\u7528\uff0c\u5219\u8bf4\u660e\u5b89\u88c5\u6210\u529f\u3002')+
+callout('tip','\ud83d\udca1 \u5982\u679c Manager \u663e\u793a\u300c\u672a\u5b89\u88c5\u300d\u6216\u300c\u72b6\u6001\u5f02\u5e38\u300d\uff0c\u8bf7\u68c0\u67e5\u5185\u6838\u7248\u672c\u662f\u5426\u4e0e\u955c\u50cf\u5339\u914d\uff0c\u6216\u5c1d\u8bd5\u91cd\u65b0\u5237\u5165\u5185\u6838\u3002');
+}};
+
+D['flash-kernel']={title:'\u5237\u5165\u5185\u6838',cat:'\u5feb\u901f\u5f00\u59cb',updated:'2024-12-15',html:function(){
+return h2('\u5237\u5165\u524d\u51c6\u5907')+
+p('\u5728\u5237\u5165 KinSU \u5185\u6838\u4e4b\u524d\uff0c\u8bf7\u786e\u4fdd\u4f60\u5df2\u5b8c\u6210\u4ee5\u4e0b\u51c6\u5907\u5de5\u4f5c\uff1a')+
+ul(['\u5df2\u89e3\u9501 Bootloader','\u5df2\u4e0b\u8f7d\u5bf9\u5e94\u8bbe\u5907\u7684 KinSU \u5185\u6838\u955c\u50cf','\u5df2\u5b89\u88c5 ADB \u548c Fastboot \u5de5\u5177','\u5df2\u5907\u4efd\u91cd\u8981\u6570\u636e'])+
+h2('GKI \u8bbe\u5907\u5237\u5165')+
+p('GKI\uff08Generic Kernel Image\uff09\u8bbe\u5907\u662f\u8fd0\u884c Android 12 \u53ca\u4ee5\u4e0a\u7248\u672c\u7684\u8bbe\u5907\uff0c\u5b83\u4eec\u4f7f\u7528\u901a\u7528\u5185\u6838\u955c\u50cf\u3002\u5237\u5165\u65b9\u5f0f\u5982\u4e0b\uff1a')+
+pre('# \u5c06\u8bbe\u5907\u8fde\u63a5\u5230\u7535\u8111\uff0c\u8fdb\u5165 Bootloader \u6a21\u5f0f\nadb reboot bootloader\n\n# \u7b49\u5f85\u8bbe\u5907\u8fdb\u5165 Bootloader \u6a21\u5f0f\nfastboot wait-for-device\n\n# \u5237\u5165 KinSU \u5185\u6838\u5230 init_boot \u5206\u533a\nfastboot flash init_boot kinsu-init_boot.img\n\n# \u91cd\u542f\u8bbe\u5907\nfastboot reboot')+
+callout('info','\u2139\ufe0f GKI \u8bbe\u5907\u7684\u5185\u6838\u955c\u50cf\u5b58\u50a8\u5728 init_boot \u5206\u533a\u800c\u975e boot \u5206\u533a\u3002\u8bf7\u52a1\u5fc5\u4f7f\u7528\u6b63\u786e\u7684\u5206\u533a\u540d\u79f0\uff0c\u5426\u5219\u53ef\u80fd\u5bfc\u81f4\u8bbe\u5907\u65e0\u6cd5\u542f\u52a8\u3002')+
+h2('\u975e GKI \u8bbe\u5907\u5237\u5165')+
+p('\u5bf9\u4e8e\u975e GKI \u8bbe\u5907\uff0c\u4f60\u9700\u8981\u81ea\u884c\u7f16\u8bd1\u5185\u6838\u5e76\u96c6\u6210 KinSU\u3002\u5237\u5165\u65b9\u5f0f\u5982\u4e0b\uff1a')+
+pre('# \u8fdb\u5165 Bootloader \u6a21\u5f0f\nadb reboot bootloader\n\n# \u5237\u5165\u7f16\u8bd1\u597d\u7684\u5185\u6838\u955c\u50cf\u5230 boot \u5206\u533a\nfastboot flash boot kinsu-boot.img\n\n# \u91cd\u542f\u8bbe\u5907\nfastboot reboot')+
+h2('OTA \u5206\u533a\u5207\u6362')+
+p('Android \u8bbe\u5907\u4f7f\u7528 A/B \u5206\u533a\u673a\u5236\uff0c\u4f60\u9700\u8981\u786e\u4fdd\u5237\u5165\u5230\u5f53\u524d\u6d3b\u52a8\u5206\u533a\uff1a')+
+pre('# \u67e5\u770b\u5f53\u524d\u6d3b\u52a8\u5206\u533a\nadb shell getprop ro.boot.slot_suffix\n\n# \u5982\u679c\u8f93\u51fa _a\uff0c\u5219\u5237\u5165\u5230 slot_a\nfastboot flash init_boot_a kinsu-init_boot.img\n\n# \u5982\u679c\u8f93\u51fa _b\uff0c\u5219\u5237\u5165\u5230 slot_b\nfastboot flash init_boot_b kinsu-init_boot.img')+
+callout('warning','\u26a0\ufe0f OTA \u66f4\u65b0\u540e\uff0c\u5185\u6838\u53ef\u80fd\u88ab\u66ff\u6362\u4e3a\u539f\u59cb\u5185\u6838\u3002\u8bf7\u5728 OTA \u66f4\u65b0\u540e\u91cd\u65b0\u5237\u5165 KinSU \u5185\u6838\u3002\u5efa\u8bae\u4f7f\u7528 KinSU \u7684 OTA \u81ea\u52a8\u5904\u7406\u529f\u80fd\u3002')+
+h2('\u5e38\u89c1\u95ee\u9898')+
+h3('\u8bbe\u5907\u65e0\u6cd5\u542f\u52a8')+
+p('\u5982\u679c\u5237\u5165\u540e\u8bbe\u5907\u65e0\u6cd5\u542f\u52a8\uff0c\u53ef\u4ee5\u901a\u8fc7\u4ee5\u4e0b\u65b9\u5f0f\u6062\u590d\uff1a')+
+pre('# \u8fdb\u5165 Bootloader \u6a21\u5f0f\uff08\u6309\u4f4f\u97f3\u91cf\u952e + \u7535\u6e90\u952e\uff09\n\n# \u5237\u5165\u539f\u59cb\u5185\u6838\u955c\u50cf\nfastboot flash init_boot original-init_boot.img\n\n# \u91cd\u542f\nfastboot reboot')+
+h3('\u5185\u6838\u7248\u672c\u4e0d\u5339\u914d')+
+p('\u8bf7\u786e\u4fdd\u4e0b\u8f7d\u7684 KinSU \u955c\u50cf\u4e0e\u4f60\u7684\u8bbe\u5907\u5185\u6838\u7248\u672c\u4e00\u81f4\u3002\u53ef\u4ee5\u901a\u8fc7 adb shell uname -r \u67e5\u770b\u5f53\u524d\u5185\u6838\u7248\u672c\u3002');
+}};
+
+D['first-setup']={title:'\u9996\u6b21\u914d\u7f6e',cat:'\u5feb\u901f\u5f00\u59cb',updated:'2024-12-15',html:function(){
+return h2('\u542f\u52a8 KinSU Manager')+
+p('\u5237\u5165\u5185\u6838\u5e76\u91cd\u542f\u8bbe\u5907\u540e\uff0c\u6253\u5f00 KinSU Manager \u5e94\u7528\u3002\u9996\u6b21\u542f\u52a8\u65f6\uff0c\u5e94\u7528\u4f1a\u81ea\u52a8\u68c0\u6d4b\u5185\u6838\u72b6\u6001\u5e76\u5f15\u5bfc\u4f60\u5b8c\u6210\u521d\u59cb\u914d\u7f6e\u3002')+
+h2('\u5b8c\u6210\u521d\u59cb\u5316\u5411\u5bfc')+
+p('KinSU Manager \u9996\u6b21\u542f\u52a8\u65f6\u4f1a\u663e\u793a\u521d\u59cb\u5316\u5411\u5bfc\uff0c\u5e2e\u52a9\u4f60\u5b8c\u6210\u4ee5\u4e0b\u914d\u7f6e\uff1a')+
+ul(['\u8d85\u7ea7\u7528\u6237\u6a21\u5f0f\u9009\u62e9\uff08\u63a8\u8350\u9ed8\u8ba4\u6a21\u5f0f\uff09','\u5e94\u7528\u914d\u7f6e\u6587\u4ef6\u521d\u59cb\u5316','\u6a21\u5757\u5b58\u50a8\u76ee\u5f55\u8bbe\u7f6e','SELinux \u7b56\u7565\u914d\u7f6e'])+
+h2('\u914d\u7f6e\u8d85\u7ea7\u7528\u6237')+
+p('\u8d85\u7ea7\u7528\u6237\u662f KinSU \u7684\u6838\u5fc3\u529f\u80fd\u4e4b\u4e00\u3002\u4f60\u53ef\u4ee5\u5728 Manager \u4e2d\u4e3a\u6bcf\u4e2a\u5e94\u7528\u5355\u72ec\u914d\u7f6e Root \u6743\u9650\uff1a')+
+ol(['\u6253\u5f00 KinSU Manager\uff0c\u8fdb\u5165\u300c\u8d85\u7ea7\u7528\u6237\u300d\u9875\u9762','\u70b9\u51fb\u53f3\u4e0a\u89d2\u7684\u300c+\u300d\u6309\u94ae\u6dfb\u52a0\u5e94\u7528','\u9009\u62e9\u9700\u8981 Root \u6743\u9650\u7684\u5e94\u7528','\u4e3a\u8be5\u5e94\u7528\u914d\u7f6e\u6743\u9650\u6a21\u677f\uff08\u9ed8\u8ba4/\u5e94\u7528\u63a5\u5165/Shell \u6a21\u677f\uff09','\u4fdd\u5b58\u914d\u7f6e'])+
+callout('tip','\ud83d\udca1 \u5efa\u8bae\u53ea\u4e3a\u771f\u6b63\u9700\u8981 Root \u6743\u9650\u7684\u5e94\u7528\u6388\u6743\uff0c\u907f\u514d\u4e3a\u4e0d\u53ef\u4fe1\u7684\u5e94\u7528\u63d0\u4f9b\u8fc7\u591a\u6743\u9650\u3002')+
+h2('\u5b89\u88c5\u6a21\u5757')+
+p('KinSU \u652f\u6301\u901a\u8fc7\u6a21\u5757\u6269\u5c55\u529f\u80fd\u3002\u4f60\u53ef\u4ee5\u4ece\u6a21\u5757\u4ed3\u5e93\u6216\u672c\u5730\u5b89\u88c5\u6a21\u5757\uff1a')+
+ul(['\u4ece\u6a21\u5757\u4ed3\u5e93\u5b89\u88c5\uff1a\u8fdb\u5165\u300c\u6a21\u5757\u300d\u9875\u9762\uff0c\u6d4f\u89c8\u5e76\u5b89\u88c5\u6240\u9700\u6a21\u5757','\u4ece\u672c\u5730\u5b89\u88c5\uff1a\u70b9\u51fb\u300c\u4ece\u672c\u5730\u5b89\u88c5\u300d\uff0c\u9009\u62e9\u5df2\u4e0b\u8f7d\u7684 .zip \u6a21\u5757\u6587\u4ef6'])+
+h2('\u9a8c\u8bc1 Root \u72b6\u6001')+
+p('\u5b8c\u6210\u914d\u7f6e\u540e\uff0c\u4f60\u53ef\u4ee5\u901a\u8fc7\u4ee5\u4e0b\u65b9\u5f0f\u9a8c\u8bc1 Root \u662f\u5426\u6210\u529f\uff1a')+
+pre('# \u5728\u7ec8\u7aef\u6a21\u62df\u5668\u4e2d\u6267\u884c\nadb shell su -c id\n\n# \u5982\u679c\u8f93\u51fa\u5305\u542b uid=0(root)\uff0c\u5219\u8bf4\u660e Root \u6210\u529f\n# uid=0(root) gid=0(root) groups=0(root)')+
+callout('info','\u2139\ufe0f \u5982\u679c su \u547d\u4ee4\u65e0\u6cd5\u6267\u884c\uff0c\u8bf7\u68c0\u67e5 KinSU Manager \u4e2d\u7684\u8d85\u7ea7\u7528\u6237\u914d\u7f6e\u662f\u5426\u5df2\u6b63\u786e\u8bbe\u7f6e\u3002');
+}};
+
+D['lkm-mode']={title:'LKM \u6a21\u5f0f\u8be6\u89e3',cat:'\u6838\u5fc3\u529f\u80fd',updated:'2024-12-15',html:function(){
+return h2('\u4ec0\u4e48\u662f LKM')+
+p('LKM\uff08Loadable Kernel Module\uff0c\u53ef\u52a0\u8f7d\u5185\u6838\u6a21\u5757\uff09\u662f Linux \u5185\u6838\u7684\u4e00\u9879\u6838\u5fc3\u7279\u6027\uff0c\u5141\u8bb8\u5728\u5185\u6838\u8fd0\u884c\u65f6\u52a8\u6001\u52a0\u8f7d\u548c\u5378\u8f7d\u6a21\u5757\uff0c\u800c\u65e0\u9700\u91cd\u65b0\u7f16\u8bd1\u6216\u91cd\u542f\u6574\u4e2a\u5185\u6838\u3002\u8fd9\u610f\u5473\u7740 KinSU \u53ef\u4ee5\u4f5c\u4e3a\u4e00\u4e2a\u5185\u6838\u6a21\u5757\u88ab\u52a0\u8f7d\uff0c\u4ece\u800c\u5728\u5185\u6838\u7a7a\u95f4\u4e2d\u83b7\u5f97\u6700\u9ad8\u6743\u9650\u3002')+
+h2('KinSU \u7684 LKM \u5b9e\u73b0')+
+p('KinSU \u5229\u7528 LKM \u673a\u5236\u5b9e\u73b0\u4e86\u5185\u6838\u7ea7\u7684 Root \u8bbf\u95ee\u3002\u5176\u5de5\u4f5c\u6d41\u7a0b\u5982\u4e0b\uff1a')+
+ol(['\u5185\u6838\u542f\u52a8\u65f6\uff0c\u901a\u8fc7 init \u8fdb\u7a0b\u52a0\u8f7d KinSU \u5185\u6838\u6a21\u5757','\u6a21\u5757\u52a0\u8f7d\u540e\uff0c\u5728\u5185\u6838\u7a7a\u95f4\u4e2d hook \u5173\u952e\u7cfb\u7edf\u8c03\u7528','\u901a\u8fc7 hook \u5b9e\u73b0\u8d85\u7ea7\u7528\u6237\u6743\u9650\u7ba1\u7406\u3001\u6a21\u5757\u52a0\u8f7d\u7b49\u529f\u80fd','\u7528\u6237\u7a7a\u95f4\u7684 Manager \u5e94\u7528\u901a\u8fc7 ioctl \u4e0e\u5185\u6838\u6a21\u5757\u901a\u4fe1'])+
+h2('LKM \u6a21\u5f0f\u7684\u4f18\u52bf')+
+p('\u76f8\u6bd4\u4f20\u7edf\u7684 Root \u65b9\u6848\uff0cLKM \u6a21\u5f0f\u5177\u6709\u4ee5\u4e0b\u663e\u8457\u4f18\u52bf\uff1a')+
+table(['\u7279\u6027','LKM \u6a21\u5f0f','\u4f20\u7edf\u4fee\u6539\u5185\u6838'],[
+  ['\u5b89\u88c5\u65b9\u5f0f','\u52a8\u6001\u52a0\u8f7d\uff0c\u65e0\u9700\u91cd\u7f16\u8bd1\u5185\u6838','\u9700\u8981\u5b8c\u6574\u7f16\u8bd1\u5185\u6838'],
+  ['\u66f4\u65b0\u4fbf\u6377\u6027','\u53ef\u72ec\u7acb\u66f4\u65b0\u6a21\u5757','\u9700\u8981\u91cd\u65b0\u7f16\u8bd1\u6574\u4e2a\u5185\u6838'],
+  ['GKI \u517c\u5bb9\u6027','\u5b8c\u7f8e\u517c\u5bb9','\u9700\u8981\u9488\u5bf9\u6bcf\u4e2a\u8bbe\u5907\u7f16\u8bd1'],
+  ['\u7a33\u5b9a\u6027','\u6a21\u5757\u5d29\u6e83\u4e0d\u5f71\u54cd\u5185\u6838','bug \u53ef\u80fd\u5f15\u53d1\u5168\u5c40\u5d29\u6e83'],
+  ['\u5b89\u5168\u6027','\u6a21\u5757\u7ea7\u6743\u9650\u9694\u79bb','\u5168\u5c40\u4fee\u6539\u5f71\u54cd\u8303\u56f4\u5927']
+])+
+h2('\u6a21\u5757\u52a0\u8f7d\u6d41\u7a0b')+
+p('KinSU \u5185\u6838\u6a21\u5757\u7684\u52a0\u8f7d\u6d41\u7a0b\u5982\u4e0b\uff1a')+
+pre('\u5185\u6838\u542f\u52a8\n    \u2193\ninit \u8fdb\u7a0b\u542f\u52a8\n    \u2193\n\u68c0\u6d4b KinSU \u5185\u6838\u6a21\u5757\n    \u2193\ninsmod kinsu.ko  \u2190 \u52a0\u8f7d\u5185\u6838\u6a21\u5757\n    \u2193\nhook \u7cfb\u7edf\u8c03\u7528  \u2190 \u5b89\u88c5 hook \u70b9\n    \u2193\n\u521d\u59cb\u5316\u5b8c\u6210  \u2190 \u7b49\u5f85\u7528\u6237\u7a7a\u95f4\u901a\u4fe1')+
+callout('info','\u2139\ufe0f KinSU \u7684 LKM \u6a21\u5f0f\u662f\u5176\u4e0e KernelSU \u7684\u6838\u5fc3\u533a\u522b\u4e4b\u4e00\u3002\u867d\u7136\u4e24\u8005\u90fd\u57fa\u4e8e\u5185\u6838\u7ea7 Root\uff0c\u4f46 KinSU \u5728 LKM \u52a0\u8f7d\u3001\u5b89\u5168\u4fee\u590d\u548c\u6a21\u5757\u7cfb\u7edf\u65b9\u9762\u8fdb\u884c\u4e86\u5927\u91cf\u6539\u8fdb\u3002');
+}};
+
+D['gki-adapt']={title:'GKI \u8bbe\u5907\u9002\u914d',cat:'\u6838\u5fc3\u529f\u80fd',updated:'2024-12-15',html:function(){
+return h2('\u4ec0\u4e48\u662f GKI')+
+p('GKI\uff08Generic Kernel Image\uff09\u662f Google \u4ece Android 11 \u5f00\u59cb\u63a8\u884c\u7684\u901a\u7528\u5185\u6838\u955c\u50cf\u6807\u51c6\u3002\u5b83\u5c06\u5185\u6838\u4e0e\u786c\u4ef6\u9a71\u52a8\u5206\u79bb\uff0c\u4f7f\u5f97\u540c\u4e00\u5185\u6838\u7248\u672c\u7684\u955c\u50cf\u53ef\u4ee5\u5728\u4e0d\u540c\u5382\u5546\u7684\u8bbe\u5907\u4e0a\u4f7f\u7528\u3002')+
+h2('GKI \u8bbe\u5907\u68c0\u6d4b')+
+p('\u4f60\u53ef\u4ee5\u901a\u8fc7\u4ee5\u4e0b\u65b9\u5f0f\u5224\u65ad\u4f60\u7684\u8bbe\u5907\u662f\u5426\u4e3a GKI \u8bbe\u5907\uff1a')+
+pre('# \u65b9\u6cd5 1\uff1a\u68c0\u67e5 Android \u7248\u672c\nadb shell getprop ro.build.version.release\n# Android 12 \u53ca\u4ee5\u4e0a\u7248\u672c\u901a\u5e38\u4e3a GKI \u8bbe\u5907\n\n# \u65b9\u6cd5 2\uff1a\u68c0\u67e5\u5185\u6838\u7248\u672c\nadb shell uname -r\n# \u5185\u6838\u7248\u672c 5.10+ \u901a\u5e38\u4e3a GKI\n\n# \u65b9\u6cd5 3\uff1a\u68c0\u67e5 init_boot \u5206\u533a\u662f\u5426\u5b58\u5728\nadb shell ls -la /dev/block/by-name/init_boot')+
+h2('init_boot \u5206\u533a')+
+p('GKI \u8bbe\u5907\u5f15\u5165\u4e86 init_boot \u5206\u533a\uff0c\u5b83\u5305\u542b\u4e86\u901a\u7528\u5185\u6838\u955c\u50cf\u548c init ramdisk\u3002\u8fd9\u662f KinSU \u5237\u5165\u7684\u76ee\u6807\u5206\u533a\u3002')+
+table(['\u5206\u533a\u540d\u79f0','GKI \u8bbe\u5907','\u975e GKI \u8bbe\u5907'],[
+  ['\u5185\u6838\u955c\u50cf\u4f4d\u7f6e','init_boot','boot'],
+  ['\u5185\u6838\u7248\u672c\u683c\u5f0f','5.10.x / 5.15.x / 6.1.x','\u56e0\u8bbe\u5907\u800c\u5f02'],
+  ['\u662f\u5426\u9700\u8981\u81ea\u884c\u7f16\u8bd1','\u5426\uff0c\u4f7f\u7528\u9884\u7f16\u8bd1\u955c\u50cf','\u662f\uff0c\u9700\u8981\u81ea\u884c\u7f16\u8bd1'],
+  ['OTA \u517c\u5bb9\u6027','\u826f\u597d','\u53d6\u51b3\u4e8e\u8bbe\u5907']
+])+
+h2('OTA \u5206\u533a\u5207\u6362')+
+p('Android \u4f7f\u7528 A/B \u5206\u533a\u673a\u5236\u8fdb\u884c OTA \u66f4\u65b0\u3002\u5f53\u524d\u6d3b\u52a8\u5206\u533a\u548c\u5907\u7528\u5206\u533a\u4f1a\u4ea4\u66ff\u4f7f\u7528\uff1a')+
+pre('# \u67e5\u770b\u5f53\u524d\u6d3b\u52a8\u5206\u533a\nadb shell getprop ro.boot.slot_suffix\n# \u8f93\u51fa _a \u6216 _b\n\n# \u5237\u5165\u65f6\u9700\u8981\u6307\u5b9a\u6b63\u786e\u7684\u5206\u533a\nfastboot flash init_boot_a kinsu.img  # \u5982\u679c\u5f53\u524d\u662f slot_a\nfastboot flash init_boot_b kinsu.img  # \u5982\u679c\u5f53\u524d\u662f slot_b')+
+callout('warning','\u26a0\ufe0f OTA \u66f4\u65b0\u540e\uff0c\u5907\u7528\u5206\u533a\u4f1a\u88ab\u5199\u5165\u65b0\u7684\u539f\u59cb\u5185\u6838\u3002\u5f53\u8bbe\u5907\u5207\u6362\u5230\u8be5\u5206\u533a\u65f6\uff0cKinSU \u5c06\u4e0d\u518d\u751f\u6548\u3002\u8bf7\u5728 OTA \u540e\u91cd\u65b0\u5237\u5165\u5185\u6838\u3002');
+}};
+
+D['superuser']={title:'\u8d85\u7ea7\u7528\u6237\u7ba1\u7406',cat:'\u6838\u5fc3\u529f\u80fd',updated:'2024-12-15',html:function(){
+return h2('\u5e94\u7528\u914d\u7f6e\u6587\u4ef6\u7cfb\u7edf')+
+p('KinSU \u63d0\u4f9b\u4e86\u7cbe\u7ec6\u7684\u5e94\u7528\u914d\u7f6e\u6587\u4ef6\u7cfb\u7edf\uff0c\u5141\u8bb8\u4f60\u4e3a\u6bcf\u4e2a\u5e94\u7528\u5355\u72ec\u914d\u7f6e Root \u6743\u9650\u3002\u8fd9\u610f\u5473\u7740\u4f60\u53ef\u4ee5\u7cbe\u786e\u63a7\u5236\u54ea\u4e9b\u5e94\u7528\u53ef\u4ee5\u83b7\u5f97 Root \u6743\u9650\uff0c\u4ee5\u53ca\u5b83\u4eec\u53ef\u4ee5\u6267\u884c\u54ea\u4e9b\u64cd\u4f5c\u3002')+
+h2('\u6743\u9650\u6a21\u677f')+
+p('KinSU \u63d0\u4f9b\u4e86\u4e09\u79cd\u9884\u8bbe\u7684\u6743\u9650\u6a21\u677f\uff1a')+
+table(['\u6a21\u677f\u540d\u79f0','\u8bf4\u660e','\u9002\u7528\u573a\u666f'],[
+  ['\u9ed8\u8ba4\u6a21\u677f','\u63d0\u4f9b\u57fa\u672c\u7684 su \u547d\u4ee4\u8bbf\u95ee\u6743\u9650','\u5927\u591a\u6570\u5e94\u7528'],
+  ['\u5e94\u7528\u63a5\u5165\u6a21\u677f','\u5141\u8bb8\u5e94\u7528\u901a\u8fc7 Root \u63a5\u5165\u5176\u4ed6\u8fdb\u7a0b','\u9700\u8981\u8fdb\u7a0b\u63a5\u5165\u7684\u5e94\u7528'],
+  ['Shell \u6a21\u677f','\u63d0\u4f9b\u5b8c\u6574\u7684 Shell Root \u6743\u9650','\u7ec8\u7aef\u6a21\u62df\u5668\u3001Shell \u5de5\u5177']
+])+
+h2('\u81ea\u5b9a\u4e49\u914d\u7f6e\u6587\u4ef6')+
+p('\u9664\u4e86\u9884\u8bbe\u6a21\u677f\uff0c\u4f60\u8fd8\u53ef\u4ee5\u521b\u5efa\u81ea\u5b9a\u4e49\u914d\u7f6e\u6587\u4ef6\uff0c\u7cbe\u786e\u63a7\u5236\u5e94\u7528\u7684 Root \u6743\u9650\uff1a')+
+pre('{\n  "id": "com.example.app",\n  "name": "\u793a\u4f8b\u5e94\u7528",\n  "uid": 10086,\n  "profiles": {\n    "root": true,\n    "namespace": "global",\n    "capabilities": ["CAP_NET_ADMIN", "CAP_SYS_PTRACE"],\n    "selinux": "u:r:su:s0",\n    "groups": ["root", "shell"]\n  }\n}')+
+h2('\u6743\u9650\u7ba1\u7406\u5de5\u4f5c\u6d41')+
+p('\u5f53\u5e94\u7528\u8bf7\u6c42 Root \u6743\u9650\u65f6\uff0cKinSU \u7684\u5904\u7406\u6d41\u7a0b\u5982\u4e0b\uff1a')+
+ol(['\u5e94\u7528\u901a\u8fc7 su \u547d\u4ee4\u6216 libsu \u5e93\u8bf7\u6c42 Root \u6743\u9650','KinSU \u5185\u6838\u6a21\u5757\u63a5\u6536\u5230\u8bf7\u6c42\uff0c\u68c0\u67e5\u5e94\u7528\u7684\u914d\u7f6e\u6587\u4ef6','\u6839\u636e\u914d\u7f6e\u6587\u4ef6\u4e2d\u7684\u6a21\u677f\u8bbe\u7f6e\u76f8\u5e94\u7684\u6743\u9650','\u5982\u679c\u5e94\u7528\u672a\u914d\u7f6e\uff0c\u5219\u62d2\u7edd Root \u8bf7\u6c42','\u6743\u9650\u751f\u6548\uff0c\u5e94\u7528\u83b7\u5f97\u5bf9\u5e94\u7684 Root \u8bbf\u95ee\u80fd\u529b'])+
+callout('tip','\ud83d\udca1 \u5efa\u8bae\u4e3a\u6bcf\u4e2a\u9700\u8981 Root \u7684\u5e94\u7528\u5355\u72ec\u914d\u7f6e\u914d\u7f6e\u6587\u4ef6\uff0c\u800c\u4e0d\u662f\u4f7f\u7528\u5168\u5c40\u914d\u7f6e\u3002\u8fd9\u6837\u53ef\u4ee5\u6700\u5c0f\u5316\u5b89\u5168\u98ce\u9669\u3002');
+}};
+
+D['module-system']={title:'\u6a21\u5757\u7cfb\u7edf',cat:'\u6838\u5fc3\u529f\u80fd',updated:'2024-12-15',html:function(){
+return h2('\u6a21\u5757\u7ba1\u7406')+
+p('KinSU \u7684\u6a21\u5757\u7cfb\u7edf\u5141\u8bb8\u4f60\u901a\u8fc7\u5b89\u88c5\u6a21\u5757\u6765\u6269\u5c55\u8bbe\u5907\u529f\u80fd\u3002\u6a21\u5757\u53ef\u4ee5\u4fee\u6539\u7cfb\u7edf\u884c\u4e3a\u3001\u6dfb\u52a0\u529f\u80fd\u6216\u4fee\u6539\u7cfb\u7edf\u6587\u4ef6\uff0c\u800c\u65e0\u9700\u4fee\u6539\u7cfb\u7edf\u5206\u533a\u3002')+
+h2('\u6a21\u5757\u7ed3\u6784')+
+p('\u4e00\u4e2a KinSU \u6a21\u5757\u7684\u6807\u51c6\u7ed3\u6784\u5982\u4e0b\uff1a')+
+pre('module.zip\n\u251c\u2500\u2500 module.prop          # \u6a21\u5757\u5c5e\u6027\u6587\u4ef6\n\u251c\u2500\u2500 post-fs-data.sh      # \u5f00\u673a\u540e\u6267\u884c\u811a\u672c\n\u251c\u2500\u2500 service.sh           # \u670d\u52a1\u811a\u672c\n\u251c\u2500\u2500 uninstall.sh         # \u5378\u8f7d\u811a\u672c\n\u251c\u2500\u2500 system/              # \u7cfb\u7edf\u6587\u4ef6\u4fee\u6539\n\u2502   \u251c\u2500\u2500 app/\n\u2502   \u251c\u2500\u2500 priv-app/\n\u2502   \u2514\u2500\u2500 etc/\n\u251c\u2500\u2500 webroot/             # WebUI \u8d44\u6e90\n\u2502   \u2514\u2500\u2500 index.html\n\u2514\u2500\u2500 META-INF/')+
+h2('WebUI \u652f\u6301')+
+p('KinSU \u6a21\u5757\u652f\u6301 WebUI\uff0c\u5141\u8bb8\u6a21\u5757\u63d0\u4f9b\u53ef\u89c6\u5316\u7684\u7ba1\u7406\u754c\u9762\u3002\u7528\u6237\u53ef\u4ee5\u901a\u8fc7 KinSU Manager \u5185\u7684\u6d4f\u89c8\u5668\u76f4\u63a5\u8bbf\u95ee\u6a21\u5757\u7684 WebUI\u3002')+
+p('WebUI \u7684\u5de5\u4f5c\u539f\u7406\uff1a')+
+ol(['\u6a21\u5757\u5728 webroot/ \u76ee\u5f55\u4e0b\u63d0\u4f9b HTML/CSS/JS \u6587\u4ef6','KinSU Manager \u901a\u8fc7\u5185\u7f6e\u6d4f\u89c8\u5668\u52a0\u8f7d\u6a21\u5757\u7684 WebUI','WebUI \u901a\u8fc7 JavaScript \u63a5\u53e3\u4e0e\u6a21\u5757\u7684\u540e\u53f0\u670d\u52a1\u901a\u4fe1','\u7528\u6237\u53ef\u4ee5\u5728\u56fe\u5f62\u754c\u9762\u4e2d\u914d\u7f6e\u6a21\u5757\u53c2\u6570'])+
+h2('\u6a21\u5757\u4ed3\u5e93')+
+p('KinSU \u652f\u6301\u5728\u7ebf\u6a21\u5757\u4ed3\u5e93\uff0c\u4f60\u53ef\u4ee5\u5728 Manager \u4e2d\u76f4\u63a5\u6d4f\u89c8\u548c\u5b89\u88c5\u6a21\u5757\u3002\u6a21\u5757\u4ed3\u5e93\u5730\u5740\u53ef\u4ee5\u5728\u8bbe\u7f6e\u4e2d\u81ea\u5b9a\u4e49\u3002')+
+callout('info','\u2139\ufe0f \u8bf7\u4ec5\u4ece\u53ef\u4fe1\u4efb\u7684\u6765\u6e90\u5b89\u88c5\u6a21\u5757\u3002\u6076\u610f\u6a21\u5757\u53ef\u80fd\u4f1a\u5bfc\u81f4\u7cfb\u7edf\u4e0d\u7a33\u5b9a\u6216\u6570\u636e\u6cc4\u9732\u3002');
+}};
+
+D['susfs']={title:'SuSFS \u9690\u8eab\u672f',cat:'\u9ad8\u7ea7\u529f\u80fd',updated:'2024-12-15',html:function(){
+return h2('\u4ec0\u4e48\u662f SuSFS')+
+p('SuSFS\uff08SUS Filesystem\uff09\u662f KinSU \u7684\u4e00\u9879\u6838\u5fc3\u9690\u8eab\u529f\u80fd\uff0c\u80fd\u591f\u5728\u5185\u6838\u7ea7\u9690\u85cf Root \u75d5\u8ff9\uff0c\u4f7f\u5e94\u7528\u65e0\u6cd5\u68c0\u6d4b\u5230\u8bbe\u5907\u5df2\u88ab Root\u3002\u8fd9\u5bf9\u4e8e\u901a\u8fc7\u94f6\u884c\u5e94\u7528\u3001\u6e38\u620f\u53cd\u4f5c\u5f0a\u7b49\u573a\u666f\u975e\u5e38\u91cd\u8981\u3002')+
+h2('\u9690\u85cf\u5185\u6838\u6a21\u5757')+
+p('SuSFS \u53ef\u4ee5\u9690\u85cf KinSU \u81ea\u8eab\u7684\u5185\u6838\u6a21\u5757\uff0c\u4f7f\u5176\u4e0d\u51fa\u73b0\u5728 /proc/modules \u548c lsmod \u7684\u8f93\u51fa\u4e2d\uff1a')+
+pre('# \u5f00\u542f\u5185\u6838\u6a21\u5757\u9690\u85cf\n# \u5728 KinSU Manager \u8bbe\u7f6e\u4e2d\u5f00\u542f SuSFS\n# \u6216\u901a\u8fc7\u547d\u4ee4\u884c\uff1a\nkinsu susfs --enable-module-hide\n\n# \u9a8c\u8bc1\u9690\u85cf\u6548\u679c\nadb shell cat /proc/modules | grep kinsu\n# \u5e94\u8be5\u65e0\u8f93\u51fa')+
+h2('\u9690\u85cf\u7528\u6237\u7a7a\u95f4\u6a21\u5757')+
+p('SuSFS \u8fd8\u53ef\u4ee5\u9690\u85cf\u7528\u6237\u7a7a\u95f4\u7684\u6a21\u5757\u6587\u4ef6\uff0c\u5305\u62ec\uff1a')+
+ul(['/data/adb/modules/ \u76ee\u5f55\u4e0b\u7684\u6a21\u5757\u6587\u4ef6','KinSU Manager \u5e94\u7528\u672c\u8eab','su \u4e8c\u8fdb\u5236\u6587\u4ef6','\u76f8\u5173\u7684\u73af\u5883\u53d8\u91cf\u548c\u5c5e\u6027'])+
+pre('# \u5f00\u542f\u7528\u6237\u7a7a\u95f4\u6a21\u5757\u9690\u85cf\nkinsu susfs --enable-userspace-hide\n\n# \u6dfb\u52a0\u9700\u8981\u9690\u85cf\u7684\u6302\u8f7d\u70b9\nkinsu susfs --add-mount-hide /data/adb/modules\nkinsu susfs --add-mount-hide /data/adb/kinsu')+
+h2('\u914d\u7f6e SuSFS')+
+p('\u4f60\u53ef\u4ee5\u5728 KinSU Manager \u7684\u8bbe\u7f6e\u9875\u9762\u4e2d\u914d\u7f6e SuSFS\uff0c\u4e5f\u53ef\u4ee5\u901a\u8fc7\u914d\u7f6e\u6587\u4ef6\u8fdb\u884c\u66f4\u7ec6\u7c92\u5ea6\u7684\u63a7\u5236\uff1a')+
+pre('# SuSFS \u914d\u7f6e\u6587\u4ef6\u793a\u4f8b\n# /data/adb/kinsu/susfs.conf\n\n# \u542f\u7528\u5185\u6838\u6a21\u5757\u9690\u85cf\nenable_module_hide=1\n\n# \u542f\u7528\u7528\u6237\u7a7a\u95f4\u9690\u85cf\nenable_userspace_hide=1\n\n# \u542f\u7528\u6302\u8f7d\u70b9\u9690\u85cf\nenable_mount_hide=1\n\n# \u9690\u85cf\u7684\u6302\u8f7d\u70b9\u5217\u8868\nhide_mounts=/data/adb/modules\nhide_mounts=/data/adb/kinsu')+
+callout('warning','\u26a0\ufe0f SuSFS \u4e0d\u80fd\u4fdd\u8bc1 100% \u7684\u9690\u8eab\u6548\u679c\u3002\u67d0\u4e9b\u9ad8\u7ea7\u68c0\u6d4b\u65b9\u6cd5\u53ef\u80fd\u4ecd\u7136\u80fd\u591f\u68c0\u6d4b\u5230 Root \u75d5\u8ff9\u3002\u8bf7\u4e0d\u8981\u5b8c\u5168\u4f9d\u8d56 SuSFS \u6765\u7ed5\u8fc7\u5b89\u5168\u68c0\u6d4b\u3002');
+}};
+
+D['kpm']={title:'KPM \u5185\u6838\u8865\u4e01',cat:'\u9ad8\u7ea7\u529f\u80fd',updated:'2024-12-15',html:function(){
+return h2('\u4ec0\u4e48\u662f KPM')+
+p('KPM\uff08Kernel Patch Module\uff0c\u5185\u6838\u8865\u4e01\u6a21\u5757\uff09\u662f KinSU \u7684\u4e00\u9879\u9ad8\u7ea7\u529f\u80fd\uff0c\u5141\u8bb8\u5728\u5185\u6838\u8fd0\u884c\u65f6\u52a8\u6001\u5e94\u7528\u8865\u4e01\uff0c\u800c\u65e0\u9700\u4fee\u6539\u5185\u6838\u6e90\u7801\u6216\u91cd\u65b0\u7f16\u8bd1\u5185\u6838\u3002')+
+h2('KPM \u7684\u5de5\u4f5c\u539f\u7406')+
+p('KPM \u901a\u8fc7\u4ee5\u4e0b\u65b9\u5f0f\u5b9e\u73b0\u5185\u6838\u8865\u4e01\uff1a')+
+ol(['\u4f7f\u7528 ftrace \u6216 kprobe \u673a\u5236\u62e6\u622a\u5185\u6838\u51fd\u6570','\u5728\u5185\u6838\u8fd0\u884c\u65f6\u4fee\u6539\u51fd\u6570\u884c\u4e3a','\u652f\u6301\u52a8\u6001\u6dfb\u52a0\u548c\u79fb\u9664\u8865\u4e01','\u63d0\u4f9b\u5b89\u5168\u7684\u8865\u4e01\u52a0\u8f7d\u548c\u5378\u8f7d\u673a\u5236'])+
+h2('\u4f7f\u7528 KPM')+
+p('\u4f60\u53ef\u4ee5\u901a\u8fc7 KinSU Manager \u6216\u547d\u4ee4\u884c\u7ba1\u7406 KPM \u8865\u4e01\uff1a')+
+pre('# \u5217\u51fa\u53ef\u7528\u7684 KPM \u8865\u4e01\nkinsu kpm list\n\n# \u52a0\u8f7d\u6307\u5b9a\u7684 KPM \u8865\u4e01\nkinsu kpm load <patch_name>\n\n# \u5378\u8f7d\u6307\u5b9a\u7684 KPM \u8865\u4e01\nkinsu kpm unload <patch_name>\n\n# \u67e5\u770b\u5df2\u52a0\u8f7d\u7684\u8865\u4e01\nkinsu kpm status')+
+h2('\u5e38\u7528 KPM \u8865\u4e01')+
+table(['\u8865\u4e01\u540d\u79f0','\u529f\u80fd\u8bf4\u660e','\u72b6\u6001'],[
+  ['susfs','SuSFS \u9690\u8eab\u529f\u80fd\u6838\u5fc3\u8865\u4e01','\u7a33\u5b9a'],
+  ['selinux','SELinux \u7b56\u7565\u4fee\u6539\u8865\u4e01','\u7a33\u5b9a'],
+  ['mount','\u6302\u8f7d\u70b9\u4fee\u6539\u8865\u4e01','\u5b9e\u9a8c\u6027'],
+  ['process','\u8fdb\u7a0b\u7ba1\u7406\u8865\u4e01','\u5b9e\u9a8c\u6027']
+])+
+callout('info','\u2139\ufe0f KPM \u8865\u4e01\u76f4\u63a5\u5728\u5185\u6838\u7a7a\u95f4\u8fd0\u884c\uff0c\u8bf7\u4ec5\u52a0\u8f7d\u6765\u81ea\u53ef\u4fe1\u6765\u6e90\u7684\u8865\u4e01\u3002\u9519\u8bef\u7684\u8865\u4e01\u53ef\u80fd\u5bfc\u81f4\u7cfb\u7edf\u5d29\u6e83\u3002');
+}};
+
+D['theme']={title:'\u4e3b\u9898\u5e7b\u5316\u672f',cat:'\u9ad8\u7ea7\u529f\u80fd',updated:'2024-12-15',html:function(){
+return h2('\u52a8\u6001\u53d6\u8272\u4e3b\u9898\u5f15\u64ce')+
+p('KinSU \u5185\u7f6e\u4e86\u5f3a\u5927\u7684\u52a8\u6001\u53d6\u8272\u4e3b\u9898\u5f15\u64ce\uff0c\u80fd\u591f\u6839\u636e\u4f60\u7684\u58c1\u7eb8\u989c\u8272\u81ea\u52a8\u751f\u6210\u5339\u914d\u7684\u4e3b\u9898\u914d\u8272\u65b9\u6848\u3002\u8fd9\u610f\u5473\u7740 KinSU Manager \u7684\u754c\u9762\u98ce\u683c\u4f1a\u968f\u7740\u4f60\u7684\u58c1\u7eb8\u53d8\u5316\u800c\u81ea\u52a8\u8c03\u6574\u3002')+
+h2('\u8272\u5f69\u914d\u8272\u65b9\u6848')+
+p('\u4e3b\u9898\u5f15\u64ce\u652f\u6301\u591a\u79cd\u914d\u8272\u65b9\u6848\uff1a')+
+ul(['\u81ea\u52a8\u6a21\u5f0f\uff1a\u6839\u636e\u58c1\u7eb8\u4e3b\u8272\u8c03\u81ea\u52a8\u751f\u6210\u914d\u8272','\u6d45\u8272\u6a21\u5f0f\uff1a\u4f7f\u7528\u58c1\u7eb8\u7684\u6d45\u8272\u8c03\u4f5c\u4e3a\u4e3b\u8272','\u6df1\u8272\u6a21\u5f0f\uff1a\u4f7f\u7528\u58c1\u7eb8\u7684\u6df1\u8272\u8c03\u4f5c\u4e3a\u4e3b\u8272','\u81ea\u5b9a\u4e49\u6a21\u5f0f\uff1a\u624b\u52a8\u9009\u62e9\u4e3b\u9898\u8272'])+
+h2('iPhone \u98ce\u683c\u5b57\u4f53\u5e7b\u5316')+
+p('KinSU \u652f\u6301 iPhone \u98ce\u683c\u7684\u5b57\u4f53\u5e7b\u5316\u529f\u80fd\uff0c\u53ef\u4ee5\u5c06\u7cfb\u7edf\u5b57\u4f53\u66ff\u6362\u4e3a\u7c7b\u4f3c iOS \u7684\u5b57\u4f53\u98ce\u683c\uff1a')+
+pre('# \u5f00\u542f iPhone \u98ce\u683c\u5b57\u4f53\n# \u5728 KinSU Manager \u8bbe\u7f6e > \u4e3b\u9898 \u4e2d\u5f00\u542f\n# \u6216\u901a\u8fc7\u547d\u4ee4\u884c\uff1a\nkinsu theme --font-mode iphone\n\n# \u6062\u590d\u9ed8\u8ba4\u5b57\u4f53\nkinsu theme --font-mode default')+
+p('\u5b57\u4f53\u5e7b\u5316\u529f\u80fd\u901a\u8fc7\u6a21\u5757\u7cfb\u7edf\u5b9e\u73b0\uff0c\u5b83\u4f1a\u5728\u7cfb\u7edf\u5c42\u9762\u66ff\u6362\u5b57\u4f53\u6587\u4ef6\uff0c\u4f7f\u5f97\u6240\u6709\u5e94\u7528\u7684\u5b57\u4f53\u663e\u793a\u90fd\u4f1a\u53d1\u751f\u53d8\u5316\u3002')+
+h2('\u81ea\u5b9a\u4e49\u4e3b\u9898')+
+p('\u4f60\u53ef\u4ee5\u901a\u8fc7\u914d\u7f6e\u6587\u4ef6\u521b\u5efa\u81ea\u5b9a\u4e49\u4e3b\u9898\uff1a')+
+pre('{\n  "primary_color": "#3370ff",\n  "accent_color": "#ff6b6b",\n  "background_mode": "auto",\n  "font_mode": "iphone",\n  "corner_radius": 16,\n  "animation_speed": 1.0\n}')+
+callout('tip','\ud83d\udca1 \u4e3b\u9898\u66f4\u6539\u4f1a\u5728\u91cd\u65b0\u6253\u5f00 KinSU Manager \u540e\u751f\u6548\u3002\u67d0\u4e9b\u5e94\u7528\u53ef\u80fd\u9700\u8981\u91cd\u542f\u624d\u80fd\u770b\u5230\u5b57\u4f53\u53d8\u5316\u3002');
+}};
+
+D['security-fixes']={title:'\u5b89\u5168\u4fee\u590d\u6e05\u5355',cat:'\u5b89\u5168\u52a0\u56fa',updated:'2024-12-15',html:function(){
+return h2('\u5b89\u5168\u4fee\u590d\u6982\u8ff0')+
+p('KinSU \u5728 KernelSU \u7684\u57fa\u7840\u4e0a\u8fdb\u884c\u4e86\u5927\u91cf\u7684\u5b89\u5168\u4fee\u590d\u548c\u52a0\u56fa\uff0c\u5171\u8ba1\u4fee\u590d\u4e86 21+ \u4e2a\u5b89\u5168\u95ee\u9898\u3002\u8fd9\u4e9b\u4fee\u590d\u6db5\u76d6\u4e86\u547d\u4ee4\u6ce8\u5165\u3001\u8def\u5f84\u7a7f\u8d8a\u3001\u6743\u9650\u63d0\u5347\u3001SELinux \u7b49\u591a\u4e2a\u65b9\u9762\u3002')+
+h2('\u4fee\u590d\u5217\u8868')+
+table(['\u7f16\u53f7','\u4fee\u590d\u5185\u5bb9','\u4e25\u91cd\u7a0b\u5ea6','\u72b6\u6001'],[
+  ['#1','\u4fee\u590d su \u547d\u4ee4\u6ce8\u5165\u6f0f\u6d1e','\u4e25\u91cd','\u5df2\u4fee\u590d'],
+  ['#2','\u4fee\u590d\u6a21\u5757\u5b89\u88c5\u8def\u5f84\u7a7f\u8d8a\u6f0f\u6d1e','\u4e25\u91cd','\u5df2\u4fee\u590d'],
+  ['#3','\u52a0\u56fa su \u6743\u9650\u68c0\u67e5\u673a\u5236','\u9ad8','\u5df2\u4fee\u590d'],
+  ['#4','\u4fee\u590d SELinux \u7b56\u7565\u7ed5\u8fc7\u6f0f\u6d1e','\u9ad8','\u5df2\u4fee\u590d'],
+  ['#5','\u52a0\u56fa\u6a21\u5757\u52a0\u8f7d\u5b89\u5168\u68c0\u67e5','\u9ad8','\u5df2\u4fee\u590d'],
+  ['#6','\u4fee\u590d\u73af\u5883\u53d8\u91cf\u6ce8\u5165\u6f0f\u6d1e','\u4e2d','\u5df2\u4fee\u590d'],
+  ['#7','\u4fee\u590d\u7ade\u6001\u6761\u4ef6\u6f0f\u6d1e','\u4e2d','\u5df2\u4fee\u590d'],
+  ['#8','\u52a0\u56fa ioctl \u63a5\u53e3\u5b89\u5168\u68c0\u67e5','\u4e2d','\u5df2\u4fee\u590d'],
+  ['#9','\u4fee\u590d\u5185\u5b58\u6cc4\u6f0f\u95ee\u9898','\u4e2d','\u5df2\u4fee\u590d'],
+  ['#10','\u52a0\u56fa\u6587\u4ef6\u63cf\u8ff0\u7b26\u5b89\u5168','\u4e2d','\u5df2\u4fee\u590d'],
+  ['#11','\u4fee\u590d\u7b26\u53f7\u94fe\u63a5\u653b\u51fb\u9632\u62a4','\u4e2d','\u5df2\u4fee\u590d'],
+  ['#12','\u52a0\u56fa\u5185\u6838\u6a21\u5757\u53c2\u6570\u68c0\u67e5','\u4f4e','\u5df2\u4fee\u590d'],
+  ['#13','\u4fee\u590d\u65e5\u5fd7\u4fe1\u606f\u6cc4\u9732\u95ee\u9898','\u4f4e','\u5df2\u4fee\u590d'],
+  ['#14','\u52a0\u56fa\u914d\u7f6e\u6587\u4ef6\u89e3\u6790\u5b89\u5168','\u4f4e','\u5df2\u4fee\u590d'],
+  ['#15','\u4fee\u590d\u8fdb\u7a0b\u4fe1\u53f7\u5904\u7406\u7ade\u6001','\u4f4e','\u5df2\u4fee\u590d'],
+  ['#16','\u52a0\u56fa mount \u547d\u540d\u7a7a\u95f4\u9694\u79bb','\u4f4e','\u5df2\u4fee\u590d'],
+  ['#17','\u4fee\u590d\u5185\u6838\u6a21\u5757\u7248\u672c\u68c0\u67e5\u7ed5\u8fc7','\u4f4e','\u5df2\u4fee\u590d'],
+  ['#18','\u52a0\u56fa WebUI \u8bf7\u6c42\u9a8c\u8bc1','\u4f4e','\u5df2\u4fee\u590d'],
+  ['#19','\u4fee\u590d\u5e94\u7528\u914d\u7f6e\u6587\u4ef6\u6743\u9650\u63d0\u5347','\u4f4e','\u5df2\u4fee\u590d'],
+  ['#20','\u52a0\u56fa\u6a21\u5757\u5378\u8f7d\u6e05\u7406\u673a\u5236','\u4f4e','\u5df2\u4fee\u590d'],
+  ['#21','\u4fee\u590d OTA \u66f4\u65b0\u540e\u7684\u72b6\u6001\u6062\u590d\u95ee\u9898','\u4f4e','\u5df2\u4fee\u590d']
+])+
+callout('info','\u2139\ufe0f KinSU \u56e2\u961f\u6301\u7eed\u5173\u6ce8\u5b89\u5168\u95ee\u9898\uff0c\u5982\u679c\u4f60\u53d1\u73b0\u4e86\u5b89\u5168\u6f0f\u6d1e\uff0c\u8bf7\u901a\u8fc7 GitHub Issues \u6216\u79c1\u5bc6\u6e20\u9053\u62a5\u544a\u3002');
+}};
+
+D['cmd-injection']={title:'\u547d\u4ee4\u6ce8\u5165\u9632\u62a4',cat:'\u5b89\u5168\u52a0\u56fa',updated:'2024-12-15',html:function(){
+return h2('\u547d\u4ee4\u6ce8\u5165\u6f0f\u6d1e\u8bf4\u660e')+
+p('\u547d\u4ee4\u6ce8\u5165\u662f\u4e00\u79cd\u5e38\u89c1\u7684\u5b89\u5168\u6f0f\u6d1e\uff0c\u653b\u51fb\u8005\u901a\u8fc7\u5728\u8f93\u5165\u4e2d\u63d2\u5165\u6076\u610f\u547d\u4ee4\uff0c\u4ece\u800c\u5728\u76ee\u6807\u7cfb\u7edf\u4e0a\u6267\u884c\u672a\u6388\u6743\u7684\u64cd\u4f5c\u3002\u5728 Root \u5de5\u5177\u7684\u573a\u666f\u4e0b\uff0c\u547d\u4ee4\u6ce8\u5165\u7684\u5371\u5bb3\u5c24\u4e3a\u4e25\u91cd\uff0c\u56e0\u4e3a\u5b83\u53ef\u80fd\u5bfc\u81f4\u653b\u51fb\u8005\u83b7\u5f97 Root \u7ea7\u522b\u7684\u4efb\u610f\u4ee3\u7801\u6267\u884c\u80fd\u529b\u3002')+
+h2('KinSU \u7684\u9632\u62a4\u63aa\u65bd')+
+p('KinSU \u91c7\u53d6\u4e86\u591a\u5c42\u9632\u62a4\u6765\u9632\u6b62\u547d\u4ee4\u6ce8\u5165\u653b\u51fb\uff1a')+
+h3('1. \u53c2\u6570\u6d88\u6bd2')+
+p('\u6240\u6709\u4ece\u7528\u6237\u7a7a\u95f4\u63a5\u6536\u7684\u53c2\u6570\u90fd\u4f1a\u7ecf\u8fc7\u4e25\u683c\u7684\u8f93\u5165\u9a8c\u8bc1\u548c\u6d88\u6bd2\u5904\u7406\uff1a')+
+pre('// \u53c2\u6570\u6d88\u6bd2\u793a\u4f8b\nstatic int sanitize_command(const char *input) {\n    const char *dangerous = ";|&$`\\n\\"\\'";\n    for (int i = 0; input[i]; i++) {\n        for (int j = 0; dangerous[j]; j++) {\n            if (input[i] == dangerous[j])\n                return -EINVAL;\n        }\n    }\n    return 0;\n}')+
+h3('2. \u767d\u540d\u5355\u547d\u4ee4\u673a\u5236')+
+p('KinSU \u4ec5\u5141\u8bb8\u6267\u884c\u9884\u5b9a\u4e49\u7684\u5b89\u5168\u547d\u4ee4\uff0c\u4e0d\u5141\u8bb8\u4efb\u610f\u547d\u4ee4\u6267\u884c\uff1a')+
+pre('// \u767d\u540d\u5355\u547d\u4ee4\u5217\u8868\nstatic const char *allowed_commands[] = {\n    "su", "mount", "umount",\n    "setenforce", "getenforce", NULL\n};\n\nstatic int is_command_allowed(const char *cmd) {\n    for (int i = 0; allowed_commands[i]; i++)\n        if (strcmp(cmd, allowed_commands[i]) == 0) return 1;\n    return 0;\n}')+
+h3('3. \u76f4\u63a5\u7cfb\u7edf\u8c03\u7528')+
+p('\u5bf9\u4e8e\u9700\u8981\u6267\u884c\u7684\u64cd\u4f5c\uff0cKinSU \u4f18\u5148\u4f7f\u7528\u5185\u6838\u7cfb\u7edf\u8c03\u7528\u800c\u975e\u6267\u884c\u5916\u90e8\u547d\u4ee4\uff0c\u4ece\u6839\u672c\u4e0a\u907f\u514d\u4e86\u547d\u4ee4\u6ce8\u5165\u7684\u53ef\u80fd\u6027\u3002')+
+callout('tip','\ud83d\udca1 \u5982\u679c\u4f60\u5728\u5f00\u53d1 KinSU \u6a21\u5757\u65f6\u9700\u8981\u6267\u884c\u547d\u4ee4\uff0c\u8bf7\u59cb\u7ec8\u4f7f\u7528\u53c2\u6570\u5316\u7684\u6267\u884c\u65b9\u5f0f\uff0c\u800c\u4e0d\u662f\u62fc\u63a5\u547d\u4ee4\u5b57\u7b26\u4e32\u3002');
+}};
+
+D['path-traversal']={title:'\u8def\u5f84\u7a7f\u8d8a\u9632\u62a4',cat:'\u5b89\u5168\u52a0\u56fa',updated:'2024-12-15',html:function(){
+return h2('\u8def\u5f84\u7a7f\u8d8a\u6f0f\u6d1e\u8bf4\u660e')+
+p('\u8def\u5f84\u7a7f\u8d8a\uff08Path Traversal\uff09\u662f\u4e00\u79cd\u5229\u7528 ../ \u7b49\u7279\u6b8a\u5b57\u7b26\u8df3\u51fa\u9650\u5236\u76ee\u5f55\u7684\u653b\u51fb\u65b9\u5f0f\u3002\u5728 Root \u5de5\u5177\u4e2d\uff0c\u8fd9\u79cd\u6f0f\u6d1e\u53ef\u80fd\u5bfc\u81f4\u653b\u51fb\u8005\u8bbf\u95ee\u6216\u4fee\u6539\u7cfb\u7edf\u4e2d\u7684\u4efb\u610f\u6587\u4ef6\u3002')+
+h2('KinSU \u7684\u9632\u62a4\u63aa\u65bd')+
+h3('1. \u8def\u5f84\u89c4\u8303\u5316')+
+p('\u6240\u6709\u6587\u4ef6\u8def\u5f84\u5728\u4f7f\u7528\u524d\u90fd\u4f1a\u7ecf\u8fc7\u89c4\u8303\u5316\u5904\u7406\uff0c\u6d88\u9664 ../ \u7b49\u7a7f\u8d8a\u5e8f\u5217\uff1a')+
+pre('// \u8def\u5f84\u89c4\u8303\u5316\u793a\u4f8b\nstatic char *normalize_path(const char *path) {\n    char *resolved = realpath(path, NULL);\n    if (!resolved) return NULL;\n\n    // \u68c0\u67e5\u662f\u5426\u5728\u5141\u8bb8\u7684\u76ee\u5f55\u5185\n    if (strncmp(resolved, ALLOWED_DIR, strlen(ALLOWED_DIR)) != 0) {\n        free(resolved);\n        return NULL;\n    }\n    return resolved;\n}')+
+h3('2. \u6c99\u7bb1\u76ee\u5f55\u9650\u5236')+
+p('\u6a21\u5757\u548c\u811a\u672c\u53ea\u80fd\u8bbf\u95ee\u5176\u6307\u5b9a\u7684\u5de5\u4f5c\u76ee\u5f55\uff0c\u65e0\u6cd5\u8bbf\u95ee\u7cfb\u7edf\u7684\u5176\u4ed6\u4f4d\u7f6e\uff1a')+
+pre('// \u6c99\u7bb1\u76ee\u5f55\u9650\u5236\nstatic const char *allowed_dirs[] = {\n    "/data/adb/modules/",\n    "/data/adb/kinsu/",\n    NULL\n};\n\nstatic int is_path_allowed(const char *path) {\n    char *resolved = realpath(path, NULL);\n    if (!resolved) return 0;\n    for (int i = 0; allowed_dirs[i]; i++) {\n        if (strncmp(resolved, allowed_dirs[i],\n            strlen(allowed_dirs[i])) == 0) {\n            free(resolved);\n            return 1;\n        }\n    }\n    free(resolved);\n    return 0;\n}')+
+h3('3. \u7b26\u53f7\u94fe\u63a5\u68c0\u67e5')+
+p('KinSU \u4f1a\u68c0\u67e5\u7b26\u53f7\u94fe\u63a5\u662f\u5426\u6307\u5411\u5141\u8bb8\u8303\u56f4\u5916\u7684\u6587\u4ef6\uff0c\u9632\u6b62\u901a\u8fc7\u7b26\u53f7\u94fe\u63a5\u7ed5\u8fc7\u8def\u5f84\u68c0\u67e5\uff1a')+
+pre('// \u7b26\u53f7\u94fe\u63a5\u68c0\u67e5\nstatic int check_symlink(const char *path) {\n    struct stat st;\n    if (lstat(path, &st) != 0) return -1;\n    if (S_ISLNK(st.st_mode)) {\n        char target[PATH_MAX];\n        ssize_t len = readlink(path, target, sizeof(target)-1);\n        if (len < 0) return -1;\n        target[len] = 0;\n        return is_path_allowed(target);\n    }\n    return 0;\n}')+
+callout('info','\u2139\ufe0f KinSU \u7684\u8def\u5f84\u7a7f\u8d8a\u9632\u62a4\u91c7\u7528\u591a\u5c42\u9632\u5fa1\u7b56\u7565\uff0c\u5305\u62ec\u8def\u5f84\u89c4\u8303\u5316\u3001\u6c99\u7bb1\u9650\u5236\u548c\u7b26\u53f7\u94fe\u63a5\u68c0\u67e5\uff0c\u786e\u4fdd\u6587\u4ef6\u8bbf\u95ee\u7684\u5b89\u5168\u6027\u3002');
+}};
+
+D['module-dev']={title:'\u6a21\u5757\u5f00\u53d1',cat:'\u5f00\u53d1\u6307\u5357',updated:'2024-12-15',html:function(){
+return h2('\u6a21\u5757\u5f00\u53d1\u5165\u95e8')+
+p('KinSU \u6a21\u5757\u662f\u6269\u5c55 KinSU \u529f\u80fd\u7684\u4e3b\u8981\u65b9\u5f0f\u3002\u672c\u8282\u5c06\u4ecb\u7ecd\u5982\u4f55\u5f00\u53d1\u4e00\u4e2a KinSU \u6a21\u5757\u3002')+
+h2('\u6a21\u5757\u7ed3\u6784')+
+p('\u4e00\u4e2a\u6807\u51c6\u7684 KinSU \u6a21\u5757\u5305\u542b\u4ee5\u4e0b\u6587\u4ef6\uff1a')+
+pre('my-module/\n\u251c\u2500\u2500 module.prop          # \u5fc5\u586b\uff0c\u6a21\u5757\u5c5e\u6027\n\u251c\u2500\u2500 post-fs-data.sh      # \u5f00\u673a\u540e\u6587\u4ef6\u7cfb\u7edf\u6302\u8f7d\u5b8c\u6210\u540e\u6267\u884c\n\u251c\u2500\u2500 service.sh           # \u670d\u52a1\u542f\u52a8\u811a\u672c\uff08post-fs-data \u540e\u6267\u884c\uff09\n\u251c\u2500\u2500 uninstall.sh         # \u5378\u8f7d\u65f6\u6267\u884c\u7684\u811a\u672c\n\u251c\u2500\u2500 system/              # \u7cfb\u7edf\u6587\u4ef6\u4fee\u6539\uff08\u65e0\u7cfb\u7edf\u6302\u8f7d\uff09\n\u251c\u2500\u2500 webroot/             # WebUI \u8d44\u6e90\u76ee\u5f55\n\u2514\u2500\u2500 META-INF/             # \u5b89\u88c5\u4fe1\u606f')+
+h2('module.prop \u683c\u5f0f')+
+p('module.prop \u662f\u6a21\u5757\u7684\u6838\u5fc3\u914d\u7f6e\u6587\u4ef6\uff1a')+
+pre('id=my_module\nname=\u6211\u7684\u6a21\u5757\nversion=v1.0.0\nversionCode=100\nauthor=YourName\ndescription=\u8fd9\u662f\u4e00\u4e2a\u793a\u4f8b\u6a21\u5757')+
+h2('\u811a\u672c\u73af\u5883\u53d8\u91cf')+
+p('\u5728\u811a\u672c\u4e2d\uff0c\u4f60\u53ef\u4ee5\u4f7f\u7528\u4ee5\u4e0b\u73af\u5883\u53d8\u91cf\uff1a')+
+table(['\u53d8\u91cf','\u8bf4\u660e'],[
+  ['MODDIR','\u6a21\u5757\u5b89\u88c5\u76ee\u5f55'],
+  ['MODPATH','\u6a21\u5757\u5b8c\u6574\u8def\u5f84'],
+  ['MODNAME','\u6a21\u5757\u540d\u79f0'],
+  ['KSU','\u662f\u5426\u5728 KinSU \u73af\u5883\u4e0b\u8fd0\u884c'],
+  ['KSU_VER','KinSU \u7248\u672c\u53f7'],
+  ['KSU_VER_CODE','KinSU \u7248\u672c\u4ee3\u7801']
+])+
+h2('\u6253\u5305\u6a21\u5757')+
+p('\u5c06\u6a21\u5757\u6587\u4ef6\u6253\u5305\u4e3a zip \u683c\u5f0f\uff1a')+
+pre('# \u786e\u4fdd\u76ee\u5f55\u7ed3\u6784\u6b63\u786e\ncd my-module\nzip -r ../my-module.zip .\n\n# \u5728 KinSU Manager \u4e2d\u5b89\u88c5\n# \u6216\u901a\u8fc7\u547d\u4ee4\u884c\uff1a\nkinsu module install /path/to/my-module.zip')+
+callout('tip','\ud83d\udca1 \u5efa\u8bae\u5728\u53d1\u5e03\u6a21\u5757\u524d\u5728\u591a\u4e2a\u8bbe\u5907\u4e0a\u6d4b\u8bd5\uff0c\u786e\u4fdd\u517c\u5bb9\u6027\u3002');
+}};
+
+D['webui-dev']={title:'WebUI \u5f00\u53d1',cat:'\u5f00\u53d1\u6307\u5357',updated:'2024-12-15',html:function(){
+return h2('WebUI \u5f00\u53d1\u6982\u8ff0')+
+p('KinSU \u6a21\u5757\u652f\u6301 WebUI\uff0c\u5141\u8bb8\u4f60\u4e3a\u6a21\u5757\u63d0\u4f9b\u53ef\u89c6\u5316\u7684\u7ba1\u7406\u754c\u9762\u3002WebUI \u57fa\u4e8e Web \u6280\u672f\uff0c\u53ef\u4ee5\u5728 KinSU Manager \u5185\u7f6e\u7684\u6d4f\u89c8\u5668\u4e2d\u8fd0\u884c\u3002')+
+h2('WebUI \u76ee\u5f55\u7ed3\u6784')+
+p('\u5c06 WebUI \u6587\u4ef6\u653e\u5728\u6a21\u5757\u7684 webroot/ \u76ee\u5f55\u4e0b\uff1a')+
+pre('my-module/\n\u2514\u2500\u2500 webroot/\n    \u251c\u2500\u2500 index.html      # \u4e3b\u9875\u9762\n    \u251c\u2500\u2500 style.css       # \u6837\u5f0f\n    \u2514\u2500\u2500 script.js       # \u903b\u8f91')+
+h2('JavaScript \u63a5\u53e3')+
+p('WebUI \u53ef\u4ee5\u901a\u8fc7\u4ee5\u4e0b JavaScript \u63a5\u53e3\u4e0e\u6a21\u5757\u540e\u53f0\u901a\u4fe1\uff1a')+
+pre('// \u6267\u884c Shell \u547d\u4ee4\nKinSU.exec(command, (code, stdout, stderr) => {\n    console.log("Exit code:", code);\n    console.log("Output:", stdout);\n});\n\n// \u83b7\u53d6\u6a21\u5757\u914d\u7f6e\nKinSU.getConfig((config) => {\n    console.log("Config:", config);\n});\n\n// \u4fdd\u5b58\u6a21\u5757\u914d\u7f6e\nKinSU.setConfig({ key: "value" }, (success) => {\n    console.log("Saved:", success);\n});')+
+h2('\u5b8c\u6574\u793a\u4f8b')+
+p('\u4ee5\u4e0b\u662f\u4e00\u4e2a\u7b80\u5355\u7684 WebUI \u793a\u4f8b\uff1a')+
+pre('<!-- webroot/index.html -->\n<!DOCTYPE html>\n<html>\n<head>\n    <meta charset="utf-8">\n    <title>\u6211\u7684\u6a21\u5757</title>\n    <style>\n        body { font-family: sans-serif; padding: 20px; }\n        button { padding: 10px 20px; margin: 5px; }\n    </style>\n</head>\n<body>\n    <h1>\u6a21\u5757\u63a7\u5236\u53f0</h1>\n    <button onclick="toggle()">\u5f00\u542f/\u5173\u95ed</button>\n    <div id="status">\u72b6\u6001\uff1a\u672a\u77e5</div>\n    <script>\n        function toggle() {\n            KinSU.exec("toggle_feature", (code, out) => {\n                document.getElementById("status").textContent = out;\n            });\n        }\n    </script>\n</body>\n</html>')+
+callout('info','\u2139\ufe0f WebUI \u8fd0\u884c\u5728 KinSU Manager \u7684\u6c99\u7bb1\u73af\u5883\u4e2d\uff0c\u53ea\u80fd\u901a\u8fc7\u63d0\u4f9b\u7684 JavaScript \u63a5\u53e3\u4e0e\u7cfb\u7edf\u4ea4\u4e92\u3002');
+}};
+
+D['contribute']={title:'\u8d21\u732e\u4ee3\u7801',cat:'\u5f00\u53d1\u6307\u5357',updated:'2024-12-15',html:function(){
+return h2('\u5982\u4f55\u8d21\u732e')+
+p('KinSU \u662f\u4e00\u4e2a\u5f00\u6e90\u9879\u76ee\uff0c\u6211\u4eec\u6b22\u8fce\u4efb\u4f55\u4eba\u53c2\u4e0e\u8d21\u732e\u3002\u65e0\u8bba\u662f\u4fee\u590d bug\u3001\u6dfb\u52a0\u65b0\u529f\u80fd\u3001\u6539\u8fdb\u6587\u6863\u8fd8\u662f\u7ffb\u8bd1\uff0c\u4f60\u7684\u8d21\u732e\u90fd\u5c06\u5e2e\u52a9 KinSU \u53d8\u5f97\u66f4\u597d\u3002')+
+h2('\u5f00\u53d1\u73af\u5883\u51c6\u5907')+
+p('\u5728\u5f00\u59cb\u8d21\u732e\u4e4b\u524d\uff0c\u8bf7\u5148\u51c6\u5907\u597d\u4ee5\u4e0b\u5f00\u53d1\u73af\u5883\uff1a')+
+ul(['Android \u5f00\u53d1\u73af\u5883\uff08Android Studio\uff09','Rust \u5de5\u5177\u94fe\uff08\u7528\u4e8e\u5185\u6838\u6a21\u5757\u5f00\u53d1\uff09','Git \u7248\u672c\u63a7\u5236','\u4e86\u89e3 Linux \u5185\u6838\u5f00\u53d1\u57fa\u7840'])+
+h2('\u8d21\u732e\u6d41\u7a0b')+
+ol(['Fork \u9879\u76ee\u5230\u4f60\u7684 GitHub \u8d26\u6237','\u521b\u5efa\u529f\u80fd\u5206\u652f\uff08feature/xxx \u6216 fix/xxx\uff09','\u7f16\u5199\u4ee3\u7801\u5e76\u786e\u4fdd\u901a\u8fc7\u6240\u6709\u6d4b\u8bd5','\u63d0\u4ea4 Pull Request \u5e76\u586b\u5199 PR \u6a21\u677f','\u7b49\u5f85\u4ee3\u7801\u5ba1\u67e5'])+
+h2('\u4ee3\u7801\u89c4\u8303')+
+p('\u8bf7\u9075\u5faa\u4ee5\u4e0b\u4ee3\u7801\u89c4\u8303\uff1a')+
+ul(['\u4f7f\u7528 rustfmt \u683c\u5f0f\u5316 Rust \u4ee3\u7801','\u4f7f\u7528 clippy \u8fdb\u884c\u4ee3\u7801\u68c0\u67e5','\u7f16\u5199\u6e05\u6670\u7684\u63d0\u4ea4\u4fe1\u606f','\u6dfb\u52a0\u5fc5\u8981\u7684\u6d4b\u8bd5\u7528\u4f8b','\u66f4\u65b0\u76f8\u5173\u6587\u6863'])+
+h2('\u62a5\u544a Bug')+
+p('\u5982\u679c\u4f60\u53d1\u73b0\u4e86 Bug\uff0c\u8bf7\u901a\u8fc7 GitHub Issues \u62a5\u544a\uff1a')+
+pre('# Bug \u62a5\u544a\u6a21\u677f\n## \u73af\u5883\u4fe1\u606f\n- \u8bbe\u5907\u578b\u53f7\uff1a\n- Android \u7248\u672c\uff1a\n- KinSU \u7248\u672c\uff1a\n- \u5185\u6838\u7248\u672c\uff1a\n\n## \u95ee\u9898\u63cf\u8ff0\n\u8be6\u7ec6\u63cf\u8ff0\u9047\u5230\u7684\u95ee\u9898\n\n## \u590d\u73b0\u6b65\u9aa4\n1. ...\n2. ...\n3. ...\n\n## \u671f\u671b\u884c\u4e3a\n\u63cf\u8ff0\u671f\u671b\u7684\u6b63\u786e\u884c\u4e3a')+
+callout('info','\u2139\ufe0f \u5b89\u5168\u76f8\u5173\u7684\u6f0f\u6d1e\u62a5\u544a\uff0c\u8bf7\u901a\u8fc7\u79c1\u5bc6\u6e20\u9053\u8054\u7cfb\u6211\u4eec\uff0c\u4e0d\u8981\u76f4\u63a5\u516c\u5f00\u62a5\u544a\u3002');
+}};
+
+// ====== HTML Helper Functions ======
+function h2(t){return '<h2 id="'+slug(t)+'">'+t+'</h2>';}
+function h3(t){return '<h3 id="'+slug(t)+'">'+t+'</h3>';}
+function p(t){return '<p>'+t+'</p>';}
+function ul(items){return '<ul>'+items.map(function(i){return '<li>'+i+'</li>';}).join('')+'</ul>';}
+function ol(items){return '<ol>'+items.map(function(i){return '<li>'+i+'</li>';}).join('')+'</ol>';}
+function pre(code){return '<pre><code>'+esc(code)+'</code></pre>';}
+function callout(kind,text){
+  var cls=kind==='warning'?'callout-warning':kind==='tip'?'callout-tip':'callout-info';
+  var icon=kind==='warning'?'\u26a0\ufe0f':kind==='tip'?'\ud83d\udca1':'\u2139\ufe0f';
+  return '<div class="callout '+cls+'"><span class="callout-icon">'+icon+'</span><span>'+text+'</span></div>';
+}
+function table(headers,rows){
+  var h='<table><thead><tr>'+headers.map(function(x){return '<th>'+x+'</th>';}).join('')+'</tr></thead><tbody>';
+  rows.forEach(function(r){h+='<tr>'+r.map(function(c){return '<td>'+c+'</td>';}).join('')+'</tr>';});
+  return h+'</tbody></table>';
+}
+function slug(s){return s.replace(/[^\w\u4e00-\u9fff]/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'');}
+function esc(s){return s.replace(/&/g,'&').replace(/</g,'<').replace(/>/g,'>');}
+
+// ====== App State ======
+var currentPage='install';
+var currentView='home';
+
+// ====== Initialize Landing Page ======
+function initLanding(){
+  document.getElementById('heroTitle').textContent=T.heroTitle;
+  document.getElementById('heroSubtitle').textContent=T.heroSubtitle;
+  document.getElementById('heroDesc').textContent=T.heroDesc;
+  document.getElementById('heroButtons').innerHTML=
+    '<a href="https://github.com/Spring-bulid/KinSU/releases/latest" target="_blank" class="btn-primary">'+T.btnAdventure+'</a>'+
+    '<a href="#" onclick="switchToDocs();return false;" class="btn-secondary">'+T.btnGuide+'</a>';
+  document.getElementById('featuresTitle').textContent=T.featuresTitle;
+  document.getElementById('featuresDesc').textContent=T.featuresDesc;
+  var fg=document.getElementById('featuresGrid');
+  fg.innerHTML=features.map(function(f){
+    return '<div class="feature-card"><div class="feature-icon">'+f.icon+'</div><div class="feature-name">'+f.name+'</div><div class="feature-desc">'+f.desc+'</div></div>';
+  }).join('');
+  document.getElementById('gsTitle').textContent=T.gsTitle;
+  document.getElementById('gsDesc').textContent=T.gsDesc;
+  var sc=document.getElementById('stepsContainer');
+  sc.innerHTML=steps.map(function(s){
+    return '<div class="step"><div class="step-num">'+s.num+'</div><div class="step-title">'+s.title+'</div><div class="step-desc">'+s.desc+'</div></div>';
+  }).join('');
+  document.getElementById('compTitle').textContent=T.compTitle;
+  document.getElementById('compDesc').textContent=T.compDesc;
+  var ct='<table class="comparison-table"><thead><tr><th>\u529f\u80fd</th><th>KinSU</th><th>KernelSU</th><th>Magisk</th></tr></thead><tbody>';
+  compRows.forEach(function(r){
+    ct+='<tr><td>'+r[0]+'</td>';
+    for(var i=1;i<=3;i++){
+      if(r[i]===true) ct+='<td class="check">\u2713</td>';
+      else if(r[i]===false) ct+='<td class="cross">\u2717</td>';
+      else ct+='<td>'+r[i]+'</td>';
+    }
+    ct+='</tr>';
+  });
+  ct+='</tbody></table>';
+  document.getElementById('comparisonTable').innerHTML=ct;
+  document.getElementById('contribTitle').textContent=T.contribTitle;
+  document.getElementById('contribDesc').textContent=T.contribDesc;
+  var ag=document.getElementById('avatarGrid');
+  ag.innerHTML=contribIds.map(function(id){
+    return '<img class="avatar" src="https://aka.doubaocdn.com/s/'+id+'" alt="Contributor" loading="lazy">';
+  }).join('');
+  document.getElementById('footer').textContent=T.footer;
+}
+
+// ====== Initialize Docs Sidebar ======
+function initSidebar(){
+  document.getElementById('sidebarTitleText').textContent=T.sidebarTitle;
+  var tree=document.getElementById('sidebarTree');
+  tree.innerHTML=docTree.map(function(section){
+    var expanded=section.children.some(function(c){return c.id===currentPage;});
+    return '<div class="sidebar-section'+(expanded?' expanded':'')+'" data-section="'+section.id+'">'+
+      '<div class="sidebar-section-header" onclick="toggleSection(\''+section.id+'\')">'+
+      '<span>'+section.icon+' '+section.title+'</span>'+
+      '<span class="sidebar-arrow">\u25b6</span>'+
+      '</div>'+
+      '<div class="sidebar-items">'+
+      section.children.map(function(child){
+        return '<div class="sidebar-item'+(child.id===currentPage?' active':'')+'" data-page="'+child.id+'" onclick="navigateTo(\''+child.id+'\')">'+child.title+'</div>';
+      }).join('')+
+      '</div></div>';
+  }).join('');
+}
+
+function toggleSection(id){
+  var el=document.querySelector('[data-section="'+id+'"]');
+  if(el)el.classList.toggle('expanded');
+}
+
+// ====== Navigate to Page ======
+function navigateTo(pageId){
+  currentPage=pageId;
+  var doc=D[pageId];
+  if(!doc)return;
+  // Update sidebar active state
+  document.querySelectorAll('.sidebar-item').forEach(function(el){
+    el.classList.toggle('active',el.getAttribute('data-page')===pageId);
+  });
+  // Expand parent section
+  document.querySelectorAll('.sidebar-section').forEach(function(sec){
+    var sectionId=sec.getAttribute('data-section');
+    var section=docTree.find(function(s){return s.id===sectionId;});
+    if(section&&section.children.some(function(c){return c.id===pageId;})){
+      sec.classList.add('expanded');
+    }
+  });
+  // Render content
+  renderDoc(doc);
+  // Scroll to top
+  document.getElementById('docsMain').scrollTop=0;
+  // Close mobile sidebar
+  document.getElementById('docsSidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('show');
+}
+
+function renderDoc(doc){
+  document.getElementById('breadcrumb').innerHTML=
+    '<a href="#" onclick="switchToHome();return false;">'+T.navHome+'</a><span class="breadcrumb-sep">/</span>'+
+    '<span>'+doc.cat+'</span><span class="breadcrumb-sep">/</span><span>'+doc.title+'</span>';
+  document.getElementById('docTitle').textContent=doc.title;
+  document.getElementById('docMeta').innerHTML=
+    '<span>'+T.updatedLabel+' '+doc.updated+'</span>'+
+    '<span>'+T.readingTime+' 5 '+T.minute+'</span>';
+  document.getElementById('docBody').innerHTML=doc.html();
+  // Build TOC
+  buildTOC();
+}
+
+function buildTOC(){
+  var tocEl=document.getElementById('tocItems');
+  var headings=document.querySelectorAll('#docBody h2, #docBody h3');
+  var html='';
+  headings.forEach(function(h){
+    var cls=h.tagName==='H3'?'toc-item h3':'toc-item';
+    html+='<div class="'+cls+'" onclick="scrollToHeading(\''+h.id+'\')">'+h.textContent+'</div>';
+  });
+  tocEl.innerHTML=html;
+  document.getElementById('tocTitle').textContent=T.tocLabel;
+  // Setup scroll spy
+  setupScrollSpy();
+}
+
+function scrollToHeading(id){
+  var el=document.getElementById(id);
+  if(el){
+    var main=document.getElementById('docsMain');
+    main.scrollTop=el.offsetTop-80;
+  }
+}
+
+var scrollSpyTimer=null;
+function setupScrollSpy(){
+  var main=document.getElementById('docsMain');
+  main.removeEventListener('scroll',onScrollSpy);
+  main.addEventListener('scroll',onScrollSpy);
+}
+
+function onScrollSpy(){
+  clearTimeout(scrollSpyTimer);
+  scrollSpyTimer=setTimeout(function(){
+    var headings=document.querySelectorAll('#docBody h2, #docBody h3');
+    var main=document.getElementById('docsMain');
+    var scrollTop=main.scrollTop+100;
+    var activeId=null;
+    headings.forEach(function(h){
+      if(h.offsetTop<=scrollTop)activeId=h.id;
+    });
+    document.querySelectorAll('.toc-item').forEach(function(t){
+      var text=t.textContent;
+      var isActive=false;
+      headings.forEach(function(h){
+        if(h.id===activeId&&h.textContent===text)isActive=true;
+      });
+      t.classList.toggle('active',isActive);
+    });
+  },50);
+}
+
+// ====== View Switching ======
+function switchToDocs(){
+  currentView='docs';
+  document.getElementById('landing').style.display='none';
+  document.getElementById('docs').style.display='block';
+  document.getElementById('tabHome').classList.remove('active');
+  document.getElementById('tabDocs').classList.add('active');
+  document.getElementById('navbar').classList.add('dark');
+  initSidebar();
+  navigateTo(currentPage);
+}
+
+function switchToHome(){
+  currentView='home';
+  document.getElementById('landing').style.display='block';
+  document.getElementById('docs').style.display='none';
+  document.getElementById('tabHome').classList.add('active');
+  document.getElementById('tabDocs').classList.remove('active');
+  document.getElementById('navbar').classList.remove('dark');
+}
+
+// Make switchToDocs global
+window.switchToDocs=switchToDocs;
+window.switchToHome=switchToHome;
+window.toggleSection=toggleSection;
+window.navigateTo=navigateTo;
+window.scrollToHeading=scrollToHeading;
+
+// ====== Event Listeners ======
+document.getElementById('tabHome').addEventListener('click',switchToHome);
+document.getElementById('tabDocs').addEventListener('click',switchToDocs);
+document.getElementById('navLogo').addEventListener('click',switchToHome);
+
+document.getElementById('tabHome').textContent=T.navHome;
+document.getElementById('tabDocs').textContent=T.navDocs;
+
+// Mobile menu
+document.getElementById('mobileMenuBtn').addEventListener('click',function(){
+  document.getElementById('docsSidebar').classList.toggle('open');
+  document.getElementById('sidebarOverlay').classList.toggle('show');
+});
+document.getElementById('sidebarOverlay').addEventListener('click',function(){
+  document.getElementById('docsSidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('show');
+});
+
+// Navbar scroll effect for landing
+window.addEventListener('scroll',function(){
+  if(currentView==='home'){
+    var nb=document.getElementById('navbar');
+    if(window.scrollY>100)nb.classList.add('dark');
+    else nb.classList.remove('dark');
+  }
+});
+
+// ====== Initialize ======
+initLanding();
+
+})();
+</script>
+</body>
+</html>

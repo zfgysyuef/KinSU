@@ -1,4 +1,4 @@
-kinsu-objs := core/init.o
+﻿kinsu-objs := core/init.o
 
 kinsu-objs += feature/kernel_umount.o
 kinsu-objs += feature/sulog.o
@@ -49,6 +49,10 @@ kinsu-objs += sulog/fd.o
 kinsu-objs += supercall/dispatch.o
 kinsu-objs += supercall/perm.o
 kinsu-objs += supercall/supercall.o
+
+kinsu-objs += migrate/detect.o
+kinsu-objs += migrate/clean.o
+kinsu-objs += migrate/migrate.o
 
 kinsu-objs += feature/adb_root.o
 

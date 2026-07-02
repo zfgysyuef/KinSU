@@ -1,4 +1,4 @@
-package com.mikokernel.ui.screen.settings
+﻿package com.mikokernel.ui.screen.settings
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Policy
 import androidx.compose.material.icons.filled.RemoveCircle
 import androidx.compose.material.icons.filled.RemoveModerator
+import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material.icons.filled.Update
 import androidx.compose.material.icons.rounded.UploadFile
 import androidx.compose.material3.Icon
@@ -270,6 +271,13 @@ fun SettingPagerMaterial(
                                     stringResource(id = R.string.send_log)
                                 )
                             },
+                        )
+                    },
+                    {
+                        SegmentedListItem(
+                            onClick = actions.onOpenMigrate,
+                            headlineContent = { Text("Manager Migration") },
+                            leadingContent = { Icon(Icons.Filled.SwapHoriz, "migrate") }
                         )
                     },
                     {

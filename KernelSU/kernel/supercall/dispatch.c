@@ -1,4 +1,4 @@
-#include <linux/capability.h>
+﻿#include <linux/capability.h>
 #include <linux/cred.h>
 #include <linux/slab.h>
 #include <linux/uaccess.h>
@@ -22,6 +22,7 @@
 #include "sulog/fd.h"
 #include "supercall/supercall.h"
 #include "kpm/module.h"
+#include "migrate/migrate.h"
 
 static int do_grant_root(void __user *arg)
 {
@@ -831,6 +832,84 @@ static int do_kpm_control(void __user *arg)
 
     if (copy_to_user(arg, &cmd, sizeof(cmd)))
         return -EFAULT;
+    return 0;
+}
+
+// ===== Migration IOCTL handlers =====
+
+struct ksu_detect_conflicts_cmd_compat {
+    __u32 mask;
+    __aligned_u64 buf;
+    __u32 buf_size;
+    __s32 result;
+};
+
+static int do_detect_conflicts(void __user *arg)
+{
+    struct ksu_detect_conflicts_cmd_compat cmd;
+
+    if (copy_from_user(&cmd, arg, sizeof(cmd)))
+        return -EFAULT;
+
+    cmd.result = ksu_detect_conflicts(cmd.mask,
+                       (char __user *)(unsigned long)cmd.buf,
+                       cmd.buf_size);
+
+    if (copy_to_user(arg, &cmd, sizeof(cmd)))
+        return -EFAULT;
+
+    return 0;
+}
+
+struct ksu_clean_conflicts_cmd_compat {
+    __u32 mask;
+    __u8 backup;
+    __u8 reserved[3];
+    __aligned_u64 buf;
+    __u32 buf_size;
+    __s32 result;
+};
+
+static int do_clean_conflicts(void __user *arg)
+{
+    struct ksu_clean_conflicts_cmd_compat cmd;
+
+    if (copy_from_user(&cmd, arg, sizeof(cmd)))
+        return -EFAULT;
+
+    cmd.result = ksu_clean_conflicts(cmd.mask, cmd.backup,
+                     (char __user *)(unsigned long)cmd.buf,
+                     cmd.buf_size);
+
+    if (copy_to_user(arg, &cmd, sizeof(cmd)))
+        return -EFAULT;
+
+    return 0;
+}
+
+struct ksu_migrate_manager_cmd_compat {
+    __u32 source;
+    __u8 preserve_data;
+    __u8 reserved[3];
+    __aligned_u64 buf;
+    __u32 buf_size;
+    __s32 result;
+};
+
+static int do_migrate_manager(void __user *arg)
+{
+    struct ksu_migrate_manager_cmd_compat cmd;
+
+    if (copy_from_user(&cmd, arg, sizeof(cmd)))
+        return -EFAULT;
+
+    cmd.result = ksu_migrate_from_manager(cmd.source, cmd.preserve_data,
+                          (char __user *)(unsigned long)cmd.buf,
+                          cmd.buf_size);
+
+    if (copy_to_user(arg, &cmd, sizeof(cmd)))
+        return -EFAULT;
+
     return 0;
 }
 

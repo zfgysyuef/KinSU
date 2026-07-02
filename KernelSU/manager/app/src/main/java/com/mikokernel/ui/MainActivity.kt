@@ -1,4 +1,4 @@
-/*
+﻿/*
  * KinSU - A derivative work of KernelSU
  * Copyright (c) 2022-2024 weishu (KernelSU Project)
  * Copyright (c) 2024 KinSU Project
@@ -194,6 +194,7 @@ class MainActivity : ComponentActivity() {
                                 entry<Route.SuperUser> { mainScreenEntry() }
                                 entry<Route.Module> { mainScreenEntry() }
                                 entry<Route.Settings> { SettingPager(LocalNavigator.current!!, Dp(0f)) }
+                                entry<Route.Migrate> { com.mikokernel.migrate.MigrateScreen(LocalNavigator.current!!) }
                             }
                         )
                     }
@@ -221,7 +222,7 @@ fun MainScreen(
     onPageChanged: (Int) -> Unit = {},
 ) {
     val navController = LocalNavigator.current
-    // 异步检测：GKI 设备 + 内核集成 SuSFS，两者缺一不可
+    // 寮傛妫€娴嬶細GKI 璁惧 + 鍐呮牳闆嗘垚 SuSFS锛屼袱鑰呯己涓€涓嶅彲
     val isGki by remember { mutableStateOf(isGkiDevice()) }
     val susfsSupported by produceState(initialValue = false, isGki) {
         if (!isGki) {
@@ -262,7 +263,7 @@ fun MainScreen(
     val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
     val useNavigationRail = isLandscape
 
-    // 导航栏顺序：首页, [SuSFS], 超级用户, 模块
+    // 瀵艰埅鏍忛『搴忥細棣栭〉, [SuSFS], 瓒呯骇鐢ㄦ埛, 妯″潡
     val susfsIndex = if (showSusfsButton) 1 else -1
     val superUserIndex = if (showSusfsButton) 2 else 1
     val moduleIndex = if (showSusfsButton) 3 else 2

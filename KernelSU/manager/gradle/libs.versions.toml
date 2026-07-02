@@ -53,6 +53,7 @@ com-github-topjohnwu-libsu-io = { group = "com.github.topjohnwu.libsu", name = "
 dev-rikka-rikkax-parcelablelist = { module = "dev.rikka.rikkax.parcelablelist:parcelablelist", version.ref = "parcelablelist" }
 
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version = "1.8.1" }
 
 androidx-navigation3-runtime = { module = "androidx.navigation3:navigation3-runtime", version.ref = "navigation3" }
 androidx-navigation3-ui = { module = "androidx.navigation3:navigation3-ui", version.ref = "navigation3" }

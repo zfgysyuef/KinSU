@@ -22,7 +22,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Block
 import androidx.compose.material.icons.outlined.CheckCircle
-import androidx.compose.material.icons.outlined.Pets
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.Button
@@ -69,7 +68,7 @@ fun HomePagerMaterial(
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
 
     Scaffold(
-        topBar = { TopBar(scrollBehavior = scrollBehavior, showSusfs = state.showSusfsButton) },
+        topBar = { TopBar(scrollBehavior = scrollBehavior) },
         contentWindowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal)
     ) { innerPadding ->
         Column(
@@ -142,7 +141,6 @@ internal fun UpdateCard(
 @Composable
 internal fun TopBar(
     scrollBehavior: TopAppBarScrollBehavior? = null,
-    showSusfs: Boolean = false,
 ) {
     val navigator = LocalNavigator.current
     TopAppBar(
@@ -153,11 +151,6 @@ internal fun TopBar(
             )
         },
         actions = {
-            if (showSusfs) {
-                IconButton(onClick = { navigator?.push(Route.SuFSConfig) }) {
-                    Icon(Icons.Outlined.Pets, "SuSFS")
-                }
-            }
             RebootListPopup()
             IconButton(onClick = { navigator?.push(Route.Settings) }) {
                 Icon(Icons.Outlined.Settings, stringResource(R.string.settings))
@@ -195,9 +188,12 @@ internal fun StatusCard(
             ) {
                 when {
                     state.ksuVersion != null -> {
+                        // 用 native 层的 lkmMode 判断运行模式（准确）
+                        // isKpmActive 只表示 KPM 功能是否可用，不决定运行模式
+                        // LKM 模式下也可能激活 KPM，不能据此误判为 GKI
                         val workingMode = when {
-                            state.isKpmActive -> "GKI"
                             state.lkmMode == true -> "LKM"
+                            state.lkmMode == false -> "GKI"
                             else -> ""
                         }
 

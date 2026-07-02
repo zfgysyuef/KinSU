@@ -202,7 +202,11 @@ fn wait_for_boot_completed() -> Result<()> {
     let rp = resetprop();
     info!("waiting for boot complete");
     // 120秒超时，防止永久等待卡死
-    rp.wait("sys.boot_completed", Some("0"), Some(120.0))
+    rp.wait(
+        "sys.boot_completed",
+        Some("0"),
+        Some(std::time::Duration::from_secs(120)),
+    )
         .context("wait for sys.boot_completed failed")?;
     Ok(())
 }

@@ -48,6 +48,13 @@ fn init_driver_fd() -> Option<RawFd> {
     }
 }
 
+/// 检查 KinSU 内核模块是否已加载
+/// 通过扫描 /proc/self/fd 中的 [ksu_driver] 标记或尝试 reboot magic 安装，
+/// 判断内核模块是否已加载。不触发 DRIVER_FD 缓存，避免污染后续 ksuctl 调用。
+pub fn ksu_is_loaded() -> bool {
+    init_driver_fd().is_some()
+}
+
 // ioctl wrapper using libc
 pub(crate) fn ksuctl<T>(request: u32, arg: *mut T) -> std::io::Result<i32> {
     use std::io;

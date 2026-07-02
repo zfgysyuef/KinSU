@@ -1,10 +1,11 @@
-package com.mikokernel.ui.util
+﻿package com.mikokernel.ui.util
 
 import android.content.Context
 import android.net.Uri
 import com.topjohnwu.superuser.Shell
 import java.io.File
 import java.io.FileOutputStream
+import android.util.Log
 import com.mikokernel.R
 
 data class AnyKernel3FlashLog(val text: String, val progress: Float = 0f, val step: String = "")
@@ -71,6 +72,15 @@ class AnyKernel3Worker(
                 onLog(AnyKernel3FlashLog(context.getString(R.string.anykernel3_setting_target_slot, safeSlot), 0.45f))
                 origSlot = Shell.cmd("getprop ro.boot.slot_suffix").exec().out.firstOrNull()?.trim()
                 runCommand(true, "resetprop -n ro.boot.slot_suffix _$safeSlot")
+            }
+
+
+            // Clean up stale state from ALL root managers before flashing
+            onLog(AnyKernel3FlashLog("- Cleaning up old root manager state...", 0.48f))
+            try {
+                runCommand(true, "rm -f /data/adb/ksud /data/adb/ksu/bin/ksud /data/adb/ksu/.allowlist /metadata/ksu/modules.rc /metadata/ksu/.modules.rc.tmp /metadata/watchdog/ksu/modules.rc /metadata/watchdog/ksu/.modules.rc.tmp && rm -rf /data/adb/ksu/profile/selinux && rm -f /data/adb/sepolicy.rules && rm -rf /data/adb/post-fs-data.d /data/adb/service.d /data/adb/post-mount.d && rm -f /data/adb/magisk /data/adb/magisk.db /data/adb/magisk.apk && rm -rf /data/adb/ap && rm -f /data/adb/resetprop /data/adb/busybox 2>/dev/null; true")
+            } catch (e: Exception) {
+                Log.w("AnyKernel3Worker", "cleanup old state failed (non-fatal): ${e.message}")
             }
 
             onLog(AnyKernel3FlashLog(context.getString(R.string.anykernel3_flashing_kernel), 0.5f, context.getString(R.string.anykernel3_flashing)))
