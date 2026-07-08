@@ -389,7 +389,6 @@ static int elf_header_check(struct kpm_load_info *info)
 }
 
 static struct kpm_module modules = { 0 };
-static DEFINE_SPINLOCK(module_lock);
 
 long kpm_load_module(const void *data, int len, const char *args,
                      const char *event, void *__user reserved)

@@ -5,6 +5,16 @@
 #include <linux/list.h>
 #include <linux/types.h>
 
+#ifndef Elf_Ehdr
+#define Elf_Ehdr Elf64_Ehdr
+#endif
+#ifndef Elf_Shdr
+#define Elf_Shdr Elf64_Shdr
+#endif
+#ifndef Elf_Sym
+#define Elf_Sym Elf64_Sym
+#endif
+
 /* Callback signatures matching KernelPatch KPM ABI */
 typedef long (*kpm_initcall_t)(const char *args, const char *event, void *__user reserved);
 typedef long (*kpm_exitcall_t)(void *__user reserved);

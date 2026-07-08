@@ -11,8 +11,12 @@
 #define R_AARCH64_ADR_GOT_PAGE 311
 #endif
 
+#ifndef le32_to_cpu
 #define le32_to_cpu(x) (x)
+#endif
+#ifndef cpu_to_le32
 #define cpu_to_le32(x) (x)
+#endif
 
 enum aarch64_reloc_op {
     RELOC_OP_NONE,
