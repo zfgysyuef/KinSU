@@ -17,16 +17,11 @@
 
 #define SZ_128M 0x08000000
 
-#define ALIGN_MASK(x, mask) (((x) + (mask)) & ~(mask))
-#define ALIGN(x, a) ALIGN_MASK(x, (typeof(x))(a)-1)
-#define align(x) ALIGN(x, PAGE_SIZE)
+#define KPM_ALIGN_MASK(x, mask) (((x) + (mask)) & ~(mask))
+#define KPM_ALIGN(x, a) KPM_ALIGN_MASK((x), (typeof(x))(a)-1)
+#define kpm_align_page(x) KPM_ALIGN((x), PAGE_SIZE)
 
 #define elf_check_arch(x) ((x)->e_machine == EM_AARCH64)
-
-static inline bool strstarts(const char *str, const char *prefix)
-{
-    return strncmp(str, prefix, strlen(prefix)) == 0;
-}
 
 static char *next_string(char *string, unsigned long *secsize)
 {
@@ -44,7 +39,7 @@ static char *next_string(char *string, unsigned long *secsize)
 static long get_offset(struct kpm_module *mod, unsigned int *size,
                        Elf_Shdr *sechdr, unsigned int section)
 {
-    long ret = ALIGN(*size, sechdr->sh_addralign ?: 1);
+    long ret = KPM_ALIGN(*size, sechdr->sh_addralign ?: 1);
     *size = ret + sechdr->sh_size;
     return ret;
 }
@@ -125,17 +120,17 @@ static void layout_sections(struct kpm_module *mod, struct kpm_load_info *info)
         }
         switch (m) {
         case 0:
-            mod->size = align(mod->size);
+            mod->size = kpm_align_page(mod->size);
             mod->text_size = mod->size;
             break;
         case 1:
-            mod->size = align(mod->size);
+            mod->size = kpm_align_page(mod->size);
             mod->ro_size = mod->size;
             break;
         case 2:
             break;
         case 3:
-            mod->size = align(mod->size);
+            mod->size = kpm_align_page(mod->size);
             break;
         }
     }
@@ -236,7 +231,7 @@ static void layout_symtab(struct kpm_module *mod, struct kpm_load_info *info)
         }
     }
 
-    info->symoffs = ALIGN(mod->size, symsect->sh_addralign ?: 1);
+    info->symoffs = KPM_ALIGN(mod->size, symsect->sh_addralign ?: 1);
     info->stroffs = mod->size = info->symoffs + ndst * sizeof(Elf_Sym);
     mod->size += strtab_size;
 

@@ -7,6 +7,10 @@
 
 #include "module.h"
 
+#ifndef R_AARCH64_ADR_GOT_PAGE
+#define R_AARCH64_ADR_GOT_PAGE 311
+#endif
+
 #define le32_to_cpu(x) (x)
 #define cpu_to_le32(x) (x)
 
