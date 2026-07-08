@@ -1,69 +1,69 @@
-﻿kinsu-objs := core/init.o
+﻿follkernel-objs := core/init.o
 
-kinsu-objs += feature/kernel_umount.o
-kinsu-objs += feature/sulog.o
-kinsu-objs += feature/sucompat.o
+follkernel-objs += feature/kernel_umount.o
+follkernel-objs += feature/sulog.o
+follkernel-objs += feature/sucompat.o
 
-kinsu-objs += kpm/module.o
-kinsu-objs += kpm/relo.o
+follkernel-objs += kpm/module.o
+follkernel-objs += kpm/relo.o
 
-kinsu-objs += hook/lsm_hook.o
-kinsu-objs += hook/setuid_hook.o
-kinsu-objs += hook/syscall_event_bridge.o
-kinsu-objs += hook/syscall_hook_manager.o
-kinsu-objs += hook/tp_marker.o
+follkernel-objs += hook/lsm_hook.o
+follkernel-objs += hook/setuid_hook.o
+follkernel-objs += hook/syscall_event_bridge.o
+follkernel-objs += hook/syscall_hook_manager.o
+follkernel-objs += hook/tp_marker.o
 ifeq ($(CONFIG_ARM64),y)
-kinsu-objs += hook/arm64/patch_memory.o
-kinsu-objs += hook/arm64/syscall_hook.o
+follkernel-objs += hook/arm64/patch_memory.o
+follkernel-objs += hook/arm64/syscall_hook.o
 else ifeq ($(CONFIG_X86_64),y)
-kinsu-objs += hook/x86_64/patch_memory.o
-kinsu-objs += hook/x86_64/syscall_hook.o
+follkernel-objs += hook/x86_64/patch_memory.o
+follkernel-objs += hook/x86_64/syscall_hook.o
 endif
 
-kinsu-objs += infra/file_wrapper.o
-kinsu-objs += infra/event_queue.o
-kinsu-objs += infra/seccomp_cache.o
-kinsu-objs += infra/su_mount_ns.o
-kinsu-objs += infra/symbol_resolver.o
+follkernel-objs += infra/file_wrapper.o
+follkernel-objs += infra/event_queue.o
+follkernel-objs += infra/seccomp_cache.o
+follkernel-objs += infra/su_mount_ns.o
+follkernel-objs += infra/symbol_resolver.o
 
 ifneq ($(CONFIG_KSU_DISABLE_MANAGER),y)
-kinsu-objs += manager/apk_sign.o
-kinsu-objs += manager/pkg_observer.o
-kinsu-objs += manager/throne_tracker.o
+follkernel-objs += manager/apk_sign.o
+follkernel-objs += manager/pkg_observer.o
+follkernel-objs += manager/throne_tracker.o
 endif
 
-kinsu-objs += policy/allowlist.o
-kinsu-objs += policy/app_profile.o
-kinsu-objs += policy/feature.o
+follkernel-objs += policy/allowlist.o
+follkernel-objs += policy/app_profile.o
+follkernel-objs += policy/feature.o
 
-kinsu-objs += runtime/boot_event.o
-kinsu-objs += runtime/ksud_integration.o
+follkernel-objs += runtime/boot_event.o
+follkernel-objs += runtime/ksud_integration.o
 
-kinsu-objs += selinux/selinux.o
-kinsu-objs += selinux/rules.o
-kinsu-objs += selinux/sepolicy.o
+follkernel-objs += selinux/selinux.o
+follkernel-objs += selinux/rules.o
+follkernel-objs += selinux/sepolicy.o
 
-kinsu-objs += sulog/event.o
-kinsu-objs += sulog/fd.o
+follkernel-objs += sulog/event.o
+follkernel-objs += sulog/fd.o
 
-kinsu-objs += supercall/dispatch.o
-kinsu-objs += supercall/perm.o
-kinsu-objs += supercall/supercall.o
+follkernel-objs += supercall/dispatch.o
+follkernel-objs += supercall/perm.o
+follkernel-objs += supercall/supercall.o
 
-kinsu-objs += migrate/detect.o
-kinsu-objs += migrate/clean.o
-kinsu-objs += migrate/migrate.o
+follkernel-objs += migrate/detect.o
+follkernel-objs += migrate/clean.o
+follkernel-objs += migrate/migrate.o
 
-kinsu-objs += feature/adb_root.o
+follkernel-objs += feature/adb_root.o
 
-kinsu-objs += feature/selinux_hide.o
+follkernel-objs += feature/selinux_hide.o
 
 # SUSFS support - compile susfs sources when enabled
 ifdef KSU_SUSFS
 ccflags-y += -DCONFIG_KSU_SUSFS=1
-kinsu-objs += susfs/susfs.o
-kinsu-objs += susfs/susfs_coredump.o
-kinsu-objs += susfs/sucompat.o
+follkernel-objs += susfs/susfs.o
+follkernel-objs += susfs/susfs_coredump.o
+follkernel-objs += susfs/sucompat.o
 $(info -- KernelSU SUSFS: enabled)
 endif
 
