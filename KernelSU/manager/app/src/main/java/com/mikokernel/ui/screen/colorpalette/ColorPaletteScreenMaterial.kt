@@ -49,6 +49,7 @@ import androidx.compose.material.icons.rounded.SystemUpdate
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.rounded.MenuOpen
+import androidx.compose.material.icons.filled.Wallpaper
 import androidx.compose.material.icons.filled.Brightness1
 import androidx.compose.material.icons.filled.Brightness3
 import androidx.compose.material.icons.filled.Brightness4
@@ -345,6 +346,21 @@ fun ColorPaletteScreenMaterial(
                         )
                     )
                 }
+
+                SegmentedColumn(
+                    modifier = Modifier.padding(top = 4.dp),
+                    content = listOf(
+                        {
+                            SegmentedListItem(
+                                onClick = actions.onOpenCustomization,
+                                headlineContent = { Text("美化与壁纸") },
+                                supportingContent = { Text("调整全局壁纸、首页卡片和模块卡片背景") },
+                                leadingContent = { Icon(Icons.Filled.Wallpaper, "美化与壁纸") },
+                                trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null) }
+                            )
+                        }
+                    )
+                )
 
                 TonalCard(modifier = Modifier.padding(top = 4.dp)) {
                     var sliderValue by remember(uiState.pageScale) { mutableFloatStateOf(uiState.pageScale) }

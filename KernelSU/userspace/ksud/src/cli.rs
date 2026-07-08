@@ -165,6 +165,12 @@ enum Commands {
         #[command(subcommand)]
         command: Initrc,
     },
+
+    /// Detect and clean non-shared residuals from other root managers
+    Migrate {
+        #[command(subcommand)]
+        command: MigrateCmd,
+    },
 }
 
 #[derive(clap::Subcommand, Debug)]
@@ -556,6 +562,51 @@ enum UmountOp {
 enum Initrc {
     /// Regenerate preinit rc file
     Refresh,
+}
+
+#[derive(clap::Subcommand, Debug)]
+enum MigrateCmd {
+    /// Detect non-shared manager residuals
+    Detect {
+        #[arg(long, default_value_t = super::migrate::detect::CONFLICT_ALL)]
+        mask: u32,
+        #[arg(long)]
+        json: bool,
+    },
+    /// Clean non-shared manager residuals
+    Clean {
+        #[arg(long, default_value_t = super::migrate::detect::CONFLICT_ALL)]
+        mask: u32,
+        #[arg(long)]
+        backup: bool,
+        #[arg(long)]
+        yes: bool,
+        #[arg(long)]
+        json: bool,
+    },
+    /// Reuse Magisk-style modules from the shared module directory
+    FromMagisk {
+        #[arg(long)]
+        preserve_data: bool,
+        #[arg(long)]
+        json: bool,
+    },
+    /// Migrate modules from APatch storage
+    FromApatch {
+        #[arg(long)]
+        preserve_data: bool,
+        #[arg(long)]
+        json: bool,
+    },
+    /// Migrate modules from old KernelSU storage
+    FromOldKsu {
+        #[arg(long)]
+        preserve_data: bool,
+        #[arg(long)]
+        json: bool,
+    },
+    /// List migration backups
+    Backups,
 }
 
 pub fn run() -> Result<()> {
@@ -972,7 +1023,7 @@ pub fn run() -> Result<()> {
         Commands::Migrate { command } => match command {
             MigrateCmd::Detect { mask, json } => {
                 let conflicts = super::migrate::detect::detect_conflicts_ioctl(mask)?;
-                if *json {
+                if json {
                     println!("{}", serde_json::to_string_pretty(&conflicts)?);
                 } else {
                     if conflicts.is_empty() {
@@ -987,9 +1038,9 @@ pub fn run() -> Result<()> {
                 Ok(())
             }
             MigrateCmd::Clean { mask, backup, yes, json } => {
-                if !*yes {
+                if !yes {
                     // Print what will be cleaned
-                    let conflicts = super::migrate::detect::detect_conflicts_ioctl(*mask)?;
+                    let conflicts = super::migrate::detect::detect_conflicts_ioctl(mask)?;
                     if conflicts.is_empty() {
                         println!("No conflicts to clean.");
                         return Ok(());
@@ -998,13 +1049,13 @@ pub fn run() -> Result<()> {
                     for c in &conflicts {
                         println!("  [{:>8}] {:<10} {}", c.source, c.conflict_type, c.path);
                     }
-                    if *backup {
+                    if backup {
                         println!("A backup will be created before cleaning.");
                     }
                     // In non-interactive mode, skip confirmation
                 }
-                let result = super::migrate::clean::clean_conflicts_ioctl(*mask, *backup)?;
-                if *json {
+                let result = super::migrate::clean::clean_conflicts_ioctl(mask, backup)?;
+                if json {
                     println!("{}", serde_json::to_string_pretty(&result)?);
                 } else {
                     println!("Clean result: {}", if result.success { "SUCCESS" } else { "PARTIAL" });
@@ -1023,13 +1074,13 @@ pub fn run() -> Result<()> {
                 Ok(())
             }
             MigrateCmd::FromMagisk { preserve_data, json } => {
-                migrate_from_manager(super::migrate::migrate::SRC_MAGISK, *preserve_data, *json)
+                migrate_from_manager(super::migrate::migrate::SRC_MAGISK, preserve_data, json)
             }
             MigrateCmd::FromApatch { preserve_data, json } => {
-                migrate_from_manager(super::migrate::migrate::SRC_APATCH, *preserve_data, *json)
+                migrate_from_manager(super::migrate::migrate::SRC_APATCH, preserve_data, json)
             }
             MigrateCmd::FromOldKsu { preserve_data, json } => {
-                migrate_from_manager(super::migrate::migrate::SRC_OLDKSU, *preserve_data, *json)
+                migrate_from_manager(super::migrate::migrate::SRC_OLDKSU, preserve_data, json)
             }
             MigrateCmd::Backups => {
                 let mgr = super::migrate::BackupManager::new();
@@ -1054,10 +1105,12 @@ pub fn run() -> Result<()> {
         log::error!("Error: {e:?}");
     }
     result
+}
 
 /// Helper: migrate modules from a specific manager source
 fn migrate_from_manager(source: u32, preserve_data: bool, json: bool) -> anyhow::Result<()> {
-    use super::migrate::{ManagerMigrator, FsManagerMigrator};
+    use super::migrate::ManagerMigrator;
+    use super::migrate::migrate::FsManagerMigrator;
     let migrator = FsManagerMigrator::new();
     let result = migrator.migrate_from(source, preserve_data)?;
     if json {
@@ -1084,5 +1137,4 @@ fn migrate_from_manager(source: u32, preserve_data: bool, json: bool) -> anyhow:
         }
     }
     Ok(())
-}
 }

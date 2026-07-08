@@ -5,9 +5,10 @@ use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::{Path, PathBuf};
 
+use crate::defs;
 use super::backup::BackupManager;
-use super::detect::{ConflictDetector, FsConflictDetector, CONFLICT_ALL};
 use super::clean::{ConflictCleaner, FsConflictCleaner, CleanResult};
+use super::detect::CONFLICT_ALL;
 
 /// Manager source identifiers
 pub const SRC_MAGISK: u32 = 1;
@@ -66,7 +67,7 @@ impl FsManagerMigrator {
     pub fn new() -> Self {
         Self {
             backup_manager: BackupManager::new(),
-            kinsu_module_dir: PathBuf::from("/data/adb/kinsu/modules"),
+            kinsu_module_dir: PathBuf::from(defs::MODULE_DIR),
         }
     }
 
@@ -118,6 +119,8 @@ impl ManagerMigrator for FsManagerMigrator {
         let source_dir = self.get_source_dir(source)?;
         let source_name = self.get_source_name(source);
         let modules = self.scan_modules(source_dir)?;
+        let source_is_shared_module_dir =
+            source_dir.trim_end_matches('/') == defs::MODULE_DIR.trim_end_matches('/');
 
         // Create KinSU module directory
         fs::create_dir_all(&self.kinsu_module_dir)
@@ -136,6 +139,21 @@ impl ManagerMigrator for FsManagerMigrator {
             details: Vec::new(),
             errors: Vec::new(),
         };
+
+        if source_is_shared_module_dir {
+            for module_id in &modules {
+                let module_path = Path::new(source_dir).join(module_id);
+                result.migrated_count += 1;
+                result.details.push(ModuleMigrateDetail {
+                    module_id: module_id.clone(),
+                    source_path: module_path.to_string_lossy().to_string(),
+                    dest_path: Some(module_path.to_string_lossy().to_string()),
+                    status: "migrated".to_string(),
+                    reason: Some("Shared module directory; no copy required".to_string()),
+                });
+            }
+            return Ok(result);
+        }
 
         for module_id in &modules {
             let module_path = Path::new(source_dir).join(module_id);
@@ -227,8 +245,6 @@ impl ManagerMigrator for FsManagerMigrator {
 
         let has_id = content.lines().any(|l| l.starts_with("id="));
         let has_name = content.lines().any(|l| l.starts_with("name="));
-        let has_version = content.lines().any(|l| l.starts_with("version="));
-
         // Module must have at least id and name
         Ok(has_id && has_name)
     }

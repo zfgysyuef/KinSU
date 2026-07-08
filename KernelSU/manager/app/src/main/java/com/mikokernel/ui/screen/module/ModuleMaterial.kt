@@ -119,6 +119,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
+import com.mikokernel.ui.theme.beautify.BackgroundConfig
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Job
@@ -134,6 +135,7 @@ import com.mikokernel.ui.component.dialog.rememberLoadingDialog
 import com.mikokernel.ui.component.material.ExpressiveSwitch
 import com.mikokernel.ui.component.material.SearchAppBar
 import com.mikokernel.ui.component.material.SnackBarHost
+import com.mikokernel.ui.theme.beautify.BeautifyCard
 import com.mikokernel.ui.component.material.TonalCard
 import com.mikokernel.ui.component.rebootlistpopup.RebootListPopup
 import com.mikokernel.ui.component.statustag.StatusTag
@@ -648,8 +650,9 @@ private fun ModuleItem(
     onExecuteAction: () -> Unit,
     closeSearch: () -> Unit
 ) {
-    TonalCard(
-        modifier = Modifier.fillMaxWidth()
+    BeautifyCard(
+        modifier = Modifier.fillMaxWidth(),
+        cardId = BackgroundConfig.moduleCardId(module.id),
     ) {
         val haptic = LocalHapticFeedback.current
         val textDecoration = if (!module.remove) null else TextDecoration.LineThrough

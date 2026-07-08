@@ -1,4 +1,4 @@
-﻿package com.mikokernel.ui.screen.settings
+package com.mikokernel.ui.screen.settings
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -46,7 +46,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.mikokernel.R
-import com.mikokernel.isGkiDevice
 import com.mikokernel.ui.component.KsuIsValid
 import com.mikokernel.ui.component.material.SegmentedColumn
 import com.mikokernel.ui.component.material.SegmentedDropdownItem
@@ -276,7 +275,7 @@ fun SettingPagerMaterial(
                     {
                         SegmentedListItem(
                             onClick = actions.onOpenMigrate,
-                            headlineContent = { Text("Manager Migration") },
+                            headlineContent = { Text("管理器迁移") },
                             leadingContent = { Icon(Icons.Filled.SwapHoriz, "migrate") }
                         )
                     },

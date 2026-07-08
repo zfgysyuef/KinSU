@@ -55,6 +55,7 @@ import com.mikokernel.isGkiDevice
 import com.mikokernel.ui.navigation3.LocalNavigator
 import com.mikokernel.ui.navigation3.Route
 import com.mikokernel.ui.component.dialog.rememberConfirmDialog
+import com.mikokernel.ui.theme.beautify.BeautifyCard
 import com.mikokernel.ui.component.material.TonalCard
 import com.mikokernel.ui.component.rebootlistpopup.RebootListPopup
 import com.mikokernel.ui.component.statustag.StatusTag
@@ -122,7 +123,8 @@ internal fun UpdateCard(
         val updateDialog = rememberConfirmDialog(onConfirm = { actions.onOpenUrl(newVersion.downloadUrl) })
         WarningCard(
             message = stringResource(id = R.string.new_version_available, newVersion.versionName),
-            MaterialTheme.colorScheme.outlineVariant
+            color = MaterialTheme.colorScheme.outlineVariant,
+            cardId = "home:update"
         ) {
             if (newVersion.changelog.isEmpty()) {
                 actions.onOpenUrl(newVersion.downloadUrl)
@@ -157,7 +159,6 @@ internal fun TopBar(
             }
         },
         colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.surface,
             scrolledContainerColor = MaterialTheme.colorScheme.surface
         ),
         windowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
@@ -171,8 +172,7 @@ internal fun StatusCard(
     actions: HomeActions,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        // GKI 设备无论已安装与否，点击状态卡片都跳转到刷写页面
-        // 已安装时可重新刷入/更新 boot 镜像，未安装时可首次刷入
+        // GKI 鐠佹儳顦弮鐘侯啈瀹告彃鐣ㄧ憗鍛瑢閸氾讣绱濋悙鐟板毊閻樿埖鈧礁宕遍悧鍥厴鐠哄疇娴嗛崚鏉垮煕閸愭瑩銆夐棃?        // 瀹告彃鐣ㄧ憗鍛閸欘垶鍣搁弬鏉垮煕閸?閺囧瓨鏌?boot 闂€婊冨剼閿涘本婀€瑰顥婇弮璺哄讲妫ｆ牗顐奸崚宄板弳
         val clickToInstall = isGkiDevice()
         val containerColor = if (state.ksuVersion != null) {
             MaterialTheme.colorScheme.secondaryContainer
@@ -188,9 +188,9 @@ internal fun StatusCard(
             ) {
                 when {
                     state.ksuVersion != null -> {
-                        // 用 native 层的 lkmMode 判断运行模式（准确）
-                        // isKpmActive 只表示 KPM 功能是否可用，不决定运行模式
-                        // LKM 模式下也可能激活 KPM，不能据此误判为 GKI
+                        // 閻?native 鐏炲倻娈?lkmMode 閸掋倖鏌囨潻鎰攽濡€崇础閿涘牆鍣涵顕嗙礆
+                        // isKpmActive 閸欘亣銆冪粈?KPM 閸旂喕鍏橀弰顖氭儊閸欘垳鏁ら敍灞肩瑝閸愬啿鐣炬潻鎰攽濡€崇础
+                        // LKM 濡€崇础娑撳绡冮崣顖濆厴濠碘偓濞?KPM閿涘奔绗夐懗鑺ュ祦濮濄倛顕ら崚銈勮礋 GKI
                         val workingMode = when {
                             state.lkmMode == true -> "LKM"
                             state.lkmMode == false -> "GKI"
@@ -295,9 +295,9 @@ internal fun StatusCard(
             }
         }
         if (clickToInstall) {
-            TonalCard(containerColor = containerColor, onClick = actions.onInstallClick) { cardContent() }
+            BeautifyCard(cardId = "home:status", containerColor = containerColor, onClick = actions.onInstallClick) { cardContent() }
         } else {
-            TonalCard(containerColor = containerColor) { cardContent() }
+            BeautifyCard(cardId = "home:status", containerColor = containerColor) { cardContent() }
         }
     }
 }
@@ -306,6 +306,7 @@ internal fun StatusCard(
 private fun WarningCard(
     message: String,
     color: Color = MaterialTheme.colorScheme.error,
+    cardId: String = "home:warning:${message.hashCode()}",
     onClick: (() -> Unit)? = null
 ) {
     val content = @Composable {
@@ -318,16 +319,16 @@ private fun WarningCard(
         }
     }
     if (onClick != null) {
-        TonalCard(containerColor = color, onClick = onClick, content = content)
+        BeautifyCard(cardId = cardId, containerColor = color, onClick = onClick, content = content)
     } else {
-        TonalCard(containerColor = color, content = content)
+        BeautifyCard(cardId = cardId, containerColor = color, content = content)
     }
 }
 
 @Composable
 internal fun LearnMoreCard(onOpenUrl: (String) -> Unit) {
     val url = stringResource(R.string.home_learn_kernelsu_url)
-    TonalCard(onClick = { onOpenUrl(url) }) {
+    BeautifyCard(cardId = "home:learn_more", onClick = { onOpenUrl(url) }) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -349,7 +350,7 @@ internal fun LearnMoreCard(onOpenUrl: (String) -> Unit) {
 
 @Composable
 internal fun DonateCard(onOpenUrl: (String) -> Unit) {
-    TonalCard(onClick = { onOpenUrl("https://github.com/tiann/KernelSU") }) {
+    BeautifyCard(cardId = "home:donate", onClick = { onOpenUrl("https://github.com/tiann/KernelSU") }) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -371,7 +372,7 @@ internal fun DonateCard(onOpenUrl: (String) -> Unit) {
 
 @Composable
 internal fun InfoCard(systemInfo: SystemInfo) {
-    TonalCard {
+    BeautifyCard(cardId = "home:info") {
         Column(
             modifier = Modifier
                 .fillMaxWidth()

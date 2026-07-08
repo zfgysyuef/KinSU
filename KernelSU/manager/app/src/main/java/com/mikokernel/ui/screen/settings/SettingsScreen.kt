@@ -1,4 +1,4 @@
-﻿package com.mikokernel.ui.screen.settings
+package com.mikokernel.ui.screen.settings
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -34,6 +34,7 @@ fun SettingPager(
         onSetAdbRootEnabled = viewModel::setAdbRootEnabled,
         onSetDefaultUmountModules = viewModel::setDefaultUmountModules,
         onOpenAbout = { navigator.push(Route.About) },
+        onOpenCustomization = { navigator.push(Route.Customization) },
     )
 
     SettingPagerMaterial(uiState, actions, bottomInnerPadding)

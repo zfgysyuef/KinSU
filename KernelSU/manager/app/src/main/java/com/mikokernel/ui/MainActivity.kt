@@ -1,4 +1,4 @@
-﻿/*
+/*
  * KinSU - A derivative work of KernelSU
  * Copyright (c) 2022-2024 weishu (KernelSU Project)
  * Copyright (c) 2024 KinSU Project
@@ -16,6 +16,7 @@ import android.content.res.Configuration
 import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
+import com.mikokernel.ui.theme.beautify.BackgroundConfig
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.LocalActivity
@@ -23,6 +24,8 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import com.mikokernel.ui.theme.beautify.BackgroundLayer
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -48,6 +51,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.zIndex
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -79,6 +83,7 @@ import com.mikokernel.ui.navigation3.rememberNavigator
 import com.mikokernel.ui.screen.about.AboutScreen
 import com.mikokernel.ui.screen.appprofile.AppProfileScreen
 import com.mikokernel.ui.screen.colorpalette.ColorPaletteScreen
+import com.mikokernel.ui.screen.beautify.CustomizationScreen
 import com.mikokernel.ui.screen.executemoduleaction.ExecuteModuleActionScreen
 import com.mikokernel.ui.screen.flash.AnyKernel3FlashScreen
 import com.mikokernel.ui.screen.flash.FlashIt
@@ -195,11 +200,17 @@ class MainActivity : ComponentActivity() {
                                 entry<Route.Module> { mainScreenEntry() }
                                 entry<Route.Settings> { SettingPager(LocalNavigator.current!!, Dp(0f)) }
                                 entry<Route.Migrate> { com.mikokernel.migrate.MigrateScreen(LocalNavigator.current!!) }
+                                entry<Route.Customization> { CustomizationScreen(onBack = { navigator.pop() }) }
                             }
                         )
                     }
 
-                    androidx.compose.material3.Scaffold { navDisplay() }
+                     Box(modifier = Modifier.fillMaxSize()) {
+                         BackgroundLayer(pageKey = BackgroundConfig.KEY_HOME)
+                         Box(modifier = Modifier.fillMaxSize().zIndex(1f)) {
+                             androidx.compose.material3.Scaffold { navDisplay() }
+                         }
+                     }
                 }
             }
         }
@@ -273,7 +284,10 @@ fun MainScreen(
     ) {
         val contentReady = rememberContentReady()
         val pagerContent = @Composable { bottomInnerPadding: Dp ->
-            Box {
+             Box(modifier = Modifier.fillMaxSize()) {
+                  // Global wallpaper - no per-page switching needed
+                  BackgroundLayer(pageKey = BackgroundConfig.KEY_HOME)
+                 Box(modifier = Modifier.fillMaxSize().zIndex(1f)) {
                 HorizontalPager(
                     state = mainPagerState.pagerState,
                     beyondViewportPageCount = if (contentReady) 3 else 0,
@@ -288,6 +302,7 @@ fun MainScreen(
                     }
                 }
             }
+             }
         }
 
         if (useNavigationRail) {

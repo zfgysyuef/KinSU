@@ -1,4 +1,4 @@
-use anyhow::{Context, Error, Ok, Result, bail};
+use anyhow::{Context, Error, Result, bail};
 use rustix::fs::{Mode, OFlags, open};
 use rustix::process::setpgid;
 use rustix::stdio::{dup2_stderr, dup2_stdin, dup2_stdout};
@@ -177,7 +177,31 @@ pub fn umask(mask: u32) {
 }
 
 pub fn has_magisk() -> bool {
-    which::which("magisk").is_ok()
+    if is_process_running("magiskd") {
+        return true;
+    }
+
+    ["/sbin/.magisk", "/dev/.magisk", "/debug_ramdisk/.magisk"]
+        .iter()
+        .any(|path| Path::new(path).exists())
+}
+
+fn is_process_running(process_name: &str) -> bool {
+    let Ok(entries) = std::fs::read_dir("/proc") else {
+        return false;
+    };
+
+    entries.flatten().any(|entry| {
+        let name = entry.file_name();
+        let name = name.to_string_lossy();
+        if !name.chars().all(|c| c.is_ascii_digit()) {
+            return false;
+        }
+
+        std::fs::read_to_string(entry.path().join("comm"))
+            .map(|comm| comm.trim() == process_name)
+            .unwrap_or(false)
+    })
 }
 
 fn link_ksud_to_bin() -> Result<()> {

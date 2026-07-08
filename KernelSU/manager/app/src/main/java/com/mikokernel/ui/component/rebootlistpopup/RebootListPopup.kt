@@ -6,6 +6,7 @@ import androidx.annotation.StringRes
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import com.mikokernel.R
+import com.mikokernel.ui.util.isOplusMtkDevice
 
 data class RebootListOption(
     @param:StringRes val labelRes: Int,
@@ -26,9 +27,11 @@ fun getRebootListOption(): List<RebootListOption> {
         }
         add(RebootListOption(R.string.reboot_soft, "soft_reboot"))
         add(RebootListOption(R.string.reboot_recovery, "recovery"))
-        add(RebootListOption(R.string.reboot_bootloader, "bootloader"))
-        add(RebootListOption(R.string.reboot_download, "download"))
-        add(RebootListOption(R.string.reboot_edl, "edl"))
+        if (!isOplusMtkDevice()) {
+            add(RebootListOption(R.string.reboot_bootloader, "bootloader"))
+            add(RebootListOption(R.string.reboot_download, "download"))
+            add(RebootListOption(R.string.reboot_edl, "edl"))
+        }
     }
 }
 

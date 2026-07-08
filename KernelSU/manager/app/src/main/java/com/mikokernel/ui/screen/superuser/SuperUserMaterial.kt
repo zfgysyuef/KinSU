@@ -32,6 +32,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
@@ -56,6 +57,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -68,6 +70,7 @@ import com.mikokernel.ui.component.material.SegmentedColumn
 import com.mikokernel.ui.component.material.SegmentedItem
 import com.mikokernel.ui.component.material.SegmentedListItem
 import com.mikokernel.ui.component.statustag.StatusTag
+import com.mikokernel.ui.theme.beautify.BackgroundConfig
 import com.mikokernel.ui.util.ownerNameForUid
 
 @Composable
@@ -91,7 +94,7 @@ fun SuperUserPagerMaterial(
     val snackbarHostState = remember { SnackbarHostState() }
 
     Scaffold(
-        topBar = {
+topBar = {
             SearchAppBar(
                 snackbarHostState = snackbarHostState,
                 title = { Text(stringResource(R.string.superuser)) },
@@ -402,10 +405,12 @@ private fun SimpleAppItem(
         modifier = Modifier.padding(horizontal = 4.dp),
         shapes = ListItemDefaults.shapes(shape = RoundedCornerShape(0.dp)),
         colors = ListItemDefaults.colors(
-            containerColor = if (matched) {
+            containerColor = (if (matched) {
                 colorScheme.secondaryContainer
             } else {
                 colorScheme.surfaceColorAtElevation(3.dp)
+            }).let { c ->
+                if (BackgroundConfig.hasAnyWallpaper) c.copy(alpha = BackgroundConfig.cardOpacity) else c
             }
         ),
         content = { Text(app.label, overflow = TextOverflow.Ellipsis, maxLines = 1) },

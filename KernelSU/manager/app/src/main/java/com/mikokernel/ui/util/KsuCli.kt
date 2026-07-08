@@ -14,6 +14,7 @@ import android.content.ContentResolver
 import android.content.Context
 import android.database.Cursor
 import android.net.Uri
+import android.os.Build
 import android.os.Environment
 import android.os.Parcelable
 import android.os.SystemClock
@@ -31,6 +32,7 @@ import com.mikokernel.Natives
 import com.mikokernel.ksuApp
 import org.json.JSONArray
 import java.io.File
+import java.util.Locale
 
 /**
  * @author weishu
@@ -466,31 +468,6 @@ fun installBoot(
         cmd += " --partition '$escapedPart'"
     }
 
-
-    // Clean up stale state from ALL root managers before flashing to prevent boot conflicts.
-    // Old daemon, Magisk binary, init scripts, and preinit rc from a different root version
-    // can cause boot failures (e.g. has_magisk() skips all ksud init stages).
-    onStdout("- Cleaning up old root manager state...")
-    try {
-        withNewRootShell(true) {
-            newJob().add(
-                "rm -f /data/adb/ksud /data/adb/ksu/bin/ksud " +
-                "/data/adb/ksu/.allowlist " +
-                "/metadata/ksu/modules.rc /metadata/ksu/.modules.rc.tmp " +
-                "/metadata/watchdog/ksu/modules.rc /metadata/watchdog/ksu/.modules.rc.tmp " +
-                "&& rm -rf /data/adb/ksu/profile/selinux " +
-                "&& rm -f /data/adb/sepolicy.rules " +
-                "&& rm -rf /data/adb/post-fs-data.d /data/adb/service.d /data/adb/post-mount.d " +
-                "&& rm -f /data/adb/magisk /data/adb/magisk.db /data/adb/magisk.apk " +
-                "&& rm -rf /data/adb/ap " +
-                "&& rm -f /data/adb/resetprop /data/adb/busybox " +
-                "2>/dev/null; true"
-            ).exec()
-        }
-    } catch (e: Exception) {
-        Log.w(TAG, "cleanup old state failed (non-fatal): ${e.message}")
-    }
-
     val result = flashWithIO("${getKsuDaemonPath()} $cmd", onStdout, onStderr)
     Log.i("KinSU", "install boot result: ${result.isSuccess}")
 
@@ -506,18 +483,53 @@ fun installBoot(
     return FlashResult(result, showReboot)
 }
 
+fun isOplusMtkDevice(): Boolean {
+    val vendorFields = listOf(Build.BRAND, Build.MANUFACTURER)
+    val platformFields = listOf(Build.HARDWARE, Build.BOARD, Build.DEVICE, Build.PRODUCT)
+    val isOplusFamily = vendorFields.any {
+        it.equals("oppo", ignoreCase = true) ||
+                it.equals("oneplus", ignoreCase = true) ||
+                it.equals("realme", ignoreCase = true)
+    }
+    val isMtkPlatform = platformFields.any {
+        val value = it.lowercase(Locale.ROOT)
+        value.startsWith("mt") || value.contains("mtk") || value.contains("k698")
+    }
+    return isOplusFamily && isMtkPlatform
+}
+
+private fun normalizeRebootReason(reason: String): String? {
+    val normalized = reason.trim().lowercase(Locale.ROOT)
+    if (isOplusMtkDevice() && (normalized == "download" || normalized == "edl")) {
+        return null
+    }
+    return when (normalized) {
+        "fastboot", "fastbootd" -> "bootloader"
+        else -> normalized
+    }
+}
+
 fun reboot(reason: String = "") {
-    if (reason == "soft_reboot") {
+    val normalizedReason = normalizeRebootReason(reason) ?: run {
+        Log.w(TAG, "Blocked unsupported reboot reason on this device: $reason")
+        return
+    }
+    if (normalizedReason == "soft_reboot") {
         execKsud("soft-reboot", true)
         return
     }
     val shell = getRootShell()
-    val escaped = reason.replace("'", "'\\''")
-    if (reason == "recovery") {
+    val escaped = normalizedReason.replace("'", "'\\''")
+    if (normalizedReason == "recovery") {
         // KEYCODE_POWER = 26, hide incorrect "Factory data reset" message
         ShellUtils.fastCmd(shell, "/system/bin/input keyevent 26")
     }
-    ShellUtils.fastCmd(shell, "/system/bin/svc power reboot '$escaped' || /system/bin/reboot '$escaped'")
+    val command = if (normalizedReason == "bootloader") {
+        "/system/bin/setprop sys.powerctl reboot,bootloader || /system/bin/reboot bootloader || /system/bin/svc power reboot bootloader"
+    } else {
+        "/system/bin/svc power reboot '$escaped' || /system/bin/reboot '$escaped'"
+    }
+    ShellUtils.fastCmd(shell, command)
 }
 
 fun rootAvailable(): Boolean {
@@ -590,7 +602,10 @@ suspend fun getAvailablePartitions(): List<String> = withContext(Dispatchers.IO)
 
 fun hasMagisk(): Boolean {
     val shell = getRootShell(true)
-    val result = shell.newJob().add("which magisk").exec()
+    val result = shell.newJob().add(
+        "pidof magiskd >/dev/null 2>&1 || " +
+            "[ -d /sbin/.magisk ] || [ -d /dev/.magisk ] || [ -d /debug_ramdisk/.magisk ]"
+    ).exec()
     Log.i(TAG, "has magisk: ${result.isSuccess}")
     return result.isSuccess
 }

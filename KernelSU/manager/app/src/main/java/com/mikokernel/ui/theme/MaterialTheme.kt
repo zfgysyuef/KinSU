@@ -2,6 +2,12 @@ package com.mikokernel.ui.theme
 
 import android.app.Activity
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.zIndex
+import com.mikokernel.ui.theme.beautify.BackgroundConfig
+import com.mikokernel.ui.theme.beautify.BackgroundLayer
 import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MotionScheme
@@ -12,12 +18,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowInsetsControllerCompat
 import com.materialkolor.rememberDynamicColorScheme
 
+/**
+ * Theme that applies wallpaper-aware color scheme transparency
+ * (FolkPatch-style: modify theme-level colors instead of per-component).
+ */
 @Composable
 fun MaterialKernelSUTheme(
     appSettings: AppSettings,
@@ -31,7 +39,7 @@ fun MaterialKernelSUTheme(
     val colorStyle = appSettings.paletteStyle
     val colorSpec = appSettings.colorSpec
 
-    val colorScheme = if (dynamicColor) {
+    val baseColorScheme = if (dynamicColor) {
         val baseScheme = if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         rememberDynamicColorScheme(
             seedColor = Color.Unspecified,
@@ -56,6 +64,25 @@ fun MaterialKernelSUTheme(
         )
     }
 
+    // FolkPatch-style: when wallpaper is active, make theme-level surfaces transparent
+    val useCustomBackground = BackgroundConfig.hasAnyWallpaper
+    val colorScheme = if (useCustomBackground) {
+        baseColorScheme.copy(
+            background = Color.Transparent,
+            surface = baseColorScheme.surface.copy(alpha = BackgroundConfig.cardOpacity),
+            surfaceContainer = baseColorScheme.surfaceContainer.copy(alpha = BackgroundConfig.cardOpacity),
+            surfaceContainerLow = baseColorScheme.surfaceContainerLow.copy(alpha = BackgroundConfig.cardOpacity),
+            surfaceContainerHigh = baseColorScheme.surfaceContainerHigh.copy(alpha = BackgroundConfig.cardOpacity),
+            surfaceContainerHighest = baseColorScheme.surfaceContainerHighest.copy(alpha = BackgroundConfig.cardOpacity),
+            surfaceVariant = baseColorScheme.surfaceVariant.copy(alpha = BackgroundConfig.cardOpacity),
+            secondaryContainer = baseColorScheme.secondaryContainer.copy(alpha = BackgroundConfig.cardOpacity),
+            tertiaryContainer = baseColorScheme.tertiaryContainer.copy(alpha = BackgroundConfig.cardOpacity),
+            primaryContainer = baseColorScheme.primaryContainer.copy(alpha = BackgroundConfig.cardOpacity),
+        )
+    } else {
+        baseColorScheme
+    }
+
     LaunchedEffect(darkTheme) {
         val window = (context as? Activity)?.window ?: return@LaunchedEffect
         WindowInsetsControllerCompat(window, window.decorView).apply {
@@ -64,8 +91,6 @@ fun MaterialKernelSUTheme(
         }
     }
 
-    // 使用 MaterialExpressiveTheme 以获得 MotionScheme.expressive()（Switch 回弹等表现力动画），
-    // 但保持标准 M3 shapes 和 typography，视觉仍是标准 Material 3。
     MaterialExpressiveTheme(
         colorScheme = colorScheme,
         shapes = KinSUShapes,
@@ -74,11 +99,6 @@ fun MaterialKernelSUTheme(
     )
 }
 
-/**
- * Material 3 Expressive 主题变体。
- * 在标准 M3 配色基础上使用 MaterialExpressiveTheme，启用 expressive 形状、
- * 表现力更强的 motion scheme，以及略加重的 typography 字重，呈现更具表现力的视觉风格。
- */
 @Composable
 fun MaterialExpressiveKernelSUTheme(
     appSettings: AppSettings,
@@ -92,7 +112,7 @@ fun MaterialExpressiveKernelSUTheme(
     val colorStyle = appSettings.paletteStyle
     val colorSpec = appSettings.colorSpec
 
-    val colorScheme = if (dynamicColor) {
+    val baseColorScheme = if (dynamicColor) {
         val baseScheme = if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         rememberDynamicColorScheme(
             seedColor = Color.Unspecified,
@@ -117,6 +137,25 @@ fun MaterialExpressiveKernelSUTheme(
         )
     }
 
+    // FolkPatch-style transparency
+    val useCustomBackground = BackgroundConfig.hasAnyWallpaper
+    val colorScheme = if (useCustomBackground) {
+        baseColorScheme.copy(
+            background = Color.Transparent,
+            surface = baseColorScheme.surface.copy(alpha = BackgroundConfig.cardOpacity),
+            surfaceContainer = baseColorScheme.surfaceContainer.copy(alpha = BackgroundConfig.cardOpacity),
+            surfaceContainerLow = baseColorScheme.surfaceContainerLow.copy(alpha = BackgroundConfig.cardOpacity),
+            surfaceContainerHigh = baseColorScheme.surfaceContainerHigh.copy(alpha = BackgroundConfig.cardOpacity),
+            surfaceContainerHighest = baseColorScheme.surfaceContainerHighest.copy(alpha = BackgroundConfig.cardOpacity),
+            surfaceVariant = baseColorScheme.surfaceVariant.copy(alpha = BackgroundConfig.cardOpacity),
+            secondaryContainer = baseColorScheme.secondaryContainer.copy(alpha = BackgroundConfig.cardOpacity),
+            tertiaryContainer = baseColorScheme.tertiaryContainer.copy(alpha = BackgroundConfig.cardOpacity),
+            primaryContainer = baseColorScheme.primaryContainer.copy(alpha = BackgroundConfig.cardOpacity),
+        )
+    } else {
+        baseColorScheme
+    }
+
     LaunchedEffect(darkTheme) {
         val window = (context as? Activity)?.window ?: return@LaunchedEffect
         WindowInsetsControllerCompat(window, window.decorView).apply {
@@ -125,7 +164,7 @@ fun MaterialExpressiveKernelSUTheme(
         }
     }
 
-    // M3E 专属 typography：在默认 typography 基础上略加重字重、收紧字距，强化表现力
+    // M3E typography
     val baseTypography = MaterialTheme.typography
     val expressiveTypography = Typography(
         displayLarge = baseTypography.displayLarge.copy(fontWeight = FontWeight.Bold),
@@ -152,4 +191,21 @@ fun MaterialExpressiveKernelSUTheme(
         typography = expressiveTypography,
         content = content,
     )
+}
+
+/**
+ * Wraps content with FolkPatch-style BackgroundLayer + content layering.
+ * Place this at the root of the composable tree.
+ */
+@Composable
+fun KinSUThemeWithBackground(
+    pageKey: String,
+    content: @Composable () -> Unit
+) {
+    Box(modifier = Modifier.fillMaxSize()) {
+        BackgroundLayer(pageKey = pageKey)
+        Box(modifier = Modifier.fillMaxSize().zIndex(1f)) {
+            content()
+        }
+    }
 }

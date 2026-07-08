@@ -81,4 +81,9 @@ sealed interface Route : NavKey, Parcelable {
     @Parcelize
     @Serializable
     data object Migrate : Route
+
+
+    @Parcelize
+    @Serializable
+    data object Customization : Route
 }

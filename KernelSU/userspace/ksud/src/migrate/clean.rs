@@ -6,7 +6,7 @@ use std::fs;
 use std::path::Path;
 
 use super::backup::BackupManager;
-use super::detect::{ConflictDetector, ConflictItem, FsConflictDetector, CONFLICT_ALL};
+use super::detect::{ConflictDetector, ConflictItem, FsConflictDetector};
 
 /// Result of a clean operation.
 #[derive(Debug, Serialize, Deserialize)]
@@ -203,35 +203,8 @@ fn is_critical_path(path: &str) -> bool {
     critical_paths.iter().any(|&cp| path == cp)
 }
 
-/// Clean conflicts via kernel IOCTL, falling back to filesystem if IOCTL unavailable.
+/// Clean conflicts from known non-shared manager-owned paths.
 pub fn clean_conflicts_ioctl(mask: u32, backup: bool) -> Result<CleanResult> {
-    use crate::ksu_uapi;
-    use crate::ksucalls::ksuctl;
-
-    // Try IOCTL first
-    let mut buf = vec![0u8; 16384];
-    let mut cmd = ksu_uapi::ksu_clean_conflicts_cmd {
-        mask,
-        backup: if backup { 1 } else { 0 },
-        reserved: [0; 3],
-        buf: buf.as_mut_ptr() as u64,
-        buf_size: buf.len() as u32,
-        result: 0,
-    };
-
-    match ksuctl(ksu_uapi::KSU_IOCTL_CLEAN_CONFLICTS, &raw mut cmd) {
-        Ok(_) if cmd.result == 0 => {
-            let json_str = std::ffi::CStr::from_bytes_until_nul(&buf)
-                .ok()
-                .and_then(|s| s.to_str().ok())
-                .unwrap_or("{}");
-            serde_json::from_str::<CleanResult>(json_str)
-                .context("Failed to parse clean result")
-        }
-        _ => {
-            // Fallback to filesystem cleaning
-            let cleaner = FsConflictCleaner::new();
-            cleaner.clean_conflicts(mask, backup)
-        }
-    }
+    let cleaner = FsConflictCleaner::new();
+    cleaner.clean_conflicts(mask, backup)
 }

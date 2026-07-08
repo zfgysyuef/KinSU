@@ -12,6 +12,7 @@ import com.materialkolor.dynamiccolor.ColorSpec
 import com.mikokernel.KernelSUApplication
 import com.mikokernel.ui.UiMode
 import com.mikokernel.ui.navigation3.LocalNavigator
+import com.mikokernel.ui.navigation3.Route
 import com.mikokernel.ui.theme.ColorMode
 import com.mikokernel.ui.viewmodel.SettingsViewModel
 
@@ -41,6 +42,7 @@ fun ColorPaletteScreen() {
     )
     val actions = ColorPaletteScreenActions(
         onBack = dropUnlessResumed { navigator.pop() },
+        onOpenCustomization = dropUnlessResumed { navigator.push(Route.Customization) },
         onSetThemeMode = viewModel::setThemeMode,
         onSetKeyColor = viewModel::setKeyColor,
         onSetColorMode = viewModel::setColorMode,

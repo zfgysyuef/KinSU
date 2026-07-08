@@ -1,6 +1,6 @@
 ﻿//! Conflict detection for other root manager residuals.
 
-use anyhow::{Context, Result};
+use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::path::Path;
 
@@ -42,11 +42,11 @@ impl ConflictDetector for FsConflictDetector {
         }
 
         if mask & CONFLICT_INIT != 0 {
-            detect_init_conflicts(&mut conflicts)?;
+            detect_init_conflicts(&mut conflicts);
         }
 
         if mask & CONFLICT_SEPOLICY != 0 {
-            detect_sepolicy_conflicts(&mut conflicts)?;
+            detect_sepolicy_conflicts(&mut conflicts);
         }
 
         Ok(conflicts)
@@ -55,7 +55,6 @@ impl ConflictDetector for FsConflictDetector {
 
 fn detect_module_conflicts(conflicts: &mut Vec<ConflictItem>) -> Result<()> {
     let paths = [
-        ("/data/adb/modules", "magisk", "modules"),
         ("/data/adb/ap", "apatch", "modules"),
         ("/data/adb/ksu/modules", "oldksu", "modules"),
     ];
@@ -80,78 +79,17 @@ fn detect_module_conflicts(conflicts: &mut Vec<ConflictItem>) -> Result<()> {
     Ok(())
 }
 
-fn detect_init_conflicts(conflicts: &mut Vec<ConflictItem>) -> Result<()> {
-    let dirs = [
-        "/data/adb/post-fs-data.d",
-        "/data/adb/service.d",
-        "/data/adb/post-mount.d",
-    ];
-
-    for dir in &dirs {
-        if Path::new(dir).exists() {
-            let has_scripts = std::fs::read_dir(dir)
-                .map(|mut d| {
-                    d.any(|e| {
-                        e.ok()
-                            .map(|e| e.path().is_file())
-                            .unwrap_or(false)
-                    })
-                })
-                .unwrap_or(false);
-
-            if has_scripts {
-                conflicts.push(ConflictItem {
-                    path: dir.to_string(),
-                    source: "system".to_string(),
-                    conflict_type: "init".to_string(),
-                });
-            }
-        }
-    }
-
-    Ok(())
+fn detect_init_conflicts(_conflicts: &mut Vec<ConflictItem>) {
+    // Shared init script directories are used by multiple root managers and modules.
+    // Never report the whole directory as a conflict.
 }
 
-fn detect_sepolicy_conflicts(conflicts: &mut Vec<ConflictItem>) -> Result<()> {
-    let path = "/data/adb/sepolicy.rules";
-    if Path::new(path).exists() {
-        conflicts.push(ConflictItem {
-            path: path.to_string(),
-            source: "system".to_string(),
-            conflict_type: "sepolicy".to_string(),
-        });
-    }
-    Ok(())
+fn detect_sepolicy_conflicts(_conflicts: &mut Vec<ConflictItem>) {
+    // /data/adb/sepolicy.rules is a shared compatibility file, not manager-owned state.
 }
 
-/// Detect conflicts via kernel IOCTL (if kernel module is loaded).
-/// Falls back to filesystem detection if IOCTL is unavailable.
+/// Detect conflicts from known non-shared manager-owned paths.
 pub fn detect_conflicts_ioctl(mask: u32) -> Result<Vec<ConflictItem>> {
-    use crate::ksu_uapi;
-    use crate::ksucalls::ksuctl;
-
-    // Try IOCTL first
-    let mut buf = vec![0u8; 8192];
-    let mut cmd = ksu_uapi::ksu_detect_conflicts_cmd {
-        mask,
-        buf: buf.as_mut_ptr() as u64,
-        buf_size: buf.len() as u32,
-        result: 0,
-    };
-
-    match ksuctl(ksu_uapi::KSU_IOCTL_DETECT_CONFLICTS, &raw mut cmd) {
-        Ok(_) if cmd.result == 0 => {
-            let json_str = std::ffi::CStr::from_bytes_until_nul(&buf)
-                .ok()
-                .and_then(|s| s.to_str().ok())
-                .unwrap_or("[]");
-            serde_json::from_str::<Vec<ConflictItem>>(json_str)
-                .context("Failed to parse conflict detection result")
-        }
-        _ => {
-            // Fallback to filesystem detection
-            let detector = FsConflictDetector;
-            detector.detect_conflicts(mask)
-        }
-    }
+    let detector = FsConflictDetector;
+    detector.detect_conflicts(mask)
 }

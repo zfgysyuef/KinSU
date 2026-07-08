@@ -228,7 +228,12 @@ pub fn exec_script<T: AsRef<Path>>(path: T, wait: bool) -> Result<()> {
         );
     }
 
-    let mut command = &mut Command::new(assets::BUSYBOX_PATH);
+    let sh_binary = if std::path::Path::new(assets::BUSYBOX_PATH).exists() {
+            assets::BUSYBOX_PATH
+        } else {
+            "/system/bin/sh"
+        };
+    let mut command = &mut Command::new(sh_binary);
     #[cfg(unix)]
     {
         command = unsafe {

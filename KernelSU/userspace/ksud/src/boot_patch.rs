@@ -762,30 +762,9 @@ pub fn patch(args: BootPatchArgs) -> Result<()> {
 
             println!("- Adding KinSU LKM");
             let is_kernelsu_patched = cpio.exists("KinSU.ko");
-
-            // 清理原版 KernelSU 残留，避免双 root 冲突导致 boot loop
-            // 原版 KSU patch 后的 ramdisk 结构: init=KSU init, init.real=原厂 init, ksu.ko=KSU 模块
-            // 必须先恢复原厂 init，再执行 KinSU patch，否则 init.real 会变成 KSU init
-            if !is_kernelsu_patched && cpio.exists("ksu.ko") {
-                println!("- Detected legacy KernelSU, cleaning up to avoid conflict");
-                // 删除原版 KSU 的内核模块
-                cpio.rm("ksu.ko", false);
-                // 删除 KSU 的 init（不是原厂 init）
-                if cpio.exists("init") {
-                    cpio.rm("init", false);
-                }
-                // 恢复原厂 init：init.real -> init
-                if cpio.exists("init.real") {
-                    println!("- Restoring stock init from init.real");
-                    cpio.mv("init.real", "init")?;
-                }
-            }
-
-            // 正常 KinSU patch 流程：备份原厂 init，注入 KinSU init
             if !is_kernelsu_patched && cpio.exists("init") {
                 cpio.mv("init", "init.real")?;
             }
-
             cpio.add("init", CpioEntry::regular(0o755, ksu_init))?;
             cpio.add("KinSU.ko", CpioEntry::regular(0o755, kernelsu_ko))?;
 
