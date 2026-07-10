@@ -21,7 +21,7 @@
 #include "sulog/event.h"
 #include "sulog/fd.h"
 #include "supercall/supercall.h"
-#include "kpm/module.h"
+#include "kpm/kpm.h"
 
 static int do_grant_root(void __user *arg)
 {
@@ -689,151 +689,6 @@ static int do_disable_escape_to_root(void __user *arg)
     return 0;
 }
 
-/* KPM IOCTL handlers */
-static int do_kpm_load(void __user *arg)
-{
-    struct ksu_kpm_load_cmd cmd;
-    char path[256], args[256];
-
-    if (copy_from_user(&cmd, arg, sizeof(cmd)))
-        return -EFAULT;
-
-    if (strncpy_from_user(path, (const char __user *)(unsigned long)cmd.path,
-                          sizeof(path) - 1) < 0)
-        return -EFAULT;
-    path[sizeof(path) - 1] = '\0';
-
-    if (strncpy_from_user(args, (const char __user *)(unsigned long)cmd.args,
-                          sizeof(args) - 1) < 0)
-        return -EFAULT;
-    args[sizeof(args) - 1] = '\0';
-
-    cmd.result = (__s32)kpm_load_module_path(path, args, NULL);
-    pr_info("kpm ioctl: load %s -> %d\n", path, cmd.result);
-
-    if (copy_to_user(arg, &cmd, sizeof(cmd)))
-        return -EFAULT;
-    return 0;
-}
-
-static int do_kpm_unload(void __user *arg)
-{
-    struct ksu_kpm_unload_cmd cmd;
-    char name[64];
-
-    if (copy_from_user(&cmd, arg, sizeof(cmd)))
-        return -EFAULT;
-
-    if (strncpy_from_user(name, (const char __user *)(unsigned long)cmd.name,
-                          sizeof(name) - 1) < 0)
-        return -EFAULT;
-    name[sizeof(name) - 1] = '\0';
-
-    cmd.result = (__s32)kpm_unload_module(name, NULL);
-
-    if (copy_to_user(arg, &cmd, sizeof(cmd)))
-        return -EFAULT;
-    return 0;
-}
-
-static int do_kpm_nums(void __user *arg)
-{
-    struct ksu_kpm_nums_cmd cmd;
-
-    cmd.nums = kpm_get_module_nums();
-    cmd.reserved = 0;
-
-    if (copy_to_user(arg, &cmd, sizeof(cmd)))
-        return -EFAULT;
-    return 0;
-}
-
-static int do_kpm_list(void __user *arg)
-{
-    struct ksu_kpm_list_cmd cmd;
-    char *buf;
-
-    if (copy_from_user(&cmd, arg, sizeof(cmd)))
-        return -EFAULT;
-
-    buf = kvmalloc(cmd.buf_size, GFP_KERNEL);
-    if (!buf) {
-        cmd.result = -ENOMEM;
-        goto out;
-    }
-
-    cmd.result = kpm_list_modules(buf, cmd.buf_size);
-    if (cmd.result > 0) {
-        if (copy_to_user((void __user *)(unsigned long)cmd.buf, buf, cmd.result)) {
-            cmd.result = -EFAULT;
-        }
-    }
-    kvfree(buf);
-out:
-    if (copy_to_user(arg, &cmd, sizeof(cmd)))
-        return -EFAULT;
-    return 0;
-}
-
-static int do_kpm_info(void __user *arg)
-{
-    struct ksu_kpm_info_cmd cmd;
-    char name[64], *buf;
-
-    if (copy_from_user(&cmd, arg, sizeof(cmd)))
-        return -EFAULT;
-
-    if (strncpy_from_user(name, (const char __user *)(unsigned long)cmd.name,
-                          sizeof(name) - 1) < 0)
-        return -EFAULT;
-    name[sizeof(name) - 1] = '\0';
-
-    buf = kvmalloc(cmd.buf_size, GFP_KERNEL);
-    if (!buf) {
-        cmd.result = -ENOMEM;
-        goto out;
-    }
-
-    cmd.result = kpm_get_module_info(name, buf, cmd.buf_size);
-    if (cmd.result > 0) {
-        if (copy_to_user((void __user *)(unsigned long)cmd.buf, buf, cmd.result)) {
-            cmd.result = -EFAULT;
-        }
-    }
-    kvfree(buf);
-out:
-    if (copy_to_user(arg, &cmd, sizeof(cmd)))
-        return -EFAULT;
-    return 0;
-}
-
-static int do_kpm_control(void __user *arg)
-{
-    struct ksu_kpm_control_cmd cmd;
-    char name[64], args[256];
-
-    if (copy_from_user(&cmd, arg, sizeof(cmd)))
-        return -EFAULT;
-
-    if (strncpy_from_user(name, (const char __user *)(unsigned long)cmd.name,
-                          sizeof(name) - 1) < 0)
-        return -EFAULT;
-    name[sizeof(name) - 1] = '\0';
-
-    if (strncpy_from_user(args, (const char __user *)(unsigned long)cmd.args,
-                          sizeof(args) - 1) < 0)
-        return -EFAULT;
-    args[sizeof(args) - 1] = '\0';
-
-    cmd.result = (__s32)kpm_module_control0(
-        name, args,
-        (char __user *)(unsigned long)cmd.out_buf, cmd.out_len);
-
-    if (copy_to_user(arg, &cmd, sizeof(cmd)))
-        return -EFAULT;
-    return 0;
-}
-
 // IOCTL handlers mapping table
 // clang-format off
 static const struct ksu_ioctl_cmd_map ksu_ioctl_handlers[] = {
@@ -981,42 +836,14 @@ static const struct ksu_ioctl_cmd_map ksu_ioctl_handlers[] = {
         .handler = do_disable_escape_to_root, 
         .perm_check = only_root 
     },
+#ifdef CONFIG_KPM
     {
-        .cmd = KSU_IOCTL_KPM_LOAD,
-        .name = "KPM_LOAD",
-        .handler = do_kpm_load,
-        .perm_check = only_root
+        .cmd = KSU_IOCTL_KPM,
+        .name = "KPM_OPERATION",
+        .handler = do_kpm,
+        .perm_check = manager_or_root
     },
-    {
-        .cmd = KSU_IOCTL_KPM_UNLOAD,
-        .name = "KPM_UNLOAD",
-        .handler = do_kpm_unload,
-        .perm_check = only_root
-    },
-    {
-        .cmd = KSU_IOCTL_KPM_NUMS,
-        .name = "KPM_NUMS",
-        .handler = do_kpm_nums,
-        .perm_check = always_allow
-    },
-    {
-        .cmd = KSU_IOCTL_KPM_LIST,
-        .name = "KPM_LIST",
-        .handler = do_kpm_list,
-        .perm_check = always_allow
-    },
-    {
-        .cmd = KSU_IOCTL_KPM_INFO,
-        .name = "KPM_INFO",
-        .handler = do_kpm_info,
-        .perm_check = always_allow
-    },
-    {
-        .cmd = KSU_IOCTL_KPM_CONTROL,
-        .name = "KPM_CONTROL",
-        .handler = do_kpm_control,
-        .perm_check = only_root
-    },
+#endif
     {
         .cmd = 0,
         .name = NULL,

@@ -85,6 +85,7 @@ import com.mikokernel.ui.screen.flash.FlashIt
 import com.mikokernel.ui.screen.flash.FlashScreen
 import com.mikokernel.ui.screen.home.HomePager
 import com.mikokernel.ui.screen.install.InstallScreen
+import com.mikokernel.ui.screen.kpm.KpmScreen
 import com.mikokernel.ui.screen.module.ModulePager
 import com.mikokernel.ui.screen.modulerepo.ModuleRepoDetailScreen
 import com.mikokernel.ui.screen.modulerepo.ModuleRepoScreen
@@ -194,6 +195,7 @@ class MainActivity : ComponentActivity() {
                                 entry<Route.SuperUser> { mainScreenEntry() }
                                 entry<Route.Module> { mainScreenEntry() }
                                 entry<Route.Settings> { SettingPager(LocalNavigator.current!!, Dp(0f)) }
+                                entry<Route.Kpm> { KpmScreen() }
                             }
                         )
                     }

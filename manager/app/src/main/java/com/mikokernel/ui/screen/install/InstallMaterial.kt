@@ -107,7 +107,7 @@ internal fun InstallScreenMaterial(
                             icon = Icons.Filled.Edit
                         )
                     }
-                    add {
+                    if (!uiState.patchEnableKpm) add {
                         SegmentedListItem(
                             leadingContent = {
                                 Icon(
@@ -176,6 +176,33 @@ internal fun InstallScreenMaterial(
                                 summary = stringResource(id = R.string.allow_shell_summary),
                                 checked = uiState.allowShell,
                                 onCheckedChange = actions.onSelectAllowShell,
+                            )
+                        }
+                    }
+                    add {
+                        AnimatedVisibility(
+                            uiState.advancedOptionsShown,
+                            enter = expandVertically() + fadeIn(),
+                            exit = shrinkVertically() + fadeOut()
+                        ) {
+                            SegmentedCheckboxItem(
+                                title = stringResource(id = R.string.patch_kernel_feature_kpm),
+                                summary = stringResource(id = R.string.kpm_builtin_requirement),
+                                checked = uiState.patchEnableKpm,
+                                onCheckedChange = actions.onTogglePatchKpm,
+                            )
+                        }
+                    }
+                    add {
+                        AnimatedVisibility(
+                            uiState.advancedOptionsShown,
+                            enter = expandVertically() + fadeIn(),
+                            exit = shrinkVertically() + fadeOut()
+                        ) {
+                            SegmentedCheckboxItem(
+                                title = stringResource(id = R.string.patch_kernel_feature_susfs),
+                                checked = uiState.patchEnableSusfs,
+                                onCheckedChange = actions.onTogglePatchSusfs,
                             )
                         }
                     }

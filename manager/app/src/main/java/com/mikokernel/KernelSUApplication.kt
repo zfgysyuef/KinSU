@@ -31,7 +31,6 @@ import android.system.Os
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.ViewModelStoreOwner
-import com.mikokernel.kpm.KpmMode
 import com.mikokernel.ui.viewmodel.SuperUserViewModel
 import okhttp3.Cache
 import okhttp3.OkHttpClient
@@ -63,9 +62,6 @@ class KernelSUApplication : Application(), ViewModelStoreOwner {
     override fun onCreate() {
         super.onCreate()
         ksuApp = this
-
-        // 恢复 KPM/GKI 模式状态
-        KpmMode.restore(this)
 
         if (!isUserUnlocked()) {
             return

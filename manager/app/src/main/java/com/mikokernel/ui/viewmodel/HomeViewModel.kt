@@ -55,9 +55,8 @@ class HomeViewModel : ViewModel() {
         val kernelUAPIVersion = if (isManager) Natives.kernelUAPIVersion else null
         val managerUAPIVersion = Natives.managerUAPIVersion
         val lkmMode = ksuVersion?.let { if (isGkiDevice()) Natives.isLkmMode else null }
-        // Detect GKI mode by checking if kpimg is actually active (hooked the stub functions).
-        // If kinsu_kpm_version() returns a real version (not "N/A"), kpimg is active → GKI.
-        // Direct Install (LKM) → shows "LKM", Patch Kernel (GKI) → shows "GKI".
+        // Probe the real KernelPatch VERSION operation. No hard-coded or persisted
+        // manager flag is accepted as proof that the early-boot bridge is active.
         val isKpmActive = if (ksuVersion != null) {
             try {
                 val version = kpmGetVersion()

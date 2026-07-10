@@ -30,7 +30,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.parcelize.Parcelize
 import com.mikokernel.R
-import com.mikokernel.kpm.KpmMode
 import com.mikokernel.ksuApp
 import com.mikokernel.ui.util.FlashResult
 import com.mikokernel.ui.util.LkmSelection
@@ -183,12 +182,6 @@ fun FlashEffect(
                         onTextUpdate(currentText)
                         onShowRebootChange(true)
                     }
-                }
-                // KPM 安装成功后激活 GKI 模式
-                if (code == 0 && flashIt is FlashIt.FlashBoot && flashIt.enableKpm) {
-                    KpmMode.activate()
-                    KpmMode.persist(ksuApp)
-                    Log.i("KinSU", "KPM/GKI mode activated after successful install")
                 }
                 mainHandler.post {
                     onFlashingStatusChange(if (code == 0) FlashingStatus.SUCCESS else FlashingStatus.FAILED)

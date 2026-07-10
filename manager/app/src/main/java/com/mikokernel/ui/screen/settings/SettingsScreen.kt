@@ -33,6 +33,7 @@ fun SettingPager(
         onSetSulogEnabled = viewModel::setSulogEnabled,
         onSetAdbRootEnabled = viewModel::setAdbRootEnabled,
         onSetDefaultUmountModules = viewModel::setDefaultUmountModules,
+        onOpenKpm = { navigator.push(Route.Kpm) },
         onOpenAbout = { navigator.push(Route.About) },
     )
 

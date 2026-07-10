@@ -64,7 +64,7 @@ fun isKoFile(context: Context, uri: Uri): Boolean {
             val idx = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
             if (idx != -1 && cursor.moveToFirst()) {
                 val name = cursor.getString(idx)
-                name?.endsWith(".kpm", ignoreCase = true) == true
+                name?.endsWith(".ko", ignoreCase = true) == true
             } else {
                 false
             }

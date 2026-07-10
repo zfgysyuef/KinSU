@@ -99,6 +99,11 @@ pub fn on_post_data_fs() -> Result<()> {
         warn!("init features failed: {e}");
     }
 
+    #[cfg(target_arch = "aarch64")]
+    if let Err(e) = crate::kpm::booted_load() {
+        warn!("KPM persistent module loading skipped: {e:#}");
+    }
+
     // execute metamodule post-fs-data script first (priority)
     if let Err(e) = metamodule::exec_stage_script("post-fs-data", true) {
         warn!("exec metamodule post-fs-data script failed: {e}");
@@ -207,7 +212,7 @@ fn wait_for_boot_completed() -> Result<()> {
         Some("0"),
         Some(std::time::Duration::from_secs(120)),
     )
-        .context("wait for sys.boot_completed failed")?;
+    .context("wait for sys.boot_completed failed")?;
     Ok(())
 }
 

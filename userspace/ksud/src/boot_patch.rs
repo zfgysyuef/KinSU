@@ -303,67 +303,134 @@ rm -f /data/adb/post-fs-data.d/post_ota.sh
 #[cfg(target_os = "android")]
 mod kpm {
     use super::Result;
-    use anyhow::{bail, Context};
+    use anyhow::{Context, bail};
     use std::process::Command;
 
-    /// Patch the kernel binary with KernelPatch (kpimg) using kptools.
-    /// This injects kpimg into the kernel image, enabling KPM module support
-    /// and early-boot kernel hooking via paging_init hijack.
-    pub fn patch_kernel_with_kpm(kernel_data: &[u8], kpimg_data: &[u8], kptools_data: &[u8]) -> Result<Vec<u8>> {
+    const KPIMG_SHA256: &str = "b76a533c8175a4ed6f5eb95f48fc1ba2824b35be463c7d7604f52379b58f94c1";
+    const KPTOOLS_SHA256: &str = "dfacbc47b3efd92c696a1e294294e860ae11326fec9787c772f7bc2ebcac3add";
+    const REQUIRED_KPM_SYMBOLS: [&str; 8] = [
+        "sukisu_kpm_load_module_path",
+        "sukisu_kpm_unload_module",
+        "sukisu_kpm_num",
+        "sukisu_kpm_list",
+        "sukisu_kpm_info",
+        "sukisu_kpm_control",
+        "sukisu_kpm_version",
+        "sukisu_compact_find_symbol",
+    ];
+
+    fn verify_asset(name: &str, data: &[u8], expected: &str) -> Result<()> {
+        let actual = sha256::digest(data);
+        if actual != expected {
+            bail!("{name} SHA-256 mismatch: expected {expected}, got {actual}");
+        }
+        Ok(())
+    }
+
+    /// Patch a built-in KinSU kernel with the pinned KernelPatch 0.13.0 image.
+    pub fn patch_kernel_with_kpm(
+        kernel_data: &[u8],
+        kpimg_data: &[u8],
+        kptools_data: &[u8],
+    ) -> Result<Vec<u8>> {
         use std::os::unix::fs::PermissionsExt;
         use tempfile::TempDir;
 
         println!("- Patching kernel with KernelPatch (KPM)");
 
+        verify_asset("kpimg", kpimg_data, KPIMG_SHA256)?;
+        verify_asset("kptools", kptools_data, KPTOOLS_SHA256)?;
+
         let temp_dir = TempDir::new().context("create temp dir for KPM patching")?;
 
         let kernel_path = temp_dir.path().join("Image");
-        std::fs::write(&kernel_path, kernel_data)
-            .context("write kernel to temp file")?;
+        std::fs::write(&kernel_path, kernel_data).context("write kernel to temp file")?;
 
         let kpimg_path = temp_dir.path().join("kpimg");
-        std::fs::write(&kpimg_path, kpimg_data)
-            .context("write kpimg to temp file")?;
+        std::fs::write(&kpimg_path, kpimg_data).context("write kpimg to temp file")?;
 
         let kptools_path = temp_dir.path().join("kptools");
-        std::fs::write(&kptools_path, kptools_data)
-            .context("write kptools to temp file")?;
-        std::fs::set_permissions(&kptools_path, std::fs::Permissions::from_mode(0o755))
+        std::fs::write(&kptools_path, kptools_data).context("write kptools to temp file")?;
+        std::fs::set_permissions(&kptools_path, std::fs::Permissions::from_mode(0o700))
             .context("make kptools executable")?;
 
         let output_path = temp_dir.path().join("oImage");
 
-        println!("- Running kptools to patch kernel...");
+        println!("- Checking for the KinSU KPM bridge in the target kernel");
+        let dump = Command::new(&kptools_path)
+            .args(["-d", "-i"])
+            .arg(&kernel_path)
+            .output()
+            .context("inspect target kernel symbols with kptools")?;
+        if !dump.status.success() {
+            bail!(
+                "cannot inspect target kernel for KPM support: {}",
+                String::from_utf8_lossy(&dump.stderr).trim()
+            );
+        }
+
+        let symbols = String::from_utf8_lossy(&dump.stdout);
+        let missing: Vec<&str> = REQUIRED_KPM_SYMBOLS
+            .iter()
+            .copied()
+            .filter(|symbol| !symbols.contains(symbol))
+            .collect();
+        if !missing.is_empty() {
+            bail!(
+                "target kernel is not built with CONFIG_KSU=y and CONFIG_KPM=y; \
+                 missing symbols: {}. KPM cannot attach to an LKM-only KinSU kernel",
+                missing.join(", ")
+            );
+        }
+
+        println!("- Running kptools to patch kernel");
         let result = Command::new(&kptools_path)
-            .args(&[
-                "-p",
-                "-s", "kinsu",
-                "-i", kernel_path.to_str().unwrap(),
-                "-k", kpimg_path.to_str().unwrap(),
-                "-o", output_path.to_str().unwrap(),
-            ])
+            .args(["-p", "-i"])
+            .arg(&kernel_path)
+            .arg("-k")
+            .arg(&kpimg_path)
+            .arg("-o")
+            .arg(&output_path)
             .output()
             .context("execute kptools")?;
 
         if !result.status.success() {
-            let stderr = String::from_utf8_lossy(&result.stderr);
-            let stdout = String::from_utf8_lossy(&result.stdout);
             bail!(
                 "kptools failed (exit code: {}):\nstdout: {}\nstderr: {}",
                 result.status.code().unwrap_or(-1),
-                stdout,
-                stderr
+                String::from_utf8_lossy(&result.stdout),
+                String::from_utf8_lossy(&result.stderr)
             );
         }
 
-        let stdout = String::from_utf8_lossy(&result.stdout);
-        for line in stdout.lines() {
+        for line in String::from_utf8_lossy(&result.stdout).lines() {
             println!("  kptools: {line}");
         }
 
-        let patched_kernel = std::fs::read(&output_path)
-            .context("read patched kernel")?;
-        println!("- Kernel patched successfully, new size: {} bytes (was {} bytes)", patched_kernel.len(), kernel_data.len());
+        let metadata =
+            std::fs::metadata(&output_path).context("kptools did not produce a patched kernel")?;
+        if metadata.len() == 0 {
+            bail!("kptools produced an empty patched kernel");
+        }
+
+        let verify = Command::new(&kptools_path)
+            .args(["-l", "-i"])
+            .arg(&output_path)
+            .output()
+            .context("verify patched kernel metadata")?;
+        if !verify.status.success() {
+            bail!(
+                "patched kernel failed KernelPatch verification: {}",
+                String::from_utf8_lossy(&verify.stderr).trim()
+            );
+        }
+
+        let patched_kernel = std::fs::read(&output_path).context("read patched kernel")?;
+        println!(
+            "- Kernel patched successfully, new size: {} bytes (was {} bytes)",
+            patched_kernel.len(),
+            kernel_data.len()
+        );
 
         Ok(patched_kernel)
     }
@@ -557,6 +624,16 @@ pub struct BootPatchArgs {
     #[arg(long, default_value = "false")]
     pub enable_kpm: bool,
 
+    /// Path to the pinned Android kptools binary used for KPM patching
+    #[cfg(target_os = "android")]
+    #[arg(long, default_value = None, requires = "enable_kpm")]
+    pub kptools: Option<PathBuf>,
+
+    /// Path to the matching pinned kpimg used for KPM patching
+    #[cfg(target_os = "android")]
+    #[arg(long, default_value = None, requires = "enable_kpm")]
+    pub kpimg: Option<PathBuf>,
+
     /// Enable SUSFS support
     #[arg(long, default_value = "false")]
     pub enable_susfs: bool,
@@ -590,6 +667,10 @@ pub fn patch(args: BootPatchArgs) -> Result<()> {
             partition,
             no_custom_rc,
             enable_kpm,
+            #[cfg(target_os = "android")]
+            kptools,
+            #[cfg(target_os = "android")]
+            kpimg,
             enable_susfs,
             #[cfg(target_os = "android")]
             susfs_binary,
@@ -609,6 +690,12 @@ pub fn patch(args: BootPatchArgs) -> Result<()> {
             ensure!(
                 init.is_none() && kmod.is_none(),
                 "init and module must not be specified."
+            );
+        }
+        if enable_kpm {
+            ensure!(
+                kmod.is_none(),
+                "--module cannot be used with --enable-kpm; KPM requires built-in KinSU"
             );
         }
 
@@ -685,47 +772,40 @@ pub fn patch(args: BootPatchArgs) -> Result<()> {
             patcher.replace_kernel(Box::new(Cursor::new(kernel_data)), false);
         }
 
-        // KPM: patch kernel with kpimg using kptools (GKI mode)
-        // This embeds KernelPatch into the kernel, enabling KPM module support
+        // KPM is supported only when the target Image already contains the
+        // built-in KinSU bridge. KernelPatch runs before an LKM can be loaded.
         #[cfg(target_os = "android")]
-        if enable_kpm && !no_install {
-            println!("- KPM enabled, patching kernel with KernelPatch");
-            let kptools_data = match assets::get_asset_data("kptools") {
-                Ok(data) => Some(data),
-                Err(_) => {
-                    println!("- WARNING: kptools asset not found, skipping KPM kernel patching");
-                    None
-                }
-            };
-            let kpimg_data = match assets::get_asset_data("kpimg") {
-                Ok(data) => Some(data),
-                Err(_) => {
-                    println!("- WARNING: kpimg asset not found, skipping KPM kernel patching");
-                    None
-                }
-            };
-
-            if let (Some(kptools_data), Some(kpimg_data)) = (kptools_data, kpimg_data) {
-                if let Some(kernel_block) = boot_image.get_blocks().get_kernel() {
-                    let mut kernel_buf = Vec::<u8>::new();
-                    kernel_block.dump(&mut kernel_buf, true)?;
-
-                    match kpm::patch_kernel_with_kpm(&kernel_buf, &kpimg_data, &kptools_data) {
-                        Ok(patched_kernel) => {
-                            patcher.replace_kernel(Box::new(Cursor::new(patched_kernel)), false);
-                            println!("- 内核已成功嵌入 KernelPatch (KPM)");
-                        }
-                        Err(e) => {
-                            bail!("KPM 内核修补失败: {e} - 请检查 kptools 和 kpimg 是否兼容当前内核");
-                        }
-                    }
-                } else {
-                    println!("- WARNING: No kernel found in boot image for KPM patching");
-                }
+        if enable_kpm {
+            if no_install {
+                bail!("--enable-kpm cannot be combined with --no-install");
             }
+
+            let kptools_path = kptools
+                .as_ref()
+                .context("--kptools is required when KPM is enabled")?;
+            let kpimg_path = kpimg
+                .as_ref()
+                .context("--kpimg is required when KPM is enabled")?;
+            let kptools_data = map_file(kptools_path)
+                .with_context(|| format!("read {}", kptools_path.display()))?;
+            let kpimg_data =
+                map_file(kpimg_path).with_context(|| format!("read {}", kpimg_path.display()))?;
+            let kernel_block = boot_image
+                .get_blocks()
+                .get_kernel()
+                .context("no kernel found in boot image for KPM patching")?;
+            let mut kernel_buf = Vec::<u8>::new();
+            kernel_block.dump(&mut kernel_buf, true)?;
+
+            let patched_kernel =
+                kpm::patch_kernel_with_kpm(&kernel_buf, &kpimg_data, &kptools_data)?;
+            patcher.replace_kernel(Box::new(Cursor::new(patched_kernel)), false);
+            println!("- KernelPatch KPM 0.13.0 embedded successfully");
         }
 
-        let kernelsu_ko: Box<dyn AsRef<[u8]>> = if no_install {
+        let kernelsu_ko: Box<dyn AsRef<[u8]>> = if no_install || enable_kpm {
+            // Keep an empty marker for the existing restore/upgrade flow. ksuinit
+            // detects the built-in KinSU interface and never tries to load it.
             Box::new(Vec::<u8>::new())
         } else if let Some(kmod_path) = kmod {
             Box::new(map_file(&kmod_path)?)
@@ -741,9 +821,13 @@ pub fn patch(args: BootPatchArgs) -> Result<()> {
             Box::new(map_file(&init_path)?)
         } else {
             #[cfg(all(target_arch = "aarch64", target_os = "android"))]
-            { Box::new(EMBEDDED_KSUINIT) }
+            {
+                Box::new(EMBEDDED_KSUINIT)
+            }
             #[cfg(not(all(target_arch = "aarch64", target_os = "android")))]
-            { assets::get_asset("ksuinit").context("Failed to load ksuinit")? }
+            {
+                assets::get_asset("ksuinit").context("Failed to load ksuinit")?
+            }
         };
 
         let (mut cpio, vendor_ramdisk_idx) =
@@ -760,7 +844,11 @@ pub fn patch(args: BootPatchArgs) -> Result<()> {
                 "Cannot work with Magisk patched image"
             );
 
-            println!("- Adding KinSU LKM");
+            if enable_kpm {
+                println!("- Using built-in KinSU (KPM is incompatible with LKM mode)");
+            } else {
+                println!("- Adding KinSU LKM");
+            }
             let is_kernelsu_patched = cpio.exists("KinSU.ko");
 
             // 清理原版 KernelSU 残留，避免双 root 冲突导致 boot loop
@@ -912,15 +1000,15 @@ pub fn patch(args: BootPatchArgs) -> Result<()> {
             let name = out_name.unwrap_or_else(|| {
                 let now = chrono::Utc::now();
                 // 根据输入镜像路径判断输出文件名，区分 boot 和 init_boot
-                let prefix = if boot_image_file
-                    .to_string_lossy()
-                    .contains("init_boot")
-                {
+                let prefix = if boot_image_file.to_string_lossy().contains("init_boot") {
                     "init_boot"
                 } else {
                     "boot"
                 };
-                format!("kernelsu_patched_{prefix}_{}.img", now.format("%Y%m%d_%H%M%S"))
+                format!(
+                    "kernelsu_patched_{prefix}_{}.img",
+                    now.format("%Y%m%d_%H%M%S")
+                )
             });
             let output_image = output_dir.join(name);
             std::fs::write(&output_image, &new_boot_bytes).context("write out new boot failed")?;

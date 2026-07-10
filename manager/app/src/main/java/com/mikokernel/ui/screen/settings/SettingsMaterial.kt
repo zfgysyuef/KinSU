@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.ContactPage
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.FolderDelete
+import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Policy
 import androidx.compose.material.icons.filled.RemoveCircle
@@ -129,6 +130,17 @@ fun SettingPagerMaterial(
                                     Icons.AutoMirrored.Filled.KeyboardArrowRight,
                                     null
                                 )
+                            }
+                        )
+                    }
+                    add {
+                        SegmentedListItem(
+                            onClick = actions.onOpenKpm,
+                            headlineContent = { Text(stringResource(id = R.string.kpm_title)) },
+                            supportingContent = { Text(stringResource(id = R.string.kpm_settings_summary)) },
+                            leadingContent = { Icon(Icons.Filled.Memory, stringResource(id = R.string.kpm_title)) },
+                            trailingContent = {
+                                Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null)
                             }
                         )
                     }

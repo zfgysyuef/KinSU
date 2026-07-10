@@ -86,6 +86,7 @@
     <string name="patch_kernel_and_flash">Patch Kernel &amp; Flash</string>
     <string name="patch_kernel_desc">Patch and flash kernel image with KinSU</string>
     <string name="patch_kernel_feature_kpm">KPM: Kernel Patch Module Support</string>
+    <string name="kpm_builtin_requirement">Requires an ARM64 kernel built with CONFIG_KSU=y and CONFIG_KPM=y; LKM mode is not supported</string>
     <string name="patch_kernel_feature_susfs">SUSFS: Hide kernel patches and userspace modules</string>
     <string name="patch_kernel_select_features">Select kernel patch features</string>
     <string name="patch_kernel_gki_mode">GKI Mode Patching</string>
@@ -320,4 +321,36 @@
     <string name="sort_by_update_time">Update time</string>
     <string name="sort_reverse">Reverse</string>
     <string name="profile_flags_desc_no_new_privs">Prevent further privilege escalation via KinSU from within the context of this root profile.</string>
+    <string name="back">Back</string>
+    <string name="refresh">Refresh</string>
+    <string name="loading">Loading…</string>
+    <string name="cancel">Cancel</string>
+    <string name="kpm_title">Kernel patch modules</string>
+    <string name="kpm_settings_summary">Load and manage trusted KernelPatch modules</string>
+    <string name="kpm_runtime_version">KernelPatch runtime</string>
+    <string name="kpm_security_notice">KPM modules execute with full kernel privileges. Install only modules you trust.</string>
+    <string name="kpm_unavailable">KPM is not available</string>
+    <string name="kpm_empty">No KPM modules are loaded</string>
+    <string name="kpm_install">Install KPM</string>
+    <string name="kpm_install_title">Install %1$s</string>
+    <string name="kpm_install_mode_description">Load once for this boot, or install persistently so ksud loads it during post-fs-data.</string>
+    <string name="kpm_install_persistent">Install persistently</string>
+    <string name="kpm_load_once">Load once</string>
+    <string name="kpm_install_success">KPM module loaded</string>
+    <string name="kpm_install_failed">KPM installation failed</string>
+    <string name="kpm_invalid_file">Invalid KPM file</string>
+    <string name="kpm_uninstall_title">Unload KPM module</string>
+    <string name="kpm_uninstall_confirm">Unload %1$s and remove its persistent file?</string>
+    <string name="kpm_uninstall_success">KPM module unloaded</string>
+    <string name="kpm_uninstall_failed">KPM uninstall failed</string>
+    <string name="kpm_control">Control</string>
+    <string name="kpm_control_title">Control %1$s</string>
+    <string name="kpm_control_args">Arguments</string>
+    <string name="kpm_control_success">KPM command completed</string>
+    <string name="kpm_control_failed">KPM command failed</string>
+    <string name="kpm_persistent">Persistent</string>
+    <string name="kpm_not_loaded">Not loaded (safe mode or boot load failed)</string>
+    <string name="kpm_version_format">Version: %1$s</string>
+    <string name="kpm_author_format">Author: %1$s</string>
+    <string name="kpm_license_format">License: %1$s</string>
 </resources>

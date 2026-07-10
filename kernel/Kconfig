@@ -18,6 +18,21 @@ config KSU_DEBUG
 	help
 	  Enable KinSU debug mode.
 
+config KPM
+	bool "Enable KinSU KPM support"
+	depends on KSU = y && ARM64
+	default n
+	select KALLSYMS
+	select KALLSYMS_ALL
+	help
+	  Enable the KernelPatch Module (KPM) compatibility bridge used by
+	  KernelPatch and the KinSU manager. The running kernel must also be
+	  patched with the matching SukiSU KernelPatch image for standard KPM
+	  modules to be loaded.
+
+	  This feature executes third-party code in kernel context. Only enable
+	  it for trusted KPM modules and tested kernel builds.
+
 config KSU_DISABLE_MANAGER
 	bool "Disable KinSU manager integration"
 	depends on KSU
@@ -36,4 +51,3 @@ config KSU_DISABLE_POLICY
 	  non-root handling will follow the global umount policy only.
 
 endmenu
-

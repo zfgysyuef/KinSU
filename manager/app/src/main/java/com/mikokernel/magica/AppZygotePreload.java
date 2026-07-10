@@ -15,7 +15,7 @@ public class AppZygotePreload implements ZygotePreload {
 
     @Override
     public void doPreload(@NonNull ApplicationInfo appInfo) {
-        File f = new File(appInfo.nativeLibraryDir, "libKinSUd.so");
+        File f = new File(appInfo.nativeLibraryDir, "libkinsud.so");
         try {
             System.loadLibrary("KinSU");
             Log.d(TAG, "executing magica ...");

@@ -49,6 +49,13 @@ enum Commands {
         command: Module,
     },
 
+    /// Manage KernelPatch modules
+    #[cfg(target_arch = "aarch64")]
+    Kpm {
+        #[command(subcommand)]
+        command: KpmCommand,
+    },
+
     /// Trigger `post-fs-data` event
     PostFsData,
 
@@ -247,6 +254,7 @@ enum Debug {
     },
 
     /// KPM (KernelPatch Module) management
+    #[cfg(target_arch = "aarch64")]
     Kpm {
         #[command(subcommand)]
         command: KpmCommand,
@@ -299,6 +307,42 @@ enum KpmCommand {
         #[arg(default_value = "")]
         args: String,
     },
+}
+
+#[cfg(target_arch = "aarch64")]
+fn handle_kpm_command(command: KpmCommand) -> Result<()> {
+    match command {
+        KpmCommand::Diag => {
+            println!("KPM available: {}", crate::kpm::version()?);
+            Ok(())
+        }
+        KpmCommand::Version => {
+            println!("{}", crate::kpm::version()?);
+            Ok(())
+        }
+        KpmCommand::Num => {
+            println!("{}", crate::kpm::num()?);
+            Ok(())
+        }
+        KpmCommand::List => {
+            println!("{}", crate::kpm::list()?);
+            Ok(())
+        }
+        KpmCommand::Load { path, args } => {
+            let args = (!args.is_empty()).then_some(args.as_str());
+            crate::kpm::load_module(path, args)
+        }
+        KpmCommand::Unload { name } => crate::kpm::unload_module(&name),
+        KpmCommand::Info { name } => {
+            println!("{}", crate::kpm::info(&name)?);
+            Ok(())
+        }
+        KpmCommand::Control { name, args } => {
+            let args = (!args.is_empty()).then_some(args.as_str());
+            println!("{}", crate::kpm::control(&name, args)?);
+            Ok(())
+        }
+    }
 }
 
 #[derive(clap::Subcommand, Debug)]
@@ -761,6 +805,9 @@ pub fn run() -> Result<()> {
             Feature::Save => crate::feature::save_config(),
         },
 
+        #[cfg(target_arch = "aarch64")]
+        Commands::Kpm { command } => handle_kpm_command(command),
+
         Commands::Debug { command } => match command {
             Debug::SetManager { apk } => debug::set_manager(&apk),
             Debug::GetSign { apk } => {
@@ -819,94 +866,8 @@ pub fn run() -> Result<()> {
                     Ok(())
                 }
             },
-            Debug::Kpm { command } => match command {
-                KpmCommand::Diag => {
-                    println!("{}", crate::kpm::kpm_diag());
-                    Ok(())
-                }
-                KpmCommand::Version => {
-                    println!("KPM module loader: ioctl-based (v2.0)");
-                    println!("Built into kinsu.ko - no kpimg injection needed.");
-                    Ok(())
-                }
-                KpmCommand::Num => {
-                    match crate::kpm::kpm_nums() {
-                        Ok(n) => { println!("{}", n); Ok(()) }
-                        Err(e) => { println!("Error: {}", e); Err(e) }
-                    }
-                }
-                KpmCommand::List => {
-                    match crate::kpm::kpm_list() {
-                        Ok(s) => { println!("{}", s); Ok(()) }
-                        Err(e) => { println!("Error: {}", e); Err(e) }
-                    }
-                }
-                KpmCommand::Load { path, args } => {
-                    let result = crate::kpm::kpm_load_module(&path, &args);
-                    match result {
-                        Ok(0) => {
-                            println!("OK");
-                            Ok(())
-                        }
-                        Ok(code) => {
-                            let errno_desc = match -code {
-                                2 => "文件不存在 (ENOENT)",
-                                8 => "不是有效的 KPM 模块 (ENOEXEC)",
-                                12 => "内存不足 (ENOMEM)",
-                                17 => "模块已加载 (EEXIST)",
-                                22 => "参数无效 (EINVAL)",
-                                _ => ""
-                            };
-                            println!("Error: {} {}", code, errno_desc);
-                            Err(anyhow::anyhow!("KPM load failed: {} {}", code, errno_desc))
-                        }
-                        Err(e) => {
-                            println!("Error: {}", e);
-                            Err(anyhow::anyhow!("KPM load failed: {}", e))
-                        }
-                    }
-                }
-                KpmCommand::Unload { name } => {
-                    let result = crate::kpm::kpm_unload_module(&name);
-                    match result {
-                        Ok(0) => {
-                            println!("OK");
-                            Ok(())
-                        }
-                        Ok(code) => {
-                            println!("Error: {}", code);
-                            Err(anyhow::anyhow!("KPM unload failed: {}", code))
-                        }
-                        Err(e) => {
-                            println!("Error: {}", e);
-                            Err(anyhow::anyhow!("KPM unload failed: {}", e))
-                        }
-                    }
-                }
-                KpmCommand::Info { name } => {
-                    match crate::kpm::kpm_info(&name) {
-                        Ok(s) => { println!("{}", s); Ok(()) }
-                        Err(e) => { println!("Error: {}", e); Err(e) }
-                    }
-                }
-                KpmCommand::Control { name, args } => {
-                    let result = crate::kpm::kpm_control(&name, &args);
-                    match result {
-                        Ok(0) => {
-                            println!("OK");
-                            Ok(())
-                        }
-                        Ok(code) => {
-                            println!("Error: {}", code);
-                            Err(anyhow::anyhow!("KPM control failed: {}", code))
-                        }
-                        Err(e) => {
-                            println!("Error: {}", e);
-                            Err(anyhow::anyhow!("KPM control failed: {}", e))
-                        }
-                    }
-                }
-            },
+            #[cfg(target_arch = "aarch64")]
+            Debug::Kpm { command } => handle_kpm_command(command),
         },
         Commands::BootPatch(boot_patch) => crate::boot_patch::patch(boot_patch),
 

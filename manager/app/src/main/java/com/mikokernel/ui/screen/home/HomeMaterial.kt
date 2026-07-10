@@ -188,9 +188,8 @@ internal fun StatusCard(
             ) {
                 when {
                     state.ksuVersion != null -> {
-                        // 用 native 层的 lkmMode 判断运行模式（准确）
-                        // isKpmActive 只表示 KPM 功能是否可用，不决定运行模式
-                        // LKM 模式下也可能激活 KPM，不能据此误判为 GKI
+                        // Runtime mode comes from the native KinSU info flags.
+                        // Standard KPM requires a built-in bridge and is not an LKM mode.
                         val workingMode = when {
                             state.lkmMode == true -> "LKM"
                             state.lkmMode == false -> "GKI"

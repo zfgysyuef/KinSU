@@ -27,6 +27,9 @@ jobs:
 
     - name: Download artifacts
       uses: actions/download-artifact@v8
+
+    - name: Prepare embedded asset directory
+      run: mkdir -p userspace/ksud/bin/aarch64
     
     - name: Prepare LKM files
       if: ${{ inputs.pack_lkm }}

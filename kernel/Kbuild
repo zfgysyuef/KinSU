@@ -4,9 +4,6 @@ kinsu-objs += feature/kernel_umount.o
 kinsu-objs += feature/sulog.o
 kinsu-objs += feature/sucompat.o
 
-kinsu-objs += kpm/module.o
-kinsu-objs += kpm/relo.o
-
 kinsu-objs += hook/lsm_hook.o
 kinsu-objs += hook/setuid_hook.o
 kinsu-objs += hook/syscall_event_bridge.o
@@ -53,6 +50,12 @@ kinsu-objs += supercall/supercall.o
 kinsu-objs += feature/adb_root.o
 
 kinsu-objs += feature/selinux_hide.o
+
+# These objects must be linked into vmlinux. KernelPatch installs the
+# sukisu_kpm_* hooks during early boot, before loadable modules exist.
+obj-$(CONFIG_KPM) += kpm/compact.o
+obj-$(CONFIG_KPM) += kpm/kpm.o
+obj-$(CONFIG_KPM) += kpm/super_access.o
 
 # SUSFS support - compile susfs sources when enabled
 ifdef KSU_SUSFS
@@ -103,7 +106,9 @@ ifneq ($(GIT_ROOT),$(KERNEL_GIT_ROOT))
 # Only set version if it's a different repo from kernel
 $(shell cd $(GIT_ROOT) && [ -f .git/shallow ] && $(GIT) fetch --unshallow 2>/dev/null || true)
 KSU_GIT_VERSION := $(shell cd $(GIT_ROOT) && $(GIT) rev-list --count HEAD 2>/dev/null)
+ifneq ($(strip $(KSU_GIT_VERSION)),)
 KSU_GIT_VERSION_VALID := 1
+endif
 $(info -- KernelSU: Git repo detected at $(GIT_ROOT))
 endif
 endif
@@ -114,14 +119,15 @@ endif
 
 # Calculate version if git version is available
 ifdef KSU_GIT_VERSION_VALID
-# ksu_version: major * 10000 + git version + 200 for historical reasons
-$(eval KSU_VERSION=$(shell expr 10000 + $(KSU_GIT_VERSION)))
+# ksu_version: 30000 + git revision count, matching the manager's 3.x ABI.
+$(eval KSU_VERSION=$(shell v=$$(expr 30000 + $(KSU_GIT_VERSION)); \
+	[ $$v -lt 32513 ] && echo 32513 || echo $$v))
 $(info -- KernelSU version: $(KSU_VERSION))
 ccflags-y += -DKSU_VERSION=$(KSU_VERSION)
 else
 # If there is no .git directory, use default version
 $(warning "KSU_GIT_VERSION not defined! It is better to make KernelSU a git repository!")
-ccflags-y += -DKSU_VERSION=30020
+ccflags-y += -DKSU_VERSION=32513
 endif
 
 KSU_NEW_DCACHE_FLUSH := $(shell grep -q __flush_dcache_area $(srctree)/arch/arm64/include/asm/cacheflush.h ; echo $$?)
@@ -167,4 +173,3 @@ ccflags-y += -Wno-strict-prototypes -Wno-int-conversion -Wno-gcc-compat -Wno-mis
 ccflags-y += -Wno-declaration-after-statement -Wno-unused-function
 
 # Keep a new line here!! Because someone may append config
-

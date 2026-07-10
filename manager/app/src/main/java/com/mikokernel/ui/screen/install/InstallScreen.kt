@@ -142,6 +142,8 @@ fun InstallScreen() {
                                 partition = partitions.getOrNull(partitionSelectionIndex),
                                 allowShell = allowShell,
                                 enableAdb = enableAdb,
+                                enableKpm = patchEnableKpm,
+                                enableSusfs = patchEnableSusfs,
                             )
                         )
                     )
@@ -240,7 +242,7 @@ fun InstallScreen() {
             if (isHorizonKernelNoUri) {
                 // AnyKernel3 selected from radio but no ZIP chosen yet - open file picker
                 selectAnyKernel3Launcher.launch(Intent(Intent.ACTION_GET_CONTENT).apply { type = "application/zip" })
-            } else if (!isLkmSelected && (isKmiUnknown || isSelectFileMode)) {
+            } else if (!patchEnableKpm && !isLkmSelected && (isKmiUnknown || isSelectFileMode)) {
                 showChooseKmiDialog.value = true
             } else {
                 onInstall()

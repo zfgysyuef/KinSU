@@ -1,260 +1,182 @@
-use std::ffi::CString;
-use std::ptr;
+use std::{
+    ffi::CString,
+    fs, io,
+    os::unix::fs::PermissionsExt,
+    path::{Path, PathBuf},
+};
 
-use anyhow::{bail, Result};
-use log::{info, error};
+use anyhow::{Context, Result, bail};
 
+use crate::ksu_uapi;
 use crate::ksucalls::ksuctl;
 
-// 负 errno 常量，用于 match 模式
-// （Rust 模式中不允许出现 -libc::EEXIST 这样的表达式，只能使用常量路径）
-const NEG_EEXIST: i32 = -libc::EEXIST;
-const NEG_ENOENT: i32 = -libc::ENOENT;
+pub const KPM_DIR: &str = "/data/adb/kpm";
+const KPM_BUFFER_SIZE: usize = 4096;
 
-// KPM ioctl command codes (must match kernel uapi/supercall.h)
-// _IOWR('K', nr, sizeof(struct)) = 0xC0000000 | (size<<16) | (0x4B<<8) | nr
-const KSU_IOCTL_KPM_LOAD: u32 = 0xC018_4B30;    // nr=0x30, size=24
-const KSU_IOCTL_KPM_UNLOAD: u32 = 0xC010_4B31;  // nr=0x31, size=16
-const KSU_IOCTL_KPM_NUMS: u32 = 0xC008_4B32;    // nr=0x32, size=8
-const KSU_IOCTL_KPM_LIST: u32 = 0xC010_4B33;    // nr=0x33, size=16
-const KSU_IOCTL_KPM_INFO: u32 = 0xC018_4B34;    // nr=0x34, size=24
-const KSU_IOCTL_KPM_CONTROL: u32 = 0xC020_4B35; // nr=0x35, size=32
-
-#[repr(C)]
-struct KsuKpmLoadCmd {
-    path: u64,
-    args: u64,
-    result: i32,
-    reserved: i32,
-}
-
-#[repr(C)]
-struct KsuKpmUnloadCmd {
-    name: u64,
-    result: i32,
-    reserved: i32,
-}
-
-#[repr(C)]
-struct KsuKpmNumsCmd {
-    nums: i32,
-    reserved: i32,
-}
-
-#[repr(C)]
-struct KsuKpmListCmd {
-    buf: u64,
-    buf_size: u32,
-    result: i32,
-}
-
-#[repr(C)]
-struct KsuKpmInfoCmd {
-    name: u64,
-    buf: u64,
-    buf_size: u32,
-    result: i32,
-}
-
-#[repr(C)]
-struct KsuKpmControlCmd {
-    name: u64,
-    args: u64,
-    out_buf: u64,
-    out_len: i32,
-    result: i32,
-}
-
-pub fn kpm_load_module(path: &str, args: &str) -> std::io::Result<i32> {
-    let path_c = CString::new(path).unwrap();
-    let args_c = CString::new(args).unwrap();
-
-    let mut cmd = KsuKpmLoadCmd {
-        path: path_c.as_ptr() as u64,
-        args: args_c.as_ptr() as u64,
-        result: 0,
-        reserved: 0,
+fn run_kpm(control_code: u32, arg1: u64, arg2: u64) -> Result<i32> {
+    let mut result = -libc::ENOSYS;
+    let mut cmd = ksu_uapi::ksu_kpm_cmd {
+        control_code: u64::from(control_code),
+        arg1,
+        arg2,
+        result_code: (&raw mut result) as u64,
     };
 
-    let ret = ksuctl(KSU_IOCTL_KPM_LOAD, &raw mut cmd as *mut _)?;
-    if ret < 0 {
-        return Err(std::io::Error::last_os_error());
-    }
-    Ok(cmd.result)
+    ksuctl(ksu_uapi::KSU_IOCTL_KPM, &raw mut cmd).context("KPM ioctl failed")?;
+    Ok(result)
 }
 
-pub fn kpm_unload_module(name: &str) -> std::io::Result<i32> {
-    let name_c = CString::new(name).unwrap();
-
-    let mut cmd = KsuKpmUnloadCmd {
-        name: name_c.as_ptr() as u64,
-        result: 0,
-        reserved: 0,
-    };
-
-    let ret = ksuctl(KSU_IOCTL_KPM_UNLOAD, &raw mut cmd as *mut _)?;
-    if ret < 0 {
-        return Err(std::io::Error::last_os_error());
+fn check_result(operation: &str, result: i32) -> Result<()> {
+    if result < 0 {
+        bail!(
+            "{operation}: {}",
+            io::Error::from_raw_os_error(result.saturating_neg())
+        );
     }
-    Ok(cmd.result)
+    if result != 0 {
+        bail!("{operation}: unexpected result {result}");
+    }
+    Ok(())
 }
 
-pub fn kpm_module_nums() -> std::io::Result<i32> {
-    let mut cmd = KsuKpmNumsCmd {
-        nums: 0,
-        reserved: 0,
-    };
-
-    let ret = ksuctl(KSU_IOCTL_KPM_NUMS, &raw mut cmd as *mut _)?;
-    if ret < 0 {
-        return Err(std::io::Error::last_os_error());
-    }
-    Ok(cmd.nums)
+pub fn load_module<P>(path: P, args: Option<&str>) -> Result<()>
+where
+    P: AsRef<Path>,
+{
+    let path = CString::new(path.as_ref().to_string_lossy().as_bytes())?;
+    let args = CString::new(args.unwrap_or_default())?;
+    let result = run_kpm(
+        ksu_uapi::SUKISU_KPM_LOAD,
+        path.as_ptr() as u64,
+        args.as_ptr() as u64,
+    )?;
+    check_result("failed to load KPM", result)
 }
 
-pub fn kpm_module_list(buf: &mut [u8]) -> std::io::Result<usize> {
-    let mut cmd = KsuKpmListCmd {
-        buf: buf.as_mut_ptr() as u64,
-        buf_size: buf.len() as u32,
-        result: 0,
-    };
-
-    let ret = ksuctl(KSU_IOCTL_KPM_LIST, &raw mut cmd as *mut _)?;
-    if ret < 0 {
-        return Err(std::io::Error::last_os_error());
-    }
-    if cmd.result < 0 {
-        return Err(std::io::Error::from_raw_os_error(-cmd.result));
-    }
-    Ok(cmd.result as usize)
+pub fn unload_module(name: &str) -> Result<()> {
+    let name = CString::new(name)?;
+    let result = run_kpm(ksu_uapi::SUKISU_KPM_UNLOAD, name.as_ptr() as u64, 0)?;
+    check_result("failed to unload KPM", result)
 }
 
-pub fn kpm_module_info(name: &str, buf: &mut [u8]) -> std::io::Result<usize> {
-    let name_c = CString::new(name).unwrap();
-
-    let mut cmd = KsuKpmInfoCmd {
-        name: name_c.as_ptr() as u64,
-        buf: buf.as_mut_ptr() as u64,
-        buf_size: buf.len() as u32,
-        result: 0,
-    };
-
-    let ret = ksuctl(KSU_IOCTL_KPM_INFO, &raw mut cmd as *mut _)?;
-    if ret < 0 {
-        return Err(std::io::Error::last_os_error());
+pub fn num() -> Result<i32> {
+    let result = run_kpm(ksu_uapi::SUKISU_KPM_NUM, 0, 0)?;
+    if result < 0 {
+        bail!(
+            "failed to get KPM count: {}",
+            io::Error::from_raw_os_error(result.saturating_neg())
+        );
     }
-    if cmd.result < 0 {
-        return Err(std::io::Error::from_raw_os_error(-cmd.result));
-    }
-    Ok(cmd.result as usize)
+    Ok(result)
 }
 
-pub fn kpm_module_control(name: &str, args: &str, out_buf: &mut [u8]) -> std::io::Result<i32> {
-    let name_c = CString::new(name).unwrap();
-    let args_c = CString::new(args).unwrap();
-
-    let mut cmd = KsuKpmControlCmd {
-        name: name_c.as_ptr() as u64,
-        args: args_c.as_ptr() as u64,
-        out_buf: out_buf.as_mut_ptr() as u64,
-        out_len: out_buf.len() as i32,
-        result: 0,
-    };
-
-    let ret = ksuctl(KSU_IOCTL_KPM_CONTROL, &raw mut cmd as *mut _)?;
-    if ret < 0 {
-        return Err(std::io::Error::last_os_error());
+pub fn list() -> Result<String> {
+    let mut buf = vec![0u8; KPM_BUFFER_SIZE];
+    let result = run_kpm(
+        ksu_uapi::SUKISU_KPM_LIST,
+        buf.as_mut_ptr() as u64,
+        buf.len() as u64,
+    )?;
+    if result < 0 {
+        bail!(
+            "failed to list KPM modules: {}",
+            io::Error::from_raw_os_error(result.saturating_neg())
+        );
     }
-    if cmd.result < 0 {
-        return Err(std::io::Error::from_raw_os_error(-cmd.result));
-    }
-    Ok(cmd.result)
+    Ok(buf2str(&buf))
 }
 
-/// Public API used by cli.rs to load KPM from path
-pub fn kpm_load(path: &str, args: Option<&str>) -> Result<()> {
-    info!("KPM: loading module {}", path);
-    let result = kpm_load_module(path, args.unwrap_or(""));
-    match result {
-        Ok(0) => {
-            info!("KPM: loaded successfully: {}", path);
-            Ok(())
-        }
-        Ok(NEG_EEXIST) => {
-            info!("KPM: module already loaded (EEXIST)");
-            Ok(())
-        }
-        _ => {
-            let err = result.unwrap_or(-1);
-            error!("KPM: load failed for {}, errno={}", path, -err);
-            let msg = match -err {
-                libc::ENOENT => "模块文件不存在",
-                libc::ENOEXEC => "不是有效的 KPM 模块 (.kpm.init/.kpm.exit 段缺失)",
-                libc::ENOMEM => "内存不足",
-                libc::EEXIST => "模块已加载",
-                libc::EINVAL => "参数无效",
-                _ => "未知错误",
-            };
-            bail!("KPM load failed: {} ({}) - {}", err, msg, path);
-        }
-    }
-}
-
-pub fn kpm_unload(name: &str) -> Result<()> {
-    info!("KPM: unloading module {}", name);
-    match kpm_unload_module(name) {
-        Ok(0) => {
-            info!("KPM: unloaded successfully: {}", name);
-            Ok(())
-        }
-        Ok(NEG_ENOENT) => {
-            bail!("KPM unload failed: module not found: {}", name);
-        }
-        _ => {
-            let err = kpm_unload_module(name).unwrap_or(-1);
-            bail!("KPM unload failed: {} - {}", err, name);
-        }
-    }
-}
-
-pub fn kpm_list() -> Result<String> {
-    let mut buf = vec![0u8; 4096];
-    let n = kpm_module_list(&mut buf)?;
-    if n == 0 {
-        return Ok(String::from("(no modules loaded)"));
-    }
-    Ok(String::from_utf8_lossy(&buf[..n]).to_string())
-}
-
-pub fn kpm_info(name: &str) -> Result<String> {
-    let mut buf = vec![0u8; 1024];
-    let n = kpm_module_info(name, &mut buf)?;
-    if n == 0 {
-        return Ok(format!("(no info for module: {})", name));
-    }
-    Ok(String::from_utf8_lossy(&buf[..n]).to_string())
-}
-
-pub fn kpm_nums() -> Result<i32> {
-    Ok(kpm_module_nums()?)
-}
-
-pub fn kpm_control(name: &str, args: &str) -> Result<i32> {
+pub fn info(name: &str) -> Result<String> {
+    let name = CString::new(name)?;
     let mut buf = vec![0u8; 256];
-    match kpm_module_control(name, args, &mut buf) {
-        Ok(rc) => {
-            let out = String::from_utf8_lossy(&buf);
-            if !out.trim().is_empty() {
-                info!("KPM control {} response: {}", name, out.trim());
-            }
-            Ok(rc)
-        }
-        Err(e) => {
-            bail!("KPM control failed for {}: {}", name, e);
-        }
-    }
+    let result = run_kpm(
+        ksu_uapi::SUKISU_KPM_INFO,
+        name.as_ptr() as u64,
+        buf.as_mut_ptr() as u64,
+    )?;
+    check_result("failed to get KPM info", result)?;
+    Ok(buf2str(&buf))
 }
 
-pub fn kpm_diag() -> String {
-    format!("KPM ioctl-based module loader ready. Use `kpm load <path>` to load a .kpm module.")
+pub fn control(name: &str, args: Option<&str>) -> Result<i32> {
+    let name = CString::new(name)?;
+    let args = CString::new(args.unwrap_or_default())?;
+    let result = run_kpm(
+        ksu_uapi::SUKISU_KPM_CONTROL,
+        name.as_ptr() as u64,
+        args.as_ptr() as u64,
+    )?;
+    if result < 0 {
+        bail!(
+            "failed to control KPM: {}",
+            io::Error::from_raw_os_error(result.saturating_neg())
+        );
+    }
+    Ok(result)
+}
+
+pub fn version() -> Result<String> {
+    let mut buf = vec![0u8; 1024];
+    let result = run_kpm(
+        ksu_uapi::SUKISU_KPM_VERSION,
+        buf.as_mut_ptr() as u64,
+        buf.len() as u64,
+    )?;
+    check_result("failed to get KernelPatch version", result)?;
+
+    let version = buf2str(&buf).trim().to_owned();
+    if version.is_empty() {
+        bail!("KPM is unavailable: the KernelPatch bridge is not active");
+    }
+    Ok(version)
+}
+
+fn ensure_dir() -> Result<()> {
+    let dir = Path::new(KPM_DIR);
+    fs::create_dir_all(dir).with_context(|| format!("create {}", dir.display()))?;
+    fs::set_permissions(dir, fs::Permissions::from_mode(0o700))
+        .with_context(|| format!("set permissions on {}", dir.display()))?;
+    Ok(())
+}
+
+pub fn booted_load() -> Result<()> {
+    let dir = Path::new(KPM_DIR);
+    if !dir.exists() {
+        return Ok(());
+    }
+
+    let version = version()?;
+    log::info!("KPM bridge active: {version}");
+    ensure_dir()?;
+
+    if crate::utils::is_safe_mode() {
+        log::warn!("KPM: safe mode is active; persistent modules will not be loaded");
+        return Ok(());
+    }
+
+    let mut modules: Vec<PathBuf> = fs::read_dir(dir)?
+        .filter_map(|entry| entry.ok().map(|entry| entry.path()))
+        .filter(|path| {
+            path.is_file()
+                && path
+                    .extension()
+                    .is_some_and(|extension| extension.eq_ignore_ascii_case("kpm"))
+        })
+        .collect();
+    modules.sort();
+
+    for module in modules {
+        if let Err(error) = load_module(&module, None) {
+            log::error!("KPM: failed to load {}: {error:#}", module.display());
+        } else {
+            log::info!("KPM: loaded {}", module.display());
+        }
+    }
+
+    Ok(())
+}
+
+fn buf2str(buf: &[u8]) -> String {
+    let end = buf.iter().position(|byte| *byte == 0).unwrap_or(buf.len());
+    String::from_utf8_lossy(&buf[..end]).into_owned()
 }

@@ -53,6 +53,7 @@
     <string name="patch_kernel_and_flash">修补内核并刷入</string>
     <string name="patch_kernel_desc">使用 KinSU 修补并刷入内核镜像</string>
     <string name="patch_kernel_feature_kpm">KPM：KernelPatch 模块支持</string>
+    <string name="kpm_builtin_requirement">要求 ARM64 内核以 CONFIG_KSU=y、CONFIG_KPM=y 内建；不支持 LKM 模式</string>
     <string name="patch_kernel_feature_susfs">susfs：隐藏内核补丁及用户空间模组</string>
     <string name="patch_kernel_select_features">选择内核补丁特性</string>
     <string name="patch_kernel_gki_mode">GKI 模式修补</string>
@@ -297,4 +298,36 @@
     <string name="sort_by_update_time">更新时间</string>
     <string name="sort_reverse">倒序</string>
     <string name="profile_flags_desc_no_new_privs">禁止从此 Root 配置上下文中通过 KinSU 进一步提升权限</string>
+    <string name="back">返回</string>
+    <string name="refresh">刷新</string>
+    <string name="loading">正在加载…</string>
+    <string name="cancel">取消</string>
+    <string name="kpm_title">内核补丁模块</string>
+    <string name="kpm_settings_summary">加载和管理可信的 KernelPatch 模块</string>
+    <string name="kpm_runtime_version">KernelPatch 运行时</string>
+    <string name="kpm_security_notice">KPM 模块拥有完整内核权限，请只安装可信模块。</string>
+    <string name="kpm_unavailable">KPM 当前不可用</string>
+    <string name="kpm_empty">当前没有已加载的 KPM 模块</string>
+    <string name="kpm_install">安装 KPM</string>
+    <string name="kpm_install_title">安装 %1$s</string>
+    <string name="kpm_install_mode_description">“仅加载一次”只在本次开机有效；“持久安装”会由 ksud 在 post-fs-data 阶段自动加载。</string>
+    <string name="kpm_install_persistent">持久安装</string>
+    <string name="kpm_load_once">仅加载一次</string>
+    <string name="kpm_install_success">KPM 模块已加载</string>
+    <string name="kpm_install_failed">KPM 安装失败</string>
+    <string name="kpm_invalid_file">无效的 KPM 文件</string>
+    <string name="kpm_uninstall_title">卸载 KPM 模块</string>
+    <string name="kpm_uninstall_confirm">要卸载 %1$s 并删除其持久化文件吗？</string>
+    <string name="kpm_uninstall_success">KPM 模块已卸载</string>
+    <string name="kpm_uninstall_failed">KPM 卸载失败</string>
+    <string name="kpm_control">控制</string>
+    <string name="kpm_control_title">控制 %1$s</string>
+    <string name="kpm_control_args">参数</string>
+    <string name="kpm_control_success">KPM 命令执行成功</string>
+    <string name="kpm_control_failed">KPM 命令执行失败</string>
+    <string name="kpm_persistent">持久</string>
+    <string name="kpm_not_loaded">未加载（安全模式或开机加载失败）</string>
+    <string name="kpm_version_format">版本：%1$s</string>
+    <string name="kpm_author_format">作者：%1$s</string>
+    <string name="kpm_license_format">许可证：%1$s</string>
 </resources>

@@ -56,5 +56,6 @@ data class SettingsScreenActions(
     val onSetSulogEnabled: (Boolean) -> Unit,
     val onSetAdbRootEnabled: (Boolean) -> Unit,
     val onSetDefaultUmountModules: (Boolean) -> Unit,
+    val onOpenKpm: () -> Unit,
     val onOpenAbout: () -> Unit,
 )

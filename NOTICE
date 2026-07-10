@@ -38,3 +38,16 @@ Contributors (upstream):
 KinSU modifications are additionally licensed under GPLv3. The modified
 source code is available at:
 https://github.com/Spring-bulid/KinSU
+
+KernelPatch / KPM
+-----------------
+
+The KPM compatibility bridge is derived from SukiSU-Ultra and uses the
+SukiSU KernelPatch patch set:
+
+  https://github.com/SukiSU-Ultra/SukiSU-Ultra
+  https://github.com/SukiSU-Ultra/SukiSU_KernelPatch_patch
+
+The bundled kpimg and Android kptools binaries are the matching 0.13.0
+release artifacts. Their source is licensed under GPL-2.0-or-later.
+The artifacts are pinned and verified at runtime with SHA-256.

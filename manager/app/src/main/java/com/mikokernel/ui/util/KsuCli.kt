@@ -387,6 +387,8 @@ fun installBoot(
         }
     }
 
+    var kptoolsFile: File? = null
+    var kpimgFile: File? = null
     var cmd = "boot-patch"
 
     cmd += if (bootFile == null) {
@@ -405,7 +407,21 @@ fun installBoot(
     }
 
     if (enableKpm) {
+        fun copyKpmAsset(name: String): File {
+            val file = File(ksuApp.cacheDir, "kinsu-$name")
+            ksuApp.assets.open("kpm/$name").use { input ->
+                file.outputStream().use { output -> input.copyTo(output) }
+            }
+            return file
+        }
+
+        val extractedKptools = copyKpmAsset("kptools")
+        val extractedKpimg = copyKpmAsset("kpimg")
+        kptoolsFile = extractedKptools
+        kpimgFile = extractedKpimg
         cmd += " --enable-kpm"
+        cmd += " --kptools '${extractedKptools.absolutePath.replace("'", "'\\''")}'"
+        cmd += " --kpimg '${extractedKpimg.absolutePath.replace("'", "'\\''")}'"
     }
 
     if (enableSusfs) {
@@ -417,28 +433,30 @@ fun installBoot(
     }
 
     var lkmFile: File? = null
-    when (lkm) {
-        is LkmSelection.LkmUri -> {
-            lkmFile = with(resolver.openInputStream(lkm.uri)) {
-                val file = File(ksuApp.cacheDir, "kernelsu-tmp-lkm.ko")
-                file.outputStream().use { output ->
-                    this?.copyTo(output)
+    if (!enableKpm) {
+        when (lkm) {
+            is LkmSelection.LkmUri -> {
+                lkmFile = with(resolver.openInputStream(lkm.uri)) {
+                    val file = File(ksuApp.cacheDir, "kernelsu-tmp-lkm.ko")
+                    file.outputStream().use { output ->
+                        this?.copyTo(output)
+                    }
+
+                    file
                 }
-
-                file
+                cmd += " -m ${lkmFile.absolutePath}"
             }
-            cmd += " -m ${lkmFile.absolutePath}"
-        }
 
-        is LkmSelection.KmiString -> {
-            val escapedKmi = lkm.value.replace("'", "'\\''")
-            cmd += " --kmi '$escapedKmi'"
-        }
+            is LkmSelection.KmiString -> {
+                val escapedKmi = lkm.value.replace("'", "'\\''")
+                cmd += " --kmi '$escapedKmi'"
+            }
 
-        LkmSelection.KmiNone -> {
-            val kmi = resolveKmiFromKernel()
-            if (kmi != null) {
-                cmd += " --kmi $kmi"
+            LkmSelection.KmiNone -> {
+                val kmi = resolveKmiFromKernel()
+                if (kmi != null) {
+                    cmd += " --kmi $kmi"
+                }
             }
         }
     }
@@ -481,6 +499,8 @@ fun installBoot(
     bootFile?.delete()
     lkmFile?.delete()
     susfsFile?.delete()
+    kptoolsFile?.delete()
+    kpimgFile?.delete()
 
     // if boot uri is empty, it is direct install, when success, we should show reboot button
     val showReboot = bootUri == null && result.isSuccess // we create a temporary val here, to avoid calc showReboot double
@@ -695,208 +715,155 @@ suspend fun loadBundledLKM(): String = withContext(Dispatchers.IO) {
 }
 
 // ============================================================
-// KPM 模块操作 — 通过 ksud debug kpm 调用内核桩函数
-// 仅在 KPM/GKI 模式下使用（kpimg 已加载时桩函数被 hook）。
+// KPM module operations. The manager uses the standard top-level ksud KPM
+// command, which maps to the single SukiSU-compatible KSU_IOCTL_KPM ABI.
 // ============================================================
 
-/** 获取 KernelPatch 版本 */
+private val KPM_MODULE_ID = Regex("^[A-Za-z0-9][A-Za-z0-9._-]{0,30}$")
+
+private fun shellQuote(value: String): String = "'${value.replace("'", "'\\''")}'"
+
+fun isValidKpmModuleId(id: String): Boolean = KPM_MODULE_ID.matches(id)
+
+private fun checkedShellOutput(command: String): String {
+    val stdout = ArrayList<String>()
+    val stderr = ArrayList<String>()
+    val result = getRootShell().newJob().add(command).to(stdout, stderr).exec()
+    check(result.isSuccess) {
+        stderr.joinToString("\n").trim().ifBlank {
+            "Command failed with exit code ${result.code}"
+        }
+    }
+    return stdout.joinToString("\n").trim()
+}
+
+private fun kpmOutput(arguments: String): String =
+    checkedShellOutput("${getKsuDaemonPath()} kpm $arguments")
+
 fun kpmGetVersion(): String {
-    val shell = getRootShell()
-    return ShellUtils.fastCmd(shell, "${getKsuDaemonPath()} debug kpm version").trim()
+    return kpmOutput("version")
 }
 
-/** 获取已加载 KPM 模块数量 */
 fun kpmGetNum(): Int {
-    val shell = getRootShell()
-    val result = ShellUtils.fastCmd(shell, "${getKsuDaemonPath()} debug kpm num").trim()
-    return result.toIntOrNull() ?: -1
+    return runCatching { kpmOutput("num").toInt() }.getOrDefault(-1)
 }
 
-/** 列出所有 KPM 模块 (JSON) */
 fun kpmListModules(): String {
-    val shell = getRootShell()
-    val result = ShellUtils.fastCmd(shell, "${getKsuDaemonPath()} debug kpm list").trim()
-    return result.ifBlank { "[]" }
+    return kpmOutput("list")
 }
 
-/** 加载 KPM 模块 */
+fun kpmListPersistentModules(): List<String> {
+    val output = checkedShellOutput(
+        "if [ -d /data/adb/kpm ]; then " +
+            "for f in /data/adb/kpm/*.kpm; do " +
+            "[ -f \"\$f\" ] || continue; b=\${f##*/}; " +
+            "printf '%s\\n' \"\${b%.kpm}\"; done; fi"
+    )
+    return output.lineSequence()
+        .map(String::trim)
+        .filter(::isValidKpmModuleId)
+        .distinct()
+        .toList()
+}
+
 fun kpmLoadModule(path: String, args: String = ""): Boolean {
     val shell = getRootShell()
-    val escapedPath = path.replace("'", "'\\''")
-    val cmd = if (args.isNotBlank()) {
-        val escapedArgs = args.replace("'", "'\\''")
-        "${getKsuDaemonPath()} debug kpm load '$escapedPath' '$escapedArgs'"
-    } else {
-        "${getKsuDaemonPath()} debug kpm load '$escapedPath'"
-    }
-    val result = ShellUtils.fastCmd(shell, cmd).trim()
-    Log.i(TAG, "KPM load module $path result: $result")
-    return result == "OK"
+    val argsPart = if (args.isBlank()) "" else " ${shellQuote(args)}"
+    return ShellUtils.fastCmdResult(
+        shell,
+        "${getKsuDaemonPath()} kpm load ${shellQuote(path)}$argsPart"
+    )
 }
 
-/** 卸载 KPM 模块 */
 fun kpmUnloadModule(name: String): Boolean {
+    if (!isValidKpmModuleId(name)) return false
     val shell = getRootShell()
-    val escaped = name.replace("'", "'\\''")
-    val result = ShellUtils.fastCmd(shell, "${getKsuDaemonPath()} debug kpm unload '$escaped'").trim()
-    Log.i(TAG, "KPM unload module $name result: $result")
-    return result == "OK"
+    return ShellUtils.fastCmdResult(
+        shell,
+        "${getKsuDaemonPath()} kpm unload ${shellQuote(name)}"
+    )
 }
 
-/** 获取 KPM 模块信息 */
 fun kpmGetModuleInfo(name: String): String {
-    val shell = getRootShell()
-    val escaped = name.replace("'", "'\\''")
-    return ShellUtils.fastCmd(shell, "${getKsuDaemonPath()} debug kpm info '$escaped'").trim()
+    if (!isValidKpmModuleId(name)) return ""
+    return kpmOutput("info ${shellQuote(name)}")
 }
 
-/** 发送控制命令到 KPM 模块 */
 fun kpmControlModule(name: String, args: String = ""): Int {
-    val shell = getRootShell()
-    val escapedName = name.replace("'", "'\\''")
-    val cmd = if (args.isNotBlank()) {
-        val escapedArgs = args.replace("'", "'\\''")
-        "${getKsuDaemonPath()} debug kpm control '$escapedName' '$escapedArgs'"
+    if (!isValidKpmModuleId(name)) return -1
+    return runCatching {
+        kpmOutput("control ${shellQuote(name)} ${shellQuote(args)}").toInt()
+    }.getOrDefault(-1)
+}
+
+/**
+ * Copy a validated KPM into the root-only staging/persistent directory.
+ * Returns the root-visible destination path, or null when copying fails.
+ */
+fun kpmStageModule(sourcePath: String, moduleId: String, persistent: Boolean): String? {
+    if (!isValidKpmModuleId(moduleId)) return null
+
+    val suffix = if (persistent) {
+        "$moduleId.kpm"
     } else {
-        "${getKsuDaemonPath()} debug kpm control '$escapedName'"
+        // Staging files deliberately do not use the .kpm extension: ksud only
+        // scans *.kpm at boot, so a crash cannot turn a partial install into an
+        // unexpected persistent module.
+        ".kinsu-${System.currentTimeMillis()}-$moduleId.stage"
     }
-    val result = ShellUtils.fastCmd(shell, cmd).trim()
-    Log.i(TAG, "KPM control $name result: $result")
-    return if (result == "OK") 0 else -1
-}
-
-/** 安装 KPM 模块 (ZIP/.kpm) — 从 ZIP 中提取 .kpm 文件后通过 kpm load 加载 */
-fun kpmInstallModule(
-    uri: Uri,
-    onStdout: (String) -> Unit,
-    onStderr: (String) -> Unit
-): FlashResult {
-    val resolver = ksuApp.contentResolver
-    with(resolver.openInputStream(uri)) {
-        // Get original filename from URI (sanitize to prevent path traversal)
-        val rawDisplayName = uri.lastPathSegment?.substringAfterLast('/') ?: "kpm_module"
-        val displayName = File(rawDisplayName).name // strip any ../ path components
-        val isKpmFile = displayName.endsWith(".kpm", ignoreCase = true)
-        val savedFile = File(ksuApp.cacheDir, if (isKpmFile) displayName else "kpm_module.zip")
-        savedFile.outputStream().use { output ->
-            this?.copyTo(output)
-        }
-
-        // If the selected file is already a .kpm, load it directly
-        var kpmFile: File? = if (isKpmFile) savedFile else null
-
-        // If it's a ZIP, try to extract .kpm from it
-        if (!isKpmFile) {
-            try {
-                val zip = java.util.zip.ZipFile(savedFile)
-                val entry = zip.entries().asSequence().find {
-                    it.name.endsWith(".kpm", ignoreCase = true) && !it.isDirectory
-                }
-                if (entry != null) {
-                    val extractedFile = File(ksuApp.cacheDir, entry.name.substringAfterLast('/'))
-                    kpmFile = extractedFile
-                    zip.getInputStream(entry).use { input ->
-                        extractedFile.outputStream().use { output ->
-                            input.copyTo(output)
-                        }
-                    }
-                    onStdout("提取: ${entry.name}")
-                } else {
-                    onStdout("未找到 .kpm 文件，尝试直接加载")
-                }
-                zip.close()
-            } catch (e: Exception) {
-                onStderr("解压失败: ${e.message}")
-            }
-        }
-
-        val moduleFile = kpmFile ?: savedFile.also {
-            onStdout("未提取到 .kpm，使用原文件")
-        }
-
-        // Copy to /data/adb/ via root shell so ksud (root) can read it
-        // /data/adb/ is the standard KernelSU directory and always root-accessible
-        val destName = "kpm_${System.currentTimeMillis()}.kpm"
-        val rootPath = "/data/adb/$destName"
-        val copyResult = withNewRootShell(true) {
-            newJob().add("mkdir -p /data/adb").to(ArrayList(), ArrayList()).exec()
-            newJob().add("cp '${moduleFile.absolutePath}' '$rootPath' && chmod 644 '$rootPath' && ls -la '$rootPath'")
-                .to(object : CallbackList<String?>() {
-                    override fun onAddElement(s: String?) { if (s != null) onStdout(s) }
-                }, object : CallbackList<String?>() {
-                    override fun onAddElement(s: String?) { if (s != null) onStderr(s) }
-                }).exec()
-        }
-        val loadPath = if (copyResult.isSuccess) rootPath else moduleFile.absolutePath
-        val escapedLoadPath = loadPath.replace("'", "'\\''")
-        val result = flashWithIO("${getKsuDaemonPath()} debug kpm load '$escapedLoadPath'", onStdout, onStderr)
-        Log.i("KinSU", "KPM install module $uri result: code=${result.code} out=${result.out}")
-
-        // Cleanup
-        withNewRootShell(true) {
-            newJob().add("rm -f '$rootPath'").to(ArrayList(), ArrayList()).exec()
-        }
-        savedFile.delete()
-        if (moduleFile != savedFile) moduleFile.delete()
-
-        return FlashResult(result)
+    val destination = "/data/adb/kpm/$suffix"
+    val temporary = "$destination.tmp"
+    val command = buildString {
+        append("mkdir -p /data/adb/kpm")
+        append(" && chmod 700 /data/adb/kpm")
+        append(" && cp ")
+        append(shellQuote(sourcePath))
+        append(' ')
+        append(shellQuote(temporary))
+        append(" && chmod 600 ")
+        append(shellQuote(temporary))
+        append(" && mv -f ")
+        append(shellQuote(temporary))
+        append(' ')
+        append(shellQuote(destination))
     }
-}
 
-/** 卸载 KPM 模块（通过 kpm unload） */
-fun kpmUninstallModule(id: String): Boolean {
-    return kpmUnloadModule(id)
-}
-
-/** 启用/禁用 KPM 模块（通过 kpm control） */
-fun kpmToggleModule(id: String, enable: Boolean): Boolean {
-    val cmd = if (enable) "enable" else "disable"
-    return kpmControlModule(id, cmd) == 0
-}
-
-/** 运行 KPM 模块 action */
-fun kpmRunModuleAction(
-    moduleId: String, onStdout: (String) -> Unit, onStderr: (String) -> Unit
-): Boolean {
-    val escapedId = moduleId.replace("'", "'\\''")
-    val stdoutCallback: CallbackList<String?> = object : CallbackList<String?>() {
-        override fun onAddElement(s: String?) { onStdout(s ?: "") }
-    }
-    val stderrCallback: CallbackList<String?> = object : CallbackList<String?>() {
-        override fun onAddElement(s: String?) { onStderr(s ?: "") }
-    }
-    val result = withNewRootShell(true) {
-        newJob().add("${getKsuDaemonPath()} debug kpm control '$escapedId' 'action'")
-            .to(stdoutCallback, stderrCallback).exec()
-    }
-    Log.i("KinSU", "KPM module action result: $result")
-    return result.isSuccess
-}
-
-/** 获取 KPM 模块配置 */
-fun kpmGetModuleConfig(moduleId: String, key: String): String {
-    val escapedKey = key.replace("'", "'\\''")
-    return kpmControlModule(moduleId, "config get '$escapedKey'").toString()
-}
-
-/** 设置 KPM 模块配置 */
-fun kpmSetModuleConfig(moduleId: String, key: String, value: String, temp: Boolean = false): Boolean {
-    val escapedKey = key.replace("'", "'\\''")
-    val escapedValue = value.replace("'", "'\\''")
-    val tempFlag = if (temp) " --temp" else ""
-    return kpmControlModule(moduleId, "config set '$escapedKey' '$escapedValue'$tempFlag") == 0
-}
-
-/** 触发 post-fs-data 事件 */
-fun kpmPostFsData(superkey: String? = null): Boolean {
-    val keyArg = superkey?.let { " --superkey '${it.replace("'", "'\\''")}'" } ?: ""
     val shell = getRootShell()
-    return ShellUtils.fastCmdResult(shell, "${getKsuDaemonPath()} debug kpm control 'post-fs-data'$keyArg")
+    return destination.takeIf { ShellUtils.fastCmdResult(shell, command) }
 }
 
-/** 触发 boot-completed 事件 */
-fun kpmBootCompleted(superkey: String? = null): Boolean {
-    val keyArg = superkey?.let { " --superkey '${it.replace("'", "'\\''")}'" } ?: ""
+fun kpmRemovePersistentModule(moduleId: String): Boolean {
+    if (!isValidKpmModuleId(moduleId)) return false
     val shell = getRootShell()
-    return ShellUtils.fastCmdResult(shell, "${getKsuDaemonPath()} debug kpm control 'boot-completed'$keyArg")
+    return ShellUtils.fastCmdResult(
+        shell,
+        "rm -f ${shellQuote("/data/adb/kpm/$moduleId.kpm")}"
+    )
+}
+
+fun kpmRemoveStagedModule(path: String) {
+    if (!path.startsWith("/data/adb/kpm/.kinsu-")) return
+    val shell = getRootShell()
+    ShellUtils.fastCmdResult(shell, "rm -f ${shellQuote(path)}")
+}
+
+fun kpmPromoteStagedModule(path: String, moduleId: String): Boolean {
+    if (!path.startsWith("/data/adb/kpm/.kinsu-") || !isValidKpmModuleId(moduleId)) {
+        return false
+    }
+    val destination = "/data/adb/kpm/$moduleId.kpm"
+    val shell = getRootShell()
+    return ShellUtils.fastCmdResult(
+        shell,
+        "chmod 600 ${shellQuote(path)} && mv -f ${shellQuote(path)} ${shellQuote(destination)}"
+    )
+}
+
+fun kpmIsPersistent(moduleId: String): Boolean {
+    if (!isValidKpmModuleId(moduleId)) return false
+    val shell = getRootShell()
+    return ShellUtils.fastCmdResult(
+        shell,
+        "test -f ${shellQuote("/data/adb/kpm/$moduleId.kpm")}"
+    )
 }
